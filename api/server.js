@@ -129,7 +129,7 @@ app.post('/api/customers/subscribe', async (req, res) => {
     });
   }
 });
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.post('/api/create-checkout', async (req, res) => {
   try {
     const { items } = req.body;
