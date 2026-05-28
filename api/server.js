@@ -132,40 +132,47 @@ app.post('/api/customers/subscribe', async (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.post('/api/create-checkout', async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, checkoutMethod } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
-    const lineItems = items.map((item) => {
-  const flavorText = item.selectedFlavors?.length
-    ? item.selectedFlavors.map((flavor) => flavor.name).join(', ')
-    : '';
+    const methodLabel =
+      checkoutMethod === 'shipping'
+        ? 'Nationwide Shipping'
+        : checkoutMethod === 'pickup'
+        ? 'In-Store Pickup'
+        : 'Standard Checkout';
 
-  return {
-    name: flavorText
-      ? `${item.name} — ${flavorText}`
-      : item.name,
-    quantity: String(item.quantity || 1),
-    basePriceMoney: {
-      amount: BigInt(item.priceAmount),
-      currency: 'USD',
-    },
-  };
-});
+    const lineItems = items.map((item) => {
+      const flavorText = item.selectedFlavors?.length
+        ? item.selectedFlavors.map((flavor) => flavor.name).join(', ')
+        : '';
+
+      return {
+        name: flavorText ? `${item.name} — ${flavorText}` : item.name,
+        quantity: String(item.quantity || 1),
+        basePriceMoney: {
+          amount: BigInt(item.priceAmount),
+          currency: 'USD',
+        },
+      };
+    });
 
     const result = await square.checkout.paymentLinks.create({
       idempotencyKey: crypto.randomUUID(),
       order: {
         locationId: process.env.SQUARE_LOCATION_ID,
         lineItems,
+        referenceId: methodLabel,
       },
       checkoutOptions: {
         redirectUrl: 'https://chunkichip-next.vercel.app/success',
+        askForShippingAddress: checkoutMethod === 'shipping',
       },
-      description: 'Chunki Chip online order',
-      paymentNote: 'Chunki Chip custom web checkout',
+      description: `Chunki Chip online order — ${methodLabel}`,
+      paymentNote: `Fulfillment method: ${methodLabel}`,
     });
 
     res.json({
