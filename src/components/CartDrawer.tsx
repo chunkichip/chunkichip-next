@@ -8,7 +8,10 @@ type Props = {
   setOpen: (open: boolean) => void;
 };
 
-type CheckoutMethod = 'pickup' | 'shipping';
+type CheckoutMethod =
+  | 'pickup'
+  | 'curbside'
+  | 'shipping';
 
 const DOORDASH_URL =
   'https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/';
@@ -124,6 +127,18 @@ export default function CartDrawer({ open, setOpen }: Props) {
                 </p>
               </button>
 
+	<button
+  onClick={() => handleCheckout('curbside')}
+  className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl"
+>
+  <h3 className="text-xl font-black text-[#2b140d]">
+    Curbside Pickup
+  </h3>
+
+  <p className="mt-2 text-sm leading-6 text-[#6f4b3e]">
+    Park outside and use Square arrival alerts for curbside pickup.
+  </p>
+</button>
               <button
                 onClick={() => handleCheckout('shipping')}
                 className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl"

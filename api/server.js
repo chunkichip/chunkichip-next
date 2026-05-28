@@ -139,11 +139,13 @@ app.post('/api/create-checkout', async (req, res) => {
     }
 
     const methodLabel =
-      checkoutMethod === 'shipping'
-        ? 'Nationwide Shipping'
-        : checkoutMethod === 'pickup'
-        ? 'In-Store Pickup'
-        : 'Standard Checkout';
+  checkoutMethod === 'shipping'
+    ? 'Nationwide Shipping'
+    : checkoutMethod === 'curbside'
+    ? 'Curbside Pickup'
+    : checkoutMethod === 'pickup'
+    ? 'In-Store Pickup'
+    : 'Standard Checkout';
 
     const lineItems = items.map((item) => {
       const flavorText = item.selectedFlavors?.length
