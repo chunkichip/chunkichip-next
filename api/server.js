@@ -162,7 +162,7 @@ app.post('/api/create-checkout', async (req, res) => {
         lineItems,
       },
       checkoutOptions: {
-        redirectUrl: 'http://localhost:3000/success',
+        redirectUrl: 'https://chunkichip-next.vercel.app/success',
       },
       description: 'Chunki Chip online order',
       paymentNote: 'Chunki Chip custom web checkout',
