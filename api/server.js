@@ -118,16 +118,15 @@ app.post('/api/customers/subscribe', async (req, res) => {
     });
 
     res.json({
-      success: true,
-      customer: result.customer,
-    });
-  } catch (err) {
-    console.error(err);
+  success: true,
+});
+ } catch (err) {
+  console.error('Subscribe error:', err);
 
-    res.status(500).json({
-      error: 'Failed to subscribe',
-    });
-  }
+  res.status(500).json({
+    error: err.message || 'Failed to subscribe',
+  });
+}
 });
 const PORT = process.env.PORT || 3001;
 app.post('/api/create-checkout', async (req, res) => {
