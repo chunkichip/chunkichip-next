@@ -4,18 +4,12 @@ import { useEffect, useState } from 'react';
 
 export default function DropListPopup() {
   const [open, setOpen] = useState(false);
-
   const [email, setEmail] = useState('');
-
   const [loading, setLoading] = useState(false);
-
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    const dismissed = sessionStorage.getItem(
-      'drop-list-dismissed'
-    );
-
+    const dismissed = sessionStorage.getItem('drop-list-dismissed');
     if (dismissed) return;
 
     const timeout = setTimeout(() => {
@@ -26,11 +20,7 @@ export default function DropListPopup() {
   }, []);
 
   function closePopup() {
-    sessionStorage.setItem(
-      'drop-list-dismissed',
-      'true'
-    );
-
+    sessionStorage.setItem('drop-list-dismissed', 'true');
     setOpen(false);
   }
 
@@ -47,9 +37,7 @@ export default function DropListPopup() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            email,
-          }),
+          body: JSON.stringify({ email }),
         }
       );
 
@@ -57,11 +45,7 @@ export default function DropListPopup() {
 
       if (data.success) {
         setSuccess(true);
-
-        sessionStorage.setItem(
-          'drop-list-dismissed',
-          'true'
-        );
+        sessionStorage.setItem('drop-list-dismissed', 'true');
 
         setTimeout(() => {
           setOpen(false);
@@ -69,9 +53,7 @@ export default function DropListPopup() {
       } else {
         alert(data.error || 'Failed to subscribe');
       }
-    } catch (err) {
-      console.error(err);
-
+    } catch {
       alert('Failed to subscribe');
     } finally {
       setLoading(false);
@@ -81,18 +63,23 @@ export default function DropListPopup() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl overflow-hidden rounded-[3rem] bg-white shadow-2xl">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm">
+      <button
+        onClick={closePopup}
+        className="absolute inset-0 h-full w-full"
+        aria-label="Close popup"
+      />
+
+      <div className="relative z-10 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] bg-white shadow-2xl md:rounded-[3rem]">
         <button
           onClick={closePopup}
-          className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-xl font-semibold text-[#2b140d]"
+          className="sticky left-full top-4 z-30 mr-4 flex h-11 w-11 items-center justify-center rounded-full bg-white text-2xl font-semibold text-[#eb2327] shadow-xl"
         >
           ×
         </button>
 
         <div className="grid md:grid-cols-2">
-          {/* LEFT */}
-          <div className="relative flex items-center justify-center overflow-hidden bg-[#fff1f7] p-10">
+          <div className="relative hidden items-center justify-center overflow-hidden bg-[#fff1f7] p-10 md:flex">
             <div className="absolute h-[320px] w-[320px] rounded-full bg-pink-200 blur-3xl" />
 
             <img
@@ -102,8 +89,7 @@ export default function DropListPopup() {
             />
           </div>
 
-          {/* RIGHT */}
-          <div className="flex flex-col justify-center p-8 md:p-12">
+          <div className="flex flex-col justify-center p-7 pt-2 md:p-12">
             {success ? (
               <>
                 <p className="text-sm font-black uppercase tracking-[0.3em] text-[#eb2327]">
@@ -135,7 +121,7 @@ export default function DropListPopup() {
                   ACCESS
                 </h2>
 
-                <p className="mt-6 text-lg leading-8 text-[#6f4b3e]">
+                <p className="mt-6 text-base leading-7 text-[#6f4b3e] md:text-lg md:leading-8">
                   Weekly cookie drops, exclusive flavors, early access, and
                   special offers.
                 </p>
@@ -145,9 +131,7 @@ export default function DropListPopup() {
                     type="email"
                     placeholder="Email address"
                     value={email}
-                    onChange={(e) =>
-                      setEmail(e.target.value)
-                    }
+                    onChange={(e) => setEmail(e.target.value)}
                     className="h-[56px] rounded-full border border-[#ffccef] px-6 text-base outline-none transition focus:border-[#eb2327]"
                   />
 
@@ -156,16 +140,16 @@ export default function DropListPopup() {
                     disabled={loading}
                     className="flex h-[56px] items-center justify-center rounded-full bg-black text-base font-semibold text-white transition hover:scale-[1.02] disabled:opacity-50"
                   >
-                    {loading
-                      ? 'Joining...'
-                      : 'Get 10% Off'}
+                    {loading ? 'Joining...' : 'Get 10% Off'}
                   </button>
                 </div>
 
-                <p className="mt-5 text-xs leading-6 text-[#6f4b3e]">
-                  By joining, you agree to receive occasional marketing emails
-                  and cookie updates.
-                </p>
+                <button
+                  onClick={closePopup}
+                  className="mt-4 text-sm font-semibold text-[#6f4b3e] underline"
+                >
+                  No thanks
+                </button>
               </>
             )}
           </div>
