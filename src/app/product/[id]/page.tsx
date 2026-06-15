@@ -164,6 +164,9 @@ export default function ProductPage({ params }: Props) {
   }
 
   function BoxPreview() {
+  if (!product) return null;
+
+  return (
     return (
       <div className="relative mx-auto w-full max-w-[310px] md:max-w-5xl">
         {product.imageUrl ? (
