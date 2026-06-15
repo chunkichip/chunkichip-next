@@ -70,7 +70,6 @@ export default function ProductPage({ params }: Props) {
       );
 
       const products = await res.json();
-
       setAllProducts(Array.isArray(products) ? products : []);
 
       const found = Array.isArray(products)
@@ -164,6 +163,56 @@ export default function ProductPage({ params }: Props) {
     }, 1800);
   }
 
+  function BoxPreview() {
+    return (
+      <div className="relative mx-auto w-full max-w-[310px] md:max-w-5xl">
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full object-contain drop-shadow-2xl"
+          />
+        ) : (
+          <img
+            src={`/boxes/${product.boxSize}-box.png`}
+            alt={product.name}
+            className="w-full object-contain drop-shadow-2xl"
+          />
+        )}
+
+        {slots.map(([left, top], index) => {
+          const cookie = limitedSelectedCookies[index];
+          const cookieSize = getCookieSize();
+
+          return (
+            <div
+              key={`${index}-${cookie?.id || 'empty'}`}
+              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+              style={{
+                left,
+                top,
+                width: cookieSize,
+                height: cookieSize,
+              }}
+            >
+              {cookie ? (
+                <img
+                  src={cookie.imageUrl || ''}
+                  alt={cookie.name}
+                  className="h-full w-full animate-[cookiePop_0.45s] rounded-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.28)]"
+                />
+              ) : (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-xs font-semibold text-[#eb2327] shadow md:h-10 md:w-10 md:text-sm">
+                  {index + 1}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-white px-4 pb-32 pt-3 text-[#2b140d] md:px-8">
       <style>{`
@@ -195,51 +244,9 @@ export default function ProductPage({ params }: Props) {
 
         {product.isBox ? (
           <section className="grid gap-4 lg:grid-cols-[0.95fr_1fr] lg:gap-6">
-            <div className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-3 md:p-5">
-              <div className="relative mx-auto max-w-5xl">
-                {product.imageUrl ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="w-full object-contain drop-shadow-2xl"
-                  />
-                ) : (
-                  <img
-                    src={`/boxes/${product.boxSize}-box.png`}
-                    alt={product.name}
-                    className="w-full object-contain drop-shadow-2xl"
-                  />
-                )}
-
-                {slots.map(([left, top], index) => {
-                  const cookie = limitedSelectedCookies[index];
-                  const cookieSize = getCookieSize();
-
-                  return (
-                    <div
-                      key={`${index}-${cookie?.id || 'empty'}`}
-                      className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-                      style={{
-                        left,
-                        top,
-                        width: cookieSize,
-                        height: cookieSize,
-                      }}
-                    >
-                      {cookie ? (
-                        <img
-                          src={cookie.imageUrl || ''}
-                          alt={cookie.name}
-                          className="h-full w-full animate-[cookiePop_0.45s] rounded-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.28)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                        />
-                      ) : (
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-xs font-semibold text-[#eb2327] shadow md:h-10 md:w-10 md:text-sm">
-                          {index + 1}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
+            <div className="sticky top-[76px] z-20 rounded-[1.5rem] border border-[#ffe3f3] bg-[#fff7fb] p-2 shadow-xl md:static md:rounded-[2rem] md:p-5 md:shadow-none">
+              <div className="mx-auto overflow-hidden">
+                <BoxPreview />
               </div>
             </div>
 
@@ -270,7 +277,7 @@ export default function ProductPage({ params }: Props) {
               </div>
 
               <div className="md:hidden">
-                <div className="-mx-4 overflow-x-auto px-4 pb-3">
+                <div className="-mx-4 overflow-x-auto overscroll-x-contain px-4 pb-4">
                   <div className="flex w-max gap-3">
                     {cookies.map((cookie) => {
                       const qty = quantities[cookie.id] || 0;
@@ -278,7 +285,7 @@ export default function ProductPage({ params }: Props) {
                       return (
                         <div
                           key={cookie.id}
-                          className="w-[150px] shrink-0 rounded-[1.5rem] border border-[#ffe3f3] bg-[#fff7fb] p-3"
+                          className="w-[148px] shrink-0 rounded-[1.5rem] border border-[#ffe3f3] bg-[#fff7fb] p-3"
                         >
                           <div className="flex h-24 items-center justify-center rounded-[1.2rem] bg-white">
                             {cookie.imageUrl ? (
