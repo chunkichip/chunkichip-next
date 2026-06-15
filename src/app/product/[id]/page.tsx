@@ -33,7 +33,7 @@ const boxSlots: Record<string, [string, string][]> = {
     ['27%', '53%'],
     ['50%', '53%'],
     ['73%', '53%'],
-    ['2%', '72%'],
+    ['27%', '72%'],
     ['50%', '72%'],
     ['73%', '72%'],
   ],
@@ -64,9 +64,11 @@ export default function ProductPage({ params }: Props) {
   useEffect(() => {
     async function load() {
       const { id } = await params;
+
       const res = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/api/products`
-);
+        `${process.env.NEXT_PUBLIC_API_URL}/api/products`
+      );
+
       const products = await res.json();
 
       setAllProducts(Array.isArray(products) ? products : []);
@@ -135,9 +137,9 @@ export default function ProductPage({ params }: Props) {
   }
 
   function addCurrentProductToCart() {
-  if (!product) return;
+    if (!product) return;
 
-  addItem({
+    addItem({
       productId: product.id,
       variationId: product.variationId,
       name: product.name,
@@ -163,7 +165,7 @@ export default function ProductPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-white px-4 pb-36 pt-2 text-[#2b140d] md:px-8">
+    <main className="min-h-screen bg-white px-4 pb-32 pt-3 text-[#2b140d] md:px-8">
       <style>{`
         @keyframes cookiePop {
           0% {
@@ -185,15 +187,15 @@ export default function ProductPage({ params }: Props) {
 
       <div className="mx-auto max-w-[1600px]">
         <a
-          href="/"
-          className="mb-4 inline-flex rounded-full border border-[#ffccef] px-5 py-2 text-sm font-semibold text-[#eb2327]"
+          href="/#boxes"
+          className="mb-3 inline-flex rounded-full border border-[#ffccef] px-5 py-2 text-sm font-semibold text-[#eb2327] md:mb-5"
         >
           ← Back to menu
         </a>
 
         {product.isBox ? (
-          <section className="grid gap-6 lg:grid-cols-[1fr_0.95fr]">
-            <div className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5">
+          <section className="grid gap-4 lg:grid-cols-[0.95fr_1fr] lg:gap-6">
+            <div className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-3 md:p-5">
               <div className="relative mx-auto max-w-5xl">
                 {product.imageUrl ? (
                   <img
@@ -228,10 +230,10 @@ export default function ProductPage({ params }: Props) {
                         <img
                           src={cookie.imageUrl || ''}
                           alt={cookie.name}
-                          className="h-full w-full rounded-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.28)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] animate-[cookiePop_0.45s]"
+                          className="h-full w-full animate-[cookiePop_0.45s] rounded-full object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.28)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                         />
                       ) : (
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-[#eb2327] shadow">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-xs font-semibold text-[#eb2327] shadow md:h-10 md:w-10 md:text-sm">
                           {index + 1}
                         </span>
                       )}
@@ -241,24 +243,24 @@ export default function ProductPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-[#ffe3f3] bg-white p-5 md:p-7">
-              <div className="mb-6 flex items-center justify-between">
+            <div className="rounded-[2rem] border border-[#ffe3f3] bg-white p-4 md:p-7">
+              <div className="mb-4 flex items-start justify-between gap-4 md:mb-6">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#eb2327]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#eb2327] md:text-sm">
                     Build Your Box
                   </p>
 
-                  <h1 className="brand-heading mt-2 text-5xl leading-none">
+                  <h1 className="brand-heading mt-2 text-4xl leading-none md:text-5xl">
                     Select {maxCookies} Flavors
                   </h1>
                 </div>
 
-                <div className="rounded-full bg-[#eb2327] px-5 py-2 text-sm font-semibold text-white">
+                <div className="rounded-full bg-[#eb2327] px-4 py-2 text-sm font-semibold text-white">
                   {product.price}
                 </div>
               </div>
 
-              <div className="mb-6 h-3 overflow-hidden rounded-full bg-[#fff7fb]">
+              <div className="mb-4 h-3 overflow-hidden rounded-full bg-[#fff7fb] md:mb-6">
                 <div
                   className="h-full rounded-full bg-[#eb2327] transition-all"
                   style={{
@@ -267,7 +269,61 @@ export default function ProductPage({ params }: Props) {
                 />
               </div>
 
-              <div className="max-h-[620px] overflow-y-auto pr-2">
+              <div className="md:hidden">
+                <div className="-mx-4 overflow-x-auto px-4 pb-3">
+                  <div className="flex w-max gap-3">
+                    {cookies.map((cookie) => {
+                      const qty = quantities[cookie.id] || 0;
+
+                      return (
+                        <div
+                          key={cookie.id}
+                          className="w-[150px] shrink-0 rounded-[1.5rem] border border-[#ffe3f3] bg-[#fff7fb] p-3"
+                        >
+                          <div className="flex h-24 items-center justify-center rounded-[1.2rem] bg-white">
+                            {cookie.imageUrl ? (
+                              <img
+                                src={cookie.imageUrl}
+                                alt={cookie.name}
+                                className="max-h-[82px] object-contain"
+                              />
+                            ) : (
+                              <div className="text-4xl">🍪</div>
+                            )}
+                          </div>
+
+                          <h3 className="mt-3 min-h-[42px] text-sm font-black leading-tight">
+                            {cookie.name}
+                          </h3>
+
+                          <div className="mt-4 flex items-center justify-between rounded-full border border-[#ffccef] bg-white px-2 py-2">
+                            <button
+                              onClick={() => decrease(cookie)}
+                              className="flex h-8 w-8 items-center justify-center rounded-full text-[#eb2327]"
+                            >
+                              <Minus size={17} />
+                            </button>
+
+                            <span className="min-w-[20px] text-center text-sm font-black">
+                              {qty}
+                            </span>
+
+                            <button
+                              onClick={() => increase(cookie)}
+                              disabled={totalSelected >= maxCookies}
+                              className="flex h-8 w-8 items-center justify-center rounded-full text-[#eb2327] disabled:opacity-30"
+                            >
+                              <Plus size={17} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="hidden max-h-[620px] overflow-y-auto pr-2 md:block">
                 <div className="space-y-3">
                   {cookies.map((cookie) => {
                     const qty = quantities[cookie.id] || 0;
@@ -321,7 +377,7 @@ export default function ProductPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-between rounded-2xl bg-[#fff7fb] p-4">
+              <div className="mt-4 flex items-center justify-between rounded-2xl bg-[#fff7fb] p-4 md:mt-6">
                 <div>
                   <p className="text-sm font-medium text-[#6f4b3e]">
                     Selected
@@ -335,7 +391,7 @@ export default function ProductPage({ params }: Props) {
                 <button
                   disabled={totalSelected !== maxCookies}
                   onClick={addCurrentProductToCart}
-                  className={`fixed bottom-5 left-5 right-5 z-40 flex h-[50px] items-center justify-center rounded-full px-8 text-base font-semibold text-white shadow-2xl transition enabled:hover:scale-[1.02] disabled:opacity-40 md:static md:min-w-[240px] ${
+                  className={`fixed bottom-4 left-4 right-4 z-50 flex h-[58px] items-center justify-center rounded-full px-8 text-base font-semibold text-white shadow-2xl transition enabled:hover:scale-[1.02] disabled:opacity-40 md:static md:min-w-[240px] ${
                     added ? 'bg-[#eb2327]' : 'bg-black'
                   }`}
                 >
