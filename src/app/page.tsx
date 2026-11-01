@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowDown, ArrowUpRight, ShoppingBag } from 'lucide-react';
-import { isInPersonCookieBox, isInternalPackaging, isShippingOnlyProduct } from '@/lib/catalog';
+import { getWeeklyFlavors, isInPersonCookieBox, isInternalPackaging, isShippingOnlyProduct } from '@/lib/catalog';
 
 type ModifierSet = { modifiers: { id: string; name: string; priceAmount: number; price: string }[] };
 type Product = {
@@ -41,10 +41,10 @@ export default function HomePage() {
     .filter(isInPersonCookieBox)
     .sort((a, b) => Number(a.name.match(/^\d+/)?.[0] || 0) - Number(b.name.match(/^\d+/)?.[0] || 0));
   const shippingBoxes = products.filter((product) => isShippingOnlyProduct(product) && !isInternalPackaging(product));
-  const cookies = products.filter((product) =>
-    !isInPersonCookieBox(product) && !isShippingOnlyProduct(product) && !isInternalPackaging(product)
-    && !/\b(chiptini|milk|drink|gift\s*card|catering)\b/i.test(product.name),
-  );
+  const cookies = getWeeklyFlavors(products).map((flavor) => ({
+    ...flavor,
+    price: inPersonBoxes[0]?.price || flavor.price || '',
+  }));
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#fffafc] text-[#171315]">

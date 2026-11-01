@@ -122,6 +122,7 @@ app.get('/api/products', async (_req, res) => {
               return {
                 id: m.id,
                 name: m.modifierData?.name || 'Option',
+                description: m.modifierData?.descriptionPlaintext || m.modifierData?.description || '',
                 imageUrl: m.modifierData?.imageId ? imageUrls[m.modifierData.imageId] || null : null,
                 priceAmount: modifierAmount,
                 price: rawAmount === undefined || rawAmount === null ? '' : money(modifierAmount),

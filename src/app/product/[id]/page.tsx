@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Minus, Plus } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
-import { isInPersonCookieBox, isShippingOnlyProduct } from '@/lib/catalog';
+import { getWeeklyFlavors, isInPersonCookieBox, isShippingOnlyProduct } from '@/lib/catalog';
 
 type Modifier = {
   id: string;
   name: string;
+  description?: string;
   imageUrl?: string | null;
   priceAmount: number;
   price: string;
@@ -33,7 +34,7 @@ type Product = {
   isBox: boolean;
   boxSize: string | null;
   shippingOnly?: boolean;
-  modifierSets: ModifierSet[];
+  modifierSets?: ModifierSet[];
 };
 
 type StoreLocation = { id: string; name: string; address: string };
@@ -122,7 +123,20 @@ export default function ProductPage({ params }: Props) {
           ? (products as Product[]).map((item) => ({ ...item, shippingOnly: isShippingOnlyProduct(item) }))
           : [];
         setAllProducts(catalog);
-        setProduct(catalog.find((item) => item.id === id) || null);
+        const flavor = getWeeklyFlavors(catalog).find((item) => item.id === id);
+        setProduct(catalog.find((item) => item.id === id) || (flavor ? {
+          id: flavor.id,
+          name: flavor.name,
+          description: flavor.description || '',
+          imageUrl: flavor.imageUrl || null,
+          variationId: null,
+          priceAmount: flavor.priceAmount || 0,
+          price: flavor.price || '',
+          isBox: false,
+          boxSize: null,
+          shippingOnly: false,
+          modifierSets: [],
+        } : null));
         setLocations(Array.isArray(locationData) ? locationData : []);
       } catch (loadError) {
         if (active) setError(loadError instanceof Error ? loadError.message : 'Could not load this box.');
@@ -134,7 +148,7 @@ export default function ProductPage({ params }: Props) {
   }, [params]);
 
   const options = useMemo(
-    () => product?.modifierSets.flatMap((set) => set.modifiers) || [],
+    () => product?.modifierSets?.flatMap((set) => set.modifiers) || [],
     [product],
   );
   const cookieProducts = useMemo(
@@ -142,7 +156,7 @@ export default function ProductPage({ params }: Props) {
     [allProducts],
   );
   const selectedCount = Object.values(quantities).reduce((sum, quantity) => sum + quantity, 0);
-  const maxCookies = Number(product?.boxSize || product?.modifierSets[0]?.maxSelected || 0);
+  const maxCookies = Number(product?.boxSize || product?.modifierSets?.[0]?.maxSelected || 0);
   const slots = product ? (slotsBySize[product.boxSize || ''] || []) : [];
   const selectedModifiers = options.flatMap((option) =>
     Array.from({ length: quantities[option.id] || 0 }, () => option),
@@ -158,7 +172,7 @@ export default function ProductPage({ params }: Props) {
   const flavorBoxChoices = useMemo(() => {
     if (!product) return [];
     return numberedBoxes.flatMap((box) => {
-      const boxModifiers = box.modifierSets.flatMap((set) => set.modifiers);
+      const boxModifiers = (box.modifierSets || []).flatMap((set) => set.modifiers);
       const flavor = boxModifiers.find((modifier) => normalize(modifier.name) === normalize(product.name))
         || boxModifiers.find((modifier) => normalize(modifier.name).startsWith(normalize(product.name)) || normalize(product.name).startsWith(normalize(modifier.name)));
       return flavor ? [{ box, flavor }] : [];
