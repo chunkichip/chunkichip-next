@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
 
 export default function MobileOrderBar() {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
   const totalItems = useCartStore((state) => state.totalItems());
 
   useEffect(() => {
@@ -12,6 +14,7 @@ export default function MobileOrderBar() {
   }, []);
 
   if (!mounted) return null;
+  if (pathname.startsWith('/product/')) return null;
   if (totalItems > 0) return null;
 
   return (

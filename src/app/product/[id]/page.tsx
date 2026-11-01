@@ -171,18 +171,18 @@ export default function ProductPage({ params }: Props) {
   function BoxPreview() {
     if (!product) return null;
     const hasBrandedArt = boxArtSizes.has(product.boxSize || '');
-    const cookieSize = product.boxSize === '12' ? '20%' : product.boxSize === '6' ? '24%' : '22%';
+    const cookieSize = product.boxSize === '12' ? '17%' : product.boxSize === '6' ? '20%' : '18%';
 
     return (
-      <div className="relative mx-auto w-full max-w-[620px]">
+      <div className="relative mx-auto aspect-square w-[min(100%,30vh)] max-w-[620px] lg:w-full">
         {hasBrandedArt ? (
           <img
             src={`/boxes/${product.boxSize}-box.png`}
             alt="Open Chunki Chip box"
-            className="block aspect-square w-full object-contain drop-shadow-2xl"
+            className="block h-full w-full object-contain drop-shadow-2xl"
           />
         ) : (
-          <div className="relative aspect-square overflow-hidden rounded-[2rem] border-[10px] border-[#d9161d] bg-gradient-to-br from-[#ff3438] to-[#c90d16] shadow-2xl">
+          <div className="absolute inset-0 overflow-hidden rounded-[2rem] border-[10px] border-[#d9161d] bg-gradient-to-br from-[#ff3438] to-[#c90d16] shadow-2xl">
             <div className="absolute inset-x-[6%] top-[12%] flex h-[24%] items-center justify-center border-b-[6px] border-[#b80c14] bg-[#ed1e24] text-center text-white">
               <span className="brand-heading text-[clamp(2.5rem,7vw,5.5rem)] leading-[.8]">OH, THAT’S<br/>CHUNKI™</span>
             </div>
@@ -242,13 +242,13 @@ export default function ProductPage({ params }: Props) {
         <Link href="/#boxes" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] transition hover:text-[#eb2327]"><ArrowLeft size={16}/> All box sizes</Link>
 
         <section className="mt-5 grid gap-5 lg:grid-cols-[1.05fr_.95fr] lg:items-start">
-          <div className="lg:sticky lg:top-5">
-            <div className="overflow-hidden border-2 border-black bg-[#ffccef] p-3 md:p-6">
-              <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[.18em] md:text-xs"><span>Live box preview</span><span>{selectedCount} / {maxCookies} picked</span></div>
+          <div className="sticky top-[72px] z-30 bg-[#fffafc] pb-2 lg:top-[104px] lg:bg-transparent lg:pb-0">
+            <div className="overflow-hidden border-2 border-black bg-[#ffccef] p-2 md:p-6">
+              <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-[.18em] md:mb-2 md:text-xs"><span>Live box preview</span><span>{selectedCount} / {maxCookies} picked</span></div>
               <div className="overflow-hidden rounded-xl bg-[#ffdeef]/70"><BoxPreview/></div>
-              <div className="mt-3 flex items-center justify-between border-t-2 border-black pt-3 text-xs font-black uppercase tracking-[.12em]"><span>{product.name}</span><span>{formatPrice(totalPrice)}</span></div>
+              <div className="mt-1 flex items-center justify-between border-t-2 border-black pt-2 text-[10px] font-black uppercase tracking-[.12em] md:mt-3 md:pt-3 md:text-xs"><span>{product.name}</span><span>{formatPrice(totalPrice)}</span></div>
             </div>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[.12em] text-black/65">Your selection appears in the box as you build.</p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[.12em] text-black/65 md:mt-3 md:text-xs">Your selection appears in the box as you build.</p>
           </div>
 
           <div className="border-2 border-black bg-white p-4 md:p-7">
@@ -279,12 +279,20 @@ export default function ProductPage({ params }: Props) {
 
             <div className="mt-5 flex items-center justify-between gap-4 border-t-2 border-black pt-4">
               <div><p className="text-xs font-black uppercase tracking-[.12em]">Box total</p><p className="brand-heading mt-1 text-4xl">{formatPrice(totalPrice)}</p></div>
-              <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`min-h-14 flex-1 bg-black px-4 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-not-allowed disabled:opacity-35 sm:flex-none sm:min-w-[220px] ${added ? 'bg-[#eb2327]' : ''}`}>
+              <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`hidden min-h-14 flex-1 bg-black px-4 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-not-allowed disabled:opacity-35 md:flex md:flex-none md:min-w-[220px] ${added ? 'bg-[#eb2327]' : ''}`}>
                 {added ? 'Added to bag' : selectedCount === maxCookies ? 'Add box to bag' : `Add ${Math.max(maxCookies - selectedCount, 0)} more`}
               </button>
             </div>
           </div>
         </section>
+      </div>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-black bg-white p-3 md:hidden">
+        <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
+          <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[.12em]">{selectedCount} / {maxCookies} · {formatPrice(totalPrice)}</p><p className="truncate text-xs font-semibold">{product.name}</p></div>
+          <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`min-h-12 shrink-0 bg-black px-4 text-xs font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-35 ${added ? 'bg-[#eb2327]' : ''}`}>
+            {added ? 'Added' : selectedCount === maxCookies ? 'Add box' : `Pick ${Math.max(maxCookies - selectedCount, 0)} more`}
+          </button>
+        </div>
       </div>
     </main>
   );
