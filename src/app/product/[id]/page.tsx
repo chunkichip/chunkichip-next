@@ -58,18 +58,18 @@ const slotsBySize: Record<string, Slot[]> = {
     { left: '73%', top: '72%' },
   ],
   '12': [
-    { left: '18%', top: '47%' },
-    { left: '39%', top: '47%' },
-    { left: '60%', top: '47%' },
-    { left: '80%', top: '47%' },
-    { left: '18%', top: '64%' },
-    { left: '39%', top: '64%' },
-    { left: '60%', top: '64%' },
-    { left: '80%', top: '64%' },
-    { left: '18%', top: '80%' },
-    { left: '39%', top: '80%' },
-    { left: '60%', top: '80%' },
-    { left: '80%', top: '80%' },
+    { left: '21.85%', top: '48.45%' },
+    { left: '40.65%', top: '48.45%' },
+    { left: '59.4%', top: '48.45%' },
+    { left: '78.15%', top: '48.45%' },
+    { left: '21.85%', top: '63.2%' },
+    { left: '40.65%', top: '63.2%' },
+    { left: '59.4%', top: '63.2%' },
+    { left: '78.15%', top: '63.2%' },
+    { left: '21.85%', top: '77.98%' },
+    { left: '40.65%', top: '77.98%' },
+    { left: '59.4%', top: '77.98%' },
+    { left: '78.15%', top: '77.98%' },
   ],
 };
 
@@ -171,10 +171,10 @@ export default function ProductPage({ params }: Props) {
   function BoxPreview() {
     if (!product) return null;
     const hasBrandedArt = boxArtSizes.has(product.boxSize || '');
-    const cookieSize = product.boxSize === '12' ? '17%' : product.boxSize === '6' ? '20%' : '18%';
+    const cookieSize = product.boxSize === '12' ? '14%' : product.boxSize === '6' ? '16%' : product.boxSize === '4' ? '15%' : '17%';
 
     return (
-      <div className="relative mx-auto aspect-square w-[min(100%,30vh)] max-w-[620px] lg:w-full">
+      <div className="relative mx-auto aspect-square w-[68vw] max-w-full lg:w-full lg:max-w-[620px]">
         {hasBrandedArt ? (
           <img
             src={`/boxes/${product.boxSize}-box.png`}
@@ -202,7 +202,7 @@ export default function ProductPage({ params }: Props) {
               {imageUrl ? (
                 <img src={imageUrl} alt={option?.name || ''} className="h-full w-full animate-[cookiePop_0.4s] rounded-full object-contain drop-shadow-[0_10px_12px_rgba(0,0,0,0.32)]" />
               ) : (
-                <span className={`flex h-[min(9vw,52px)] w-[min(9vw,52px)] items-center justify-center rounded-full border-2 border-white bg-[#fff7fb] text-sm font-black text-[#eb2327] shadow-lg ${option ? '' : 'opacity-95'}`}>
+                <span className={`flex h-full w-full items-center justify-center rounded-full border-2 border-white bg-[#fff7fb] text-sm font-black text-[#eb2327] shadow-lg ${option ? '' : 'opacity-95'}`}>
                   {option ? '🍪' : index + 1}
                 </span>
               )}
@@ -248,7 +248,7 @@ export default function ProductPage({ params }: Props) {
               <div className="overflow-hidden rounded-xl bg-[#ffdeef]/70"><BoxPreview/></div>
               <div className="mt-1 flex items-center justify-between border-t-2 border-black pt-2 text-[10px] font-black uppercase tracking-[.12em] md:mt-3 md:pt-3 md:text-xs"><span>{product.name}</span><span>{formatPrice(totalPrice)}</span></div>
             </div>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[.12em] text-black/65 md:mt-3 md:text-xs">Your selection appears in the box as you build.</p>
+            <p className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[.12em] text-black/65 md:mt-3 md:block md:text-xs">Your selection appears in the box as you build.</p>
           </div>
 
           <div className="border-2 border-black bg-white p-4 md:p-7">
