@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { ArrowDown, ArrowUpRight, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 
-type Modifier = { id: string; name: string; priceAmount: number; price: string };
-type ModifierSet = { id: string; name: string; minSelected: number; maxSelected: number; modifiers: Modifier[] };
-type Product = { id: string; name: string; description: string; imageUrl: string | null; variationId: string | null; priceAmount: number; price: string; isBox: boolean; boxSize: string | null; modifierSets: ModifierSet[] };
+type Product = { id: string; name: string; description: string; imageUrl: string | null; variationId: string | null; priceAmount: number; price: string; isBox: boolean; boxSize: string | null };
 
 const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL || ''}${path}`;
 
@@ -14,8 +13,6 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeBox, setActiveBox] = useState<Product | null>(null);
-  const [chosen, setChosen] = useState<Modifier[]>([]);
   const addItem = useCartStore((s) => s.addItem);
   const [added, setAdded] = useState('');
 
@@ -29,28 +26,9 @@ export default function HomePage() {
 
   const boxes = products.filter((p) => p.isBox);
   const cookies = products.filter((p) => !p.isBox);
-  const selectedCost = useMemo(() => chosen.reduce((total, m) => total + m.priceAmount, 0), [chosen]);
-
   function addProduct(p: Product) {
-    addItem({ productId: p.id, variationId: p.variationId, name: p.name, priceAmount: p.priceAmount, price: p.price, imageUrl: p.imageUrl, isBox: p.isBox, boxSize: p.boxSize, selectedFlavors: [] });
+    addItem({ productId: p.id, variationId: p.variationId, name: p.name, priceAmount: p.priceAmount, price: p.price, imageUrl: p.imageUrl, isBox: p.isBox, boxSize: p.boxSize });
     setAdded(`${p.name} added to your bag`);
-    window.setTimeout(() => setAdded(''), 2200);
-  }
-
-  function toggleFlavor(m: Modifier) {
-    setChosen((previous) => previous.some((x) => x.id === m.id) ? previous.filter((x) => x.id !== m.id) : [...previous, m]);
-  }
-
-  function addBox() {
-    if (!activeBox) return;
-    const limit = Number(activeBox.boxSize || activeBox.modifierSets[0]?.maxSelected || 0);
-    if (limit && chosen.length !== limit) return;
-    const base = activeBox.priceAmount;
-    const amount = base + selectedCost;
-    addItem({ productId: activeBox.id, variationId: activeBox.variationId, name: activeBox.name, priceAmount: amount, price: `$${(amount / 100).toFixed(2)}`, imageUrl: activeBox.imageUrl, isBox: true, boxSize: activeBox.boxSize, selectedFlavors: chosen.map((m) => ({ id: m.id, name: m.name, imageUrl: null })) });
-    setAdded(`${activeBox.name} added to your bag`);
-    setActiveBox(null);
-    setChosen([]);
     window.setTimeout(() => setAdded(''), 2200);
   }
 
@@ -71,8 +49,8 @@ export default function HomePage() {
       {error && <div role="alert" className="mt-8 border-2 border-[#eb2327] bg-white p-5 font-semibold">{error}<p className="mt-1 text-sm font-normal">Please call the shop or try again later.</p></div>}
       {loading && <p className="py-14 text-center font-black uppercase tracking-widest">Loading today’s cookies…</p>}
       {!loading && !error && <>
-        {boxes.length > 0 && <div className="mt-10"><div className="mb-4 flex items-end justify-between"><h3 className="brand-heading text-4xl md:text-5xl">BUILD A BOX</h3><span className="text-xs font-black uppercase tracking-widest">Choose your size</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{boxes.map((p) => <button key={p.id} onClick={() => { setChosen([]); setActiveBox(p); }} className="group flex min-h-[190px] flex-col justify-between border-2 border-black bg-white p-5 text-left transition hover:-translate-y-1 hover:bg-[#ffccef]"><div><span className="text-xs font-black uppercase tracking-[.18em] text-[#eb2327]">{p.boxSize ? `${p.boxSize} cookies` : 'Box'}</span><h4 className="brand-heading mt-3 text-4xl">{p.name}</h4></div><span className="flex items-center justify-between border-t border-black pt-3 text-sm font-bold"><span>{p.price}</span><span className="flex items-center gap-1 uppercase">Build <ArrowUpRight size={16}/></span></span></button>)}</div></div>}
-        <div className="mt-14"><div className="mb-4 flex items-end justify-between"><h3 className="brand-heading text-4xl md:text-5xl">COOKIES & MORE</h3><span className="text-xs font-black uppercase tracking-widest">Made for the group chat</span></div>{cookies.length === 0 ? <p className="border-2 border-dashed border-black p-8 text-center">Our menu is being refreshed. Check back soon.</p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cookies.map((p, i) => <article key={p.id} className="grid grid-cols-[38%_1fr] border-2 border-black bg-white"><div className={`flex min-h-[170px] items-center justify-center ${i % 3 === 1 ? 'bg-[#ffccef]' : i % 3 === 2 ? 'bg-[#eb2327]' : 'bg-[#f2eeec]'}`}>{p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="h-36 w-full object-contain p-2"/> : <span className="text-6xl">🍪</span>}</div><div className="flex flex-col justify-between p-4"><div><h4 className="brand-heading text-2xl leading-tight">{p.name}</h4><p className="mt-2 line-clamp-3 text-xs leading-relaxed text-black/70">{p.description}</p></div><div className="mt-4 flex items-center justify-between"><span className="font-black">{p.price}</span><button onClick={() => addProduct(p)} className="bg-black px-3 py-2 text-xs font-black uppercase tracking-wide text-white hover:bg-[#eb2327]">Add +</button></div></div></article>)}</div>}</div>
+        {boxes.length > 0 && <div id="boxes" className="mt-10 scroll-mt-24"><div className="mb-4 flex items-end justify-between"><h3 className="brand-heading text-4xl md:text-5xl">BUILD A BOX</h3><span className="text-xs font-black uppercase tracking-widest">Choose your size</span></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{boxes.map((p) => <Link key={p.id} href={`/product/${encodeURIComponent(p.id)}`} className="group flex min-h-[190px] flex-col justify-between border-2 border-black bg-white p-5 text-left transition hover:-translate-y-1 hover:bg-[#ffccef] focus-visible:outline-[#eb2327]"><div><span className="text-xs font-black uppercase tracking-[.18em] text-[#eb2327]">{p.boxSize ? `${p.boxSize} cookies` : 'Box'}</span><h4 className="brand-heading mt-3 text-4xl">{p.name}</h4></div><span className="flex items-center justify-between border-t border-black pt-3 text-sm font-bold"><span>{p.price}</span><span className="flex items-center gap-1 uppercase">Visual builder <ArrowUpRight size={16}/></span></span></Link>)}</div></div>}
+        <div id="single-cookies" className="mt-14 scroll-mt-24"><div className="mb-4 flex items-end justify-between"><h3 className="brand-heading text-4xl md:text-5xl">COOKIES & MORE</h3><span className="text-xs font-black uppercase tracking-widest">Made for the group chat</span></div>{cookies.length === 0 ? <p className="border-2 border-dashed border-black p-8 text-center">Our menu is being refreshed. Check back soon.</p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cookies.map((p, i) => <article key={p.id} className="grid grid-cols-[38%_1fr] border-2 border-black bg-white"><div className={`flex min-h-[170px] items-center justify-center ${i % 3 === 1 ? 'bg-[#ffccef]' : i % 3 === 2 ? 'bg-[#eb2327]' : 'bg-[#f2eeec]'}`}>{p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="h-36 w-full object-contain p-2"/> : <span className="text-6xl">🍪</span>}</div><div className="flex flex-col justify-between p-4"><div><h4 className="brand-heading text-2xl leading-tight">{p.name}</h4><p className="mt-2 line-clamp-3 text-xs leading-relaxed text-black/70">{p.description}</p></div><div className="mt-4 flex items-center justify-between"><span className="font-black">{p.price}</span><button onClick={() => addProduct(p)} className="bg-black px-3 py-2 text-xs font-black uppercase tracking-wide text-white hover:bg-[#eb2327]">Add +</button></div></div></article>)}</div>}</div>
       </>}
       <div className="mt-14 grid gap-4 md:grid-cols-3"><a href="https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/" className="border-2 border-black bg-[#eb2327] p-6 text-white"><span className="text-xs font-black uppercase tracking-widest">Local delivery</span><h3 className="brand-heading mt-4 text-4xl">DOORDASH</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Order nearby ↗</span></a><a href="#menu" className="border-2 border-black bg-[#ffccef] p-6"><span className="text-xs font-black uppercase tracking-widest">Birthday, office, big day</span><h3 className="brand-heading mt-4 text-4xl">CATERING</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Build a crowd-sized order ↗</span></a><a href="#locations" className="border-2 border-black bg-white p-6"><span className="text-xs font-black uppercase tracking-widest">Find a cookie</span><h3 className="brand-heading mt-4 text-4xl">COME BY</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Hours & locations ↗</span></a></div>
     </section>
@@ -81,8 +59,5 @@ export default function HomePage() {
     <footer className="flex flex-col justify-between gap-3 px-5 py-6 text-xs font-bold uppercase tracking-[.12em] md:flex-row md:px-12"><span>© Chunki Chip · Baked in New Hampshire</span><span>Cookies before plans.</span><a href="https://chunkichip.com">Shipping & more ↗</a></footer>
 
     {added && <div role="status" className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 border-2 border-black bg-[#ffccef] px-5 py-3 text-sm font-black shadow-[4px_4px_0_#000]">{added}</div>}
-    {activeBox && <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label={`Choose flavors for ${activeBox.name}`}><div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto border-2 border-black bg-[#fffafc] p-5 sm:p-8"><div className="flex items-start justify-between gap-4 border-b-2 border-black pb-5"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">Make it yours</p><h2 className="brand-heading mt-2 text-5xl">{activeBox.name}</h2><p className="mt-2 text-sm">Choose {activeBox.boxSize || activeBox.modifierSets[0]?.maxSelected || 'your'} flavors</p></div><button onClick={() => setActiveBox(null)} className="border-2 border-black px-3 py-1 text-2xl leading-none" aria-label="Close">×</button></div>
-      <div className="py-5">{activeBox.modifierSets.length ? activeBox.modifierSets.flatMap((set) => set.modifiers).map((m) => { const selected = chosen.some((x) => x.id === m.id); const limit = Number(activeBox.boxSize || activeBox.modifierSets[0]?.maxSelected || 99); return <button key={m.id} onClick={() => toggleFlavor(m)} disabled={!selected && chosen.length >= limit} className={`mb-2 flex w-full items-center justify-between border-2 border-black p-4 text-left ${selected ? 'bg-[#ffccef]' : 'bg-white'} disabled:opacity-40`}><span className="font-bold">{m.name}</span><span className="font-black">{selected ? '✓' : m.price}</span></button>; }) : <p className="border-2 border-dashed border-black p-5 text-sm">Flavor choices will appear here when modifier lists are attached to this box in Square. You can add the box without custom flavors for now.</p>}</div>
-      <div className="flex items-center justify-between border-t-2 border-black pt-4"><span className="font-black">{chosen.length} selected · ${( (activeBox.priceAmount + selectedCost) / 100).toFixed(2)}</span><button onClick={addBox} disabled={chosen.length > 0 && chosen.length !== Number(activeBox.boxSize || activeBox.modifierSets[0]?.maxSelected)} className="bg-[#eb2327] px-5 py-3 text-sm font-black uppercase tracking-wide text-white disabled:opacity-40">Add box</button></div></div></div>}
   </main>;
 }
