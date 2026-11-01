@@ -44,7 +44,30 @@ function selectedVariation(item) {
   return variations.find((v) => v.itemVariationData?.itemId === item.id) || variations[0];
 }
 
+function configuredLocations() {
+  return [
+    {
+      id: 'milford',
+      name: 'Milford',
+      address: 'Amherst Street · Milford, NH',
+      squareLocationId: process.env.SQUARE_LOCATION_ID_MILFORD || process.env.SQUARE_LOCATION_ID,
+    },
+    {
+      id: 'nashua',
+      name: 'Nashua',
+      address: 'Somerset Plaza · Nashua, NH',
+      squareLocationId: process.env.SQUARE_LOCATION_ID_NASHUA,
+    },
+  ].filter((location) => Boolean(location.squareLocationId));
+}
+
 app.get('/api/health', (_req, res) => res.json({ ok: true, squareConfigured: Boolean(square) }));
+
+app.get('/api/locations', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=300').json(
+    configuredLocations().map(({ id, name, address }) => ({ id, name, address })),
+  );
+});
 
 app.get('/api/products', async (_req, res) => {
   if (!requireSquare(res)) return;
@@ -143,9 +166,14 @@ app.post('/api/customers/subscribe', async (req, res) => {
 
 app.post('/api/create-checkout', async (req, res) => {
   if (!requireSquare(res)) return;
-  const { items, checkoutMethod } = req.body || {};
+  const { items, checkoutMethod, locationId, deliveryType } = req.body || {};
   if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ error: 'Your bag is empty or contains too many items.' });
   if (!['pickup', 'curbside', 'shipping'].includes(checkoutMethod)) return res.status(400).json({ error: 'Choose a valid fulfillment method.' });
+  const locations = configuredLocations();
+  const location = locationId
+    ? locations.find((candidate) => candidate.id === locationId)
+    : locations[0];
+  if (!location) return res.status(400).json({ error: 'Choose an available Chunki Chip location.' });
   if (items.some((item) => item?.shippingOnly === true) && checkoutMethod !== 'shipping') {
     return res.status(400).json({ error: 'This box is available for nationwide shipping only.' });
   }
@@ -158,13 +186,15 @@ app.post('/api/create-checkout', async (req, res) => {
         ...(modifiers.length ? { modifiers } : {}),
       };
     });
-    const label = checkoutMethod === 'shipping' ? 'Nationwide Shipping' : checkoutMethod === 'curbside' ? 'Curbside Pickup' : 'In-Store Pickup';
+    const label = checkoutMethod === 'shipping'
+      ? deliveryType === 'direct' ? 'Delivery' : 'Nationwide Shipping'
+      : checkoutMethod === 'curbside' ? 'Curbside Pickup' : 'Carry Out';
     const result = await square.checkout.paymentLinks.create({
       idempotencyKey: crypto.randomUUID(),
-      order: { locationId: process.env.SQUARE_LOCATION_ID, lineItems, referenceId: label },
+      order: { locationId: location.squareLocationId, lineItems, referenceId: `${location.name} · ${label}` },
       checkoutOptions: { redirectUrl: process.env.CHECKOUT_REDIRECT_URL || 'https://chunkichip.com/', askForShippingAddress: checkoutMethod === 'shipping' },
-      description: `Chunki Chip online order — ${label}`,
-      paymentNote: `Fulfillment method: ${label}`,
+      description: `Chunki Chip ${location.name} order — ${label}`,
+      paymentNote: `Location: ${location.name}. Fulfillment method: ${label}`,
     });
     const url = result.paymentLink?.url;
     if (!url) throw new Error('Square did not return a checkout URL.');
