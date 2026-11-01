@@ -60,16 +60,42 @@ app.get('/api/products', async (_req, res) => {
       const variation = selectedVariation(item);
       const amount = Number(variation?.itemVariationData?.priceMoney?.amount || 0);
       const imageId = item.itemData.imageIds?.[0] || null;
-      const modifierSets = (item.itemData.modifierListInfo || []).map((ref) => listById.get(ref.modifierListId)).filter(Boolean).map((list) => ({
-        id: list.id,
-        name: list.modifierListData?.name || 'Choose flavors',
-        minSelected: Number(list.modifierListData?.minSelectedModifiers || 0),
-        maxSelected: Number(list.modifierListData?.maxSelectedModifiers || 0),
-        modifiers: (list.modifierListData?.modifiers || []).filter((m) => !m.modifierData?.isArchived).map((m) => {
-          const modifierAmount = Number(m.modifierData?.priceMoney?.amount || 0);
-          return { id: m.id, name: m.modifierData?.name || 'Option', priceAmount: modifierAmount, price: money(modifierAmount) };
-        }),
-      }));
+      const modifierSets = (item.itemData.modifierListInfo || [])
+        // Square keeps removed modifier-list associations on the item with enabled=false.
+        // Ignore those historical links so the storefront only shows active choices.
+        .filter((ref) => ref.enabled !== false)
+        .map((ref) => ({ ref, list: listById.get(ref.modifierListId) }))
+        .filter(({ list }) => Boolean(list))
+        .map(({ ref, list }) => {
+          const listData = list.modifierListData || {};
+          const listMin = Number(listData.minSelectedModifiers);
+          const listMax = Number(listData.maxSelectedModifiers);
+          const itemMin = Number(ref.minSelectedModifiers);
+          const itemMax = Number(ref.maxSelectedModifiers);
+          const minSelected = Number.isFinite(itemMin) && itemMin >= 0
+            ? itemMin
+            : Number.isFinite(listMin) && listMin >= 0 ? listMin : 0;
+          const maxSelected = Number.isFinite(itemMax) && itemMax >= 0
+            ? itemMax
+            : Number.isFinite(listMax) && listMax >= 0 ? listMax : 0;
+
+          return {
+            id: list.id,
+            name: listData.name || 'Choose flavors',
+            minSelected,
+            maxSelected,
+            modifiers: (listData.modifiers || []).filter((m) => !m.modifierData?.isArchived).map((m) => {
+              const rawAmount = m.modifierData?.priceMoney?.amount;
+              const modifierAmount = Number(rawAmount || 0);
+              return {
+                id: m.id,
+                name: m.modifierData?.name || 'Option',
+                priceAmount: modifierAmount,
+                price: rawAmount === undefined || rawAmount === null ? '' : money(modifierAmount),
+              };
+            }),
+          };
+        });
       return {
         id: item.id,
         name: item.itemData.name,
