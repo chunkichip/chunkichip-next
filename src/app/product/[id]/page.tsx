@@ -45,10 +45,10 @@ type Props = { params: Promise<{ id: string }> };
 type Slot = { left: string; top: string };
 
 const slotsBySize: Record<string, Slot[]> = {
-  '1': [{ left: '50%', top: '65%' }],
+  '1': [{ left: '50%', top: '67%' }],
   '2': [
-    { left: '38%', top: '65%' },
-    { left: '62%', top: '65%' },
+    { left: '36%', top: '67%' },
+    { left: '64%', top: '67%' },
   ],
   '4': [
     { left: '22%', top: '62%' },
@@ -266,10 +266,11 @@ export default function ProductPage({ params }: Props) {
   function BoxPreview() {
     if (!product) return null;
     const hasBrandedArt = boxArtSizes.has(product.boxSize || '');
-    const cookieSize = product.boxSize === '12' ? '14%' : product.boxSize === '6' ? '16%' : product.boxSize === '4' ? '15%' : '17%';
+    const cookieSize = product.boxSize === '1' ? '39%' : product.boxSize === '2' ? '27%' : product.boxSize === '12' ? '14%' : product.boxSize === '6' ? '16%' : product.boxSize === '4' ? '15%' : '17%';
+    const previewRatio = product.boxSize === '2' ? 'aspect-[5/4]' : 'aspect-square';
 
     return (
-      <div className="relative mx-auto aspect-square w-[68vw] max-w-full lg:w-full lg:max-w-[620px]">
+      <div className={`relative mx-auto ${previewRatio} w-[68vw] max-w-full lg:w-full lg:max-w-[620px]`}>
         {hasBrandedArt ? (
           <img
             src={`/boxes/${product.boxSize}-box.png`}
@@ -292,7 +293,7 @@ export default function ProductPage({ params }: Props) {
             <div
               key={`${index}-${option?.id || 'empty'}`}
               className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-              style={{ left: slot.left, top: slot.top, width: cookieSize, height: cookieSize }}
+              style={{ left: slot.left, top: slot.top, width: cookieSize, aspectRatio: '1' }}
             >
               {imageUrl ? (
                 <img src={imageUrl} alt={option?.name || ''} className="h-full w-full animate-[cookiePop_0.4s] rounded-full object-contain drop-shadow-[0_10px_12px_rgba(0,0,0,0.32)]" />
