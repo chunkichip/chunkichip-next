@@ -2,7 +2,7 @@ services:
   - type: web
     name: chunki-chip
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
@@ -15,5 +15,9 @@ services:
         sync: false
       - key: SQUARE_ENV
         value: production
+      - key: SHIPPO_API_TOKEN
+        sync: false
+      - key: SHIPPO_PACKAGES_JSON
+        sync: false
       - key: CHECKOUT_REDIRECT_URL
         value: https://chunkichip.com/success

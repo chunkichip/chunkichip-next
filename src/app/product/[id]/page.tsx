@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Minus, Plus } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 import { getWeeklyFlavors, isInPersonCookieBox, isShippingOnlyProduct } from '@/lib/catalog';
+import ShippingCheckout from '@/components/ShippingCheckout';
 
 type Modifier = {
   id: string;
@@ -102,6 +103,13 @@ export default function ProductPage({ params }: Props) {
   const [selectedSizeId, setSelectedSizeId] = useState('');
   const [startingCheckout, setStartingCheckout] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [shippingCheckoutItems, setShippingCheckoutItems] = useState<{
+    variationId: string | null;
+    name: string;
+    quantity: number;
+    shippingOnly?: boolean;
+    selectedFlavors: { id: string; name: string }[];
+  }[] | null>(null);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -169,15 +177,23 @@ export default function ProductPage({ params }: Props) {
       .sort((a, b) => Number(a.boxSize || 0) - Number(b.boxSize || 0)),
     [allProducts],
   );
+  const shippingBoxes = useMemo(
+    () => allProducts
+      .filter(isShippingOnlyProduct)
+      .filter((box) => Boolean(box.variationId) && boxArtSizes.has(String(box.boxSize || '')))
+      .sort((a, b) => Number(a.boxSize || 0) - Number(b.boxSize || 0)),
+    [allProducts],
+  );
   const flavorBoxChoices = useMemo(() => {
     if (!product) return [];
-    return numberedBoxes.flatMap((box) => {
+    const availableBoxes = selectedMethod === 'shipping' ? shippingBoxes : numberedBoxes;
+    return availableBoxes.flatMap((box) => {
       const boxModifiers = (box.modifierSets || []).flatMap((set) => set.modifiers);
       const flavor = boxModifiers.find((modifier) => normalize(modifier.name) === normalize(product.name))
         || boxModifiers.find((modifier) => normalize(modifier.name).startsWith(normalize(product.name)) || normalize(product.name).startsWith(normalize(modifier.name)));
       return flavor ? [{ box, flavor }] : [];
     });
-  }, [numberedBoxes, product]);
+  }, [numberedBoxes, product, selectedMethod, shippingBoxes]);
 
   function goBackInOrder() {
     setOrderError('');
@@ -192,6 +208,18 @@ export default function ProductPage({ params }: Props) {
     const selection = flavorBoxChoices.find(({ box }) => box.id === selectedSizeId);
     if (!selection) {
       setOrderError('This flavor is not available in that box size right now.');
+      return;
+    }
+
+    if (selectedMethod === 'shipping') {
+      const cookieCount = Number(selection.box.boxSize || 1);
+      setShippingCheckoutItems([{
+        variationId: selection.box.variationId,
+        name: selection.box.name,
+        quantity: 1,
+        shippingOnly: true,
+        selectedFlavors: Array.from({ length: cookieCount }, () => ({ id: selection.flavor.id, name: selection.flavor.name })),
+      }]);
       return;
     }
 
@@ -338,7 +366,7 @@ export default function ProductPage({ params }: Props) {
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 {orderStep === 'fulfillment' && <>
                   <button type="button" onClick={() => { setFulfillmentChoice('pickup'); setOrderStep('location'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Pick up fresh</span><span className="brand-heading mt-3 block text-3xl">PICKUP</span><span className="mt-2 block text-sm">Choose a shop, then curbside or carry out.</span></button>
-                  <button type="button" onClick={() => { setFulfillmentChoice('delivery'); setOrderStep('location'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Delivered to you</span><span className="brand-heading mt-3 block text-3xl">DELIVERY</span><span className="mt-2 block text-sm">Enter your delivery address at secure Square checkout.</span></button>
+                  <button type="button" onClick={() => { setFulfillmentChoice('delivery'); setOrderStep('location'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Delivered to you</span><span className="brand-heading mt-3 block text-3xl">DELIVERY</span><span className="mt-2 block text-sm">Get a live carrier quote before paying securely through Square.</span></button>
                 </>}
 
                 {orderStep === 'location' && (locations.length ? locations.map((location) => <button type="button" key={location.id} onClick={() => { setSelectedLocationId(location.id); setOrderStep('method'); }} className={`min-h-28 border-2 border-black p-5 text-left transition hover:bg-[#ffccef] ${selectedLocationId === location.id ? 'bg-[#ffccef]' : 'bg-white'}`}><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Chunki Chip</span><span className="brand-heading mt-2 block text-3xl">{location.name}</span><span className="mt-1 block text-sm">{location.address}</span></button>) : <p className="border-2 border-[#eb2327] bg-white p-5 text-sm font-semibold sm:col-span-2">Online ordering is not available right now. Please contact the shop.</p>)}
@@ -346,17 +374,18 @@ export default function ProductPage({ params }: Props) {
                 {orderStep === 'method' && (fulfillmentChoice === 'pickup' ? <>
                   <button type="button" onClick={() => { setSelectedMethod('curbside'); setOrderStep('size'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">We’ll bring it out</span><span className="brand-heading mt-3 block text-3xl">CURBSIDE</span><span className="mt-2 block text-sm">Park outside and let us know when you arrive.</span></button>
                   <button type="button" onClick={() => { setSelectedMethod('pickup'); setOrderStep('size'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Come inside</span><span className="brand-heading mt-3 block text-3xl">CARRY OUT</span><span className="mt-2 block text-sm">Pick up your order at the counter.</span></button>
-                </> : <button type="button" onClick={() => { setSelectedMethod('shipping'); setOrderStep('size'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef] sm:col-span-2"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Address collected at checkout</span><span className="brand-heading mt-3 block text-3xl">DELIVERY</span><span className="mt-2 block text-sm">Square will collect the delivery address securely.</span></button>)}
+                </> : <button type="button" onClick={() => { setSelectedMethod('shipping'); setSelectedSizeId(''); setOrderStep('size'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef] sm:col-span-2"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Live carrier rates</span><span className="brand-heading mt-3 block text-3xl">NATIONWIDE SHIPPING</span><span className="mt-2 block text-sm">Choose a shipping box, enter its destination, compare Shippo rates, then pay securely through Square.</span></button>)}
 
-                {orderStep === 'size' && (flavorBoxChoices.length ? flavorBoxChoices.map(({ box }) => <button type="button" key={box.id} onClick={() => setSelectedSizeId(box.id)} className={`flex min-h-24 items-center justify-between border-2 border-black p-5 text-left transition hover:bg-[#ffccef] ${selectedSizeId === box.id ? 'bg-[#ffccef] shadow-[4px_4px_0_#eb2327]' : 'bg-white'}`}><span><span className="brand-heading block text-3xl">{box.name}</span><span className="mt-1 block text-xs font-black uppercase tracking-[.12em]">{box.boxSize} {Number(box.boxSize) === 1 ? 'cookie' : 'cookies'} · {selectedMethod === 'shipping' ? 'Delivery' : selectedMethod === 'curbside' ? 'Curbside' : 'Carry out'}</span></span><span className="text-lg font-black">{box.price}</span></button>) : <p className="border-2 border-[#eb2327] bg-white p-5 text-sm font-semibold sm:col-span-2">No numbered cookie boxes are currently available with this flavor.</p>)}
+                {orderStep === 'size' && (flavorBoxChoices.length ? flavorBoxChoices.map(({ box }) => <button type="button" key={box.id} onClick={() => setSelectedSizeId(box.id)} className={`flex min-h-24 items-center justify-between border-2 border-black p-5 text-left transition hover:bg-[#ffccef] ${selectedSizeId === box.id ? 'bg-[#ffccef] shadow-[4px_4px_0_#eb2327]' : 'bg-white'}`}><span><span className="brand-heading block text-3xl">{box.name}</span><span className="mt-1 block text-xs font-black uppercase tracking-[.12em]">{box.boxSize} {Number(box.boxSize) === 1 ? 'cookie' : 'cookies'} · {selectedMethod === 'shipping' ? 'Shipping' : selectedMethod === 'curbside' ? 'Curbside' : 'Carry out'}</span></span><span className="text-lg font-black">{box.price}</span></button>) : <p className="border-2 border-[#eb2327] bg-white p-5 text-sm font-semibold sm:col-span-2">{selectedMethod === 'shipping' ? 'No shipping box with this flavor is currently available.' : 'No numbered cookie boxes are currently available with this flavor.'}</p>)}
               </div>
 
               {orderError && <p role="alert" className="mt-5 border-2 border-[#eb2327] bg-white p-4 text-sm font-bold">{orderError}</p>}
-              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 border-2 border-black bg-black px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-not-allowed disabled:opacity-40">{startingCheckout ? 'Connecting to Square…' : 'Continue to secure checkout'} <ArrowRight size={18}/></button>}
+              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 border-2 border-black bg-black px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-not-allowed disabled:opacity-40">{selectedMethod === 'shipping' ? 'Get shipping rates' : startingCheckout ? 'Connecting to Square…' : 'Continue to secure checkout'} <ArrowRight size={18}/></button>}
               {orderStep !== 'fulfillment' && <button type="button" onClick={goBackInOrder} className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.15em]"><ArrowLeft size={15}/> Back</button>}
             </div>
           </div>
         )}
+        {shippingCheckoutItems && <ShippingCheckout items={shippingCheckoutItems} locationId={selectedLocationId} onClose={() => setShippingCheckoutItems(null)} />}
       </main>
     );
   }

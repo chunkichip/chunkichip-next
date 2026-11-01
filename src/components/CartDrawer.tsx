@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useCartStore } from '@/store/cart';
+import ShippingCheckout from '@/components/ShippingCheckout';
 
 type Props = {
   open: boolean;
@@ -19,6 +20,7 @@ const DOORDASH_URL =
 export default function CartDrawer({ open, setOpen }: Props) {
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [methodModalOpen, setMethodModalOpen] = useState(false);
+  const [shippingFlowOpen, setShippingFlowOpen] = useState(false);
 
   const items = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -28,14 +30,15 @@ export default function CartDrawer({ open, setOpen }: Props) {
   const totalItems = useCartStore((state) => state.totalItems);
   const totalAmount = useCartStore((state) => state.totalAmount);
   const hasShippingOnlyProducts = items.some((item) => item.shippingOnly);
+  const hasOnlyShippingProducts = items.length > 0 && items.every((item) => item.shippingOnly);
 
   useEffect(() => {
-    document.body.style.overflow = open || methodModalOpen ? 'hidden' : 'auto';
+    document.body.style.overflow = open || methodModalOpen || shippingFlowOpen ? 'hidden' : 'auto';
 
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [open, methodModalOpen]);
+  }, [open, methodModalOpen, shippingFlowOpen]);
 
   async function handleCheckout(checkoutMethod: CheckoutMethod) {
     try {
@@ -69,6 +72,11 @@ export default function CartDrawer({ open, setOpen }: Props) {
       alert('Checkout failed');
       setLoadingCheckout(false);
     }
+  }
+
+  function beginShippingCheckout() {
+    setMethodModalOpen(false);
+    setShippingFlowOpen(true);
   }
 
   return (
@@ -119,6 +127,11 @@ export default function CartDrawer({ open, setOpen }: Props) {
                   Your bag has a shipping-only box. Choose Nationwide Shipping to continue.
                 </p>
               )}
+              {!hasOnlyShippingProducts && (
+                <p className="border-2 border-black bg-[#fff7fb] p-4 text-sm font-bold text-[#171315]">
+                  Live shipping quotes are available for shipping box products. Add only shipping boxes to your bag before checking out by mail.
+                </p>
+              )}
               <button
                 onClick={() => handleCheckout('pickup')}
                 disabled={hasShippingOnlyProducts}
@@ -148,16 +161,16 @@ export default function CartDrawer({ open, setOpen }: Props) {
   </p>
 </button>
               <button
-                onClick={() => handleCheckout('shipping')}
-                className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl"
+                onClick={beginShippingCheckout}
+                disabled={!hasOnlyShippingProducts}
+                className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <h3 className="text-xl font-black text-[#2b140d]">
                   Nationwide Shipping
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#6f4b3e]">
-                  Ship fresh-packed cookie boxes across the U.S. Square will ask
-                  for your shipping address at checkout.
+                  Enter your address to compare current carrier rates, then pay securely through Square.
                 </p>
               </button>
 
@@ -177,6 +190,8 @@ export default function CartDrawer({ open, setOpen }: Props) {
           </div>
         </div>
       )}
+
+      {shippingFlowOpen && <ShippingCheckout items={items} onClose={() => setShippingFlowOpen(false)} />}
 
       {open && (
         <div className="fixed inset-0 z-50">

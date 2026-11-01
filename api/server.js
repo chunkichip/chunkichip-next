@@ -15,6 +15,105 @@ const square = process.env.SQUARE_ACCESS_TOKEN ? new SquareClient({
 }) : null;
 const money = (amount) => `$${(Number(amount || 0) / 100).toFixed(2)}`;
 
+function parseShippoPackages() {
+  if (!process.env.SHIPPO_PACKAGES_JSON) return {};
+  try {
+    const parsed = JSON.parse(process.env.SHIPPO_PACKAGES_JSON);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function cleanShippingAddress(value = {}) {
+  const clean = (input, max = 100) => typeof input === 'string' ? input.trim().slice(0, max) : '';
+  return {
+    name: clean(value.name, 120),
+    phone: clean(value.phone, 40),
+    street1: clean(value.street1, 120),
+    street2: clean(value.street2, 120),
+    city: clean(value.city, 80),
+    state: clean(value.state, 2).toUpperCase(),
+    zip: clean(value.zip, 16),
+    country: clean(value.country || 'US', 2).toUpperCase(),
+  };
+}
+
+function shippingAddressIsComplete(address) {
+  return Boolean(address.street1 && address.city && address.state && address.zip && address.country === 'US');
+}
+
+function signShippingQuote(payload) {
+  const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const signature = crypto.createHmac('sha256', process.env.SHIPPO_API_TOKEN).update(encoded).digest('base64url');
+  return `${encoded}.${signature}`;
+}
+
+function verifyShippingQuote(token) {
+  if (typeof token !== 'string' || !process.env.SHIPPO_API_TOKEN) return null;
+  const [encoded, suppliedSignature] = token.split('.');
+  if (!encoded || !suppliedSignature) return null;
+  const expectedSignature = crypto.createHmac('sha256', process.env.SHIPPO_API_TOKEN).update(encoded).digest();
+  let actualSignature;
+  try {
+    actualSignature = Buffer.from(suppliedSignature, 'base64url');
+  } catch {
+    return null;
+  }
+  if (actualSignature.length !== expectedSignature.length || !crypto.timingSafeEqual(actualSignature, expectedSignature)) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+    return payload.exp > Date.now() ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+function shippingItemsFingerprint(items) {
+  const compact = items.map((item) => ({
+    variationId: String(item.variationId || ''),
+    quantity: Math.max(1, Math.min(99, Number(item.quantity) || 1)),
+    selectedFlavorIds: (Array.isArray(item.selectedFlavors) ? item.selectedFlavors : []).map((modifier) => String(modifier?.id || '')).filter(Boolean).sort(),
+  })).sort((a, b) => a.variationId.localeCompare(b.variationId));
+  return crypto.createHash('sha256').update(JSON.stringify(compact)).digest('hex');
+}
+
+async function catalogShippingBoxes() {
+  const catalogItems = await searchCatalog(['ITEM']);
+  const byVariation = new Map();
+  for (const item of catalogItems) {
+    const itemData = item.itemData || {};
+    const name = String(itemData.name || '').trim();
+    const description = itemData.descriptionPlaintext || itemData.description || '';
+    const isInPerson = /^\d+\s+cookie\s+box$/i.test(name) || /^extra\s+box$/i.test(name);
+    const isBox = !isInPerson && /\bbox\b/i.test(`${name} ${description}`);
+    if (!isBox) continue;
+    const match = name.match(/\b(1|2|4|6|12)\b/);
+    if (!match) continue;
+    const variation = selectedVariation(item);
+    if (variation?.id) byVariation.set(variation.id, { name, boxSize: match[1], isArchived: Boolean(itemData.isArchived) });
+  }
+  return byVariation;
+}
+
+async function squareShipFromAddress(locationId) {
+  const response = await square.locations.get({ locationId });
+  const location = response.location;
+  const address = location?.address || {};
+  const shipFrom = {
+    name: location?.businessName || location?.name || 'Chunki Chip',
+    street1: address.addressLine1 || '',
+    street2: address.addressLine2 || '',
+    city: address.locality || '',
+    state: address.administrativeDistrictLevel1 || '',
+    zip: address.postalCode || '',
+    country: address.country || 'US',
+    ...(location?.phoneNumber ? { phone: location.phoneNumber } : {}),
+  };
+  if (!shipFrom.street1 || !shipFrom.city || !shipFrom.state || !shipFrom.zip) throw new Error('Add a complete street address to this Square shipping location before requesting rates.');
+  return shipFrom;
+}
+
 function requireSquare(res) {
   if (square) return true;
   res.status(503).json({ error: 'Square catalog is not configured on this server.' });
@@ -61,7 +160,12 @@ function configuredLocations() {
   ].filter((location) => Boolean(location.squareLocationId));
 }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, squareConfigured: Boolean(square) }));
+app.get('/api/health', (_req, res) => res.json({
+  ok: true,
+  squareConfigured: Boolean(square),
+  shippoConfigured: Boolean(process.env.SHIPPO_API_TOKEN),
+  shippingPackagesConfigured: Object.keys(parseShippoPackages()).length > 0,
+}));
 
 app.get('/api/locations', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=300').json(
@@ -165,9 +269,104 @@ app.post('/api/customers/subscribe', async (req, res) => {
   }
 });
 
+app.post('/api/shipping-rates', async (req, res) => {
+  if (!requireSquare(res)) return;
+  if (!process.env.SHIPPO_API_TOKEN) return res.status(503).json({ error: 'Shippo live rates are not configured on this server yet.' });
+  const { items, address: rawAddress, locationId } = req.body || {};
+  if (!Array.isArray(items) || !items.length || items.length > 20) return res.status(400).json({ error: 'Choose a valid shipping box before requesting rates.' });
+  const address = cleanShippingAddress(rawAddress);
+  if (!shippingAddressIsComplete(address)) return res.status(400).json({ error: 'Enter a complete U.S. shipping address.' });
+  const locations = configuredLocations();
+  const location = locationId ? locations.find((candidate) => candidate.id === locationId) : locations[0];
+  if (!location) return res.status(400).json({ error: 'Choose an available Chunki Chip shipping location.' });
+  const packagesBySize = parseShippoPackages();
+  if (!Object.keys(packagesBySize).length) return res.status(503).json({ error: 'Shipping box dimensions and packed weights still need to be configured.' });
+
+  try {
+    const catalogBoxes = await catalogShippingBoxes();
+    const parcels = [];
+    for (const item of items) {
+      const box = catalogBoxes.get(String(item?.variationId || ''));
+      if (!box || box.isArchived) return res.status(400).json({ error: 'Only active shipping box items can be shipped.' });
+      const quantity = Math.max(1, Math.min(99, Number(item.quantity) || 1));
+      const packageInfo = packagesBySize[box.boxSize];
+      if (!packageInfo) return res.status(503).json({ error: `Shipping package details for the ${box.boxSize}-cookie box have not been configured.` });
+      for (let index = 0; index < quantity; index += 1) {
+        const length = Number(packageInfo.length);
+        const width = Number(packageInfo.width);
+        const height = Number(packageInfo.height);
+        const weight = Number(packageInfo.weight);
+        if (![length, width, height, weight].every((value) => Number.isFinite(value) && value > 0)) {
+          return res.status(503).json({ error: `Shipping package details for the ${box.boxSize}-cookie box are incomplete.` });
+        }
+        parcels.push({
+          length: String(length),
+          width: String(width),
+          height: String(height),
+          distance_unit: packageInfo.distanceUnit || 'in',
+          weight: String(weight),
+          mass_unit: packageInfo.massUnit || 'lb',
+        });
+      }
+    }
+    if (!parcels.length || parcels.length > 10) return res.status(400).json({ error: 'This order has too many separate shipping boxes for an online rate quote.' });
+
+    const addressFrom = await squareShipFromAddress(location.squareLocationId);
+    const response = await fetch('https://api.goshippo.com/shipments/', {
+      method: 'POST',
+      headers: {
+        Authorization: `ShippoToken ${process.env.SHIPPO_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ address_from: addressFrom, address_to: address, parcels, async: false }),
+    });
+    const shipment = await response.json();
+    if (!response.ok || shipment.status !== 'SUCCESS') {
+      console.error('Shippo rate request failed:', shipment.messages || shipment.detail || shipment.status || response.status);
+      return res.status(422).json({ error: 'Shippo could not quote that address and box combination. Check the address or try again.' });
+    }
+
+    const fingerprint = shippingItemsFingerprint(items);
+    const addressFingerprint = crypto.createHash('sha256').update(JSON.stringify(address)).digest('hex');
+    const rates = (shipment.rates || [])
+      .filter((rate) => rate.object_id && rate.currency === 'USD' && Number.isFinite(Number(rate.amount)) && Number(rate.amount) >= 0)
+      .map((rate) => {
+        const amountCents = Math.round(Number(rate.amount) * 100);
+        const carrier = String(rate.provider || 'Carrier').slice(0, 60);
+        const service = String(rate.servicelevel?.name || rate.servicelevel_name || 'Shipping').slice(0, 100);
+        const token = signShippingQuote({
+          rateId: rate.object_id,
+          amountCents,
+          carrier,
+          service,
+          locationId: location.id,
+          itemsFingerprint: fingerprint,
+          addressFingerprint,
+          exp: Date.now() + 10 * 60 * 1000,
+        });
+        return {
+          quoteToken: token,
+          carrier,
+          service,
+          amountCents,
+          amount: money(amountCents),
+          estimatedDays: Number(rate.estimated_days) || null,
+          duration: String(rate.duration_terms || '').slice(0, 180),
+        };
+      })
+      .sort((a, b) => a.amountCents - b.amountCents);
+
+    if (!rates.length) return res.status(422).json({ error: 'No Shippo carrier rates were returned for this address and box.' });
+    res.json({ rates });
+  } catch (err) {
+    console.error('Shippo rate request error:', err?.message || err);
+    res.status(502).json({ error: err instanceof Error && err.message.includes('Square shipping location') ? err.message : 'Could not get shipping rates right now. Please try again.' });
+  }
+});
+
 app.post('/api/create-checkout', async (req, res) => {
   if (!requireSquare(res)) return;
-  const { items, checkoutMethod, locationId, deliveryType } = req.body || {};
+  const { items, checkoutMethod, locationId, deliveryType, shippingQuoteToken, address: rawAddress } = req.body || {};
   if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ error: 'Your bag is empty or contains too many items.' });
   if (!['pickup', 'curbside', 'shipping'].includes(checkoutMethod)) return res.status(400).json({ error: 'Choose a valid fulfillment method.' });
   const locations = configuredLocations();
@@ -177,6 +376,17 @@ app.post('/api/create-checkout', async (req, res) => {
   if (!location) return res.status(400).json({ error: 'Choose an available Chunki Chip location.' });
   if (items.some((item) => item?.shippingOnly === true) && checkoutMethod !== 'shipping') {
     return res.status(400).json({ error: 'This box is available for nationwide shipping only.' });
+  }
+  let verifiedShippingQuote = null;
+  let shippingAddress = null;
+  if (checkoutMethod === 'shipping') {
+    if (!process.env.SHIPPO_API_TOKEN) return res.status(503).json({ error: 'Shippo live rates are not configured on this server yet.' });
+    verifiedShippingQuote = verifyShippingQuote(shippingQuoteToken);
+    shippingAddress = cleanShippingAddress(rawAddress);
+    const addressFingerprint = crypto.createHash('sha256').update(JSON.stringify(shippingAddress)).digest('hex');
+    if (!verifiedShippingQuote || verifiedShippingQuote.locationId !== location.id || verifiedShippingQuote.itemsFingerprint !== shippingItemsFingerprint(items) || verifiedShippingQuote.addressFingerprint !== addressFingerprint) {
+      return res.status(400).json({ error: 'That shipping quote expired or no longer matches your order. Get a fresh rate to continue.' });
+    }
   }
   try {
     const lineItems = items.map((item) => {
@@ -193,9 +403,31 @@ app.post('/api/create-checkout', async (req, res) => {
     const result = await square.checkout.paymentLinks.create({
       idempotencyKey: crypto.randomUUID(),
       order: { locationId: location.squareLocationId, lineItems, referenceId: `${location.name} · ${label}` },
-      checkoutOptions: { redirectUrl: process.env.CHECKOUT_REDIRECT_URL || 'https://chunkichip.com/', askForShippingAddress: checkoutMethod === 'shipping' },
+      checkoutOptions: {
+        redirectUrl: process.env.CHECKOUT_REDIRECT_URL || 'https://chunkichip.com/',
+        askForShippingAddress: checkoutMethod === 'shipping',
+        ...(verifiedShippingQuote ? {
+          shippingFee: {
+            name: `${verifiedShippingQuote.carrier} · ${verifiedShippingQuote.service}`.slice(0, 100),
+            charge: { amount: BigInt(verifiedShippingQuote.amountCents), currency: 'USD' },
+          },
+        } : {}),
+      },
+      ...(shippingAddress ? {
+        prePopulatedData: {
+          buyerPhoneNumber: shippingAddress.phone || undefined,
+          buyerAddress: {
+            addressLine1: shippingAddress.street1,
+            addressLine2: shippingAddress.street2 || undefined,
+            locality: shippingAddress.city,
+            administrativeDistrictLevel1: shippingAddress.state,
+            postalCode: shippingAddress.zip,
+            country: shippingAddress.country,
+          },
+        },
+      } : {}),
       description: `Chunki Chip ${location.name} order — ${label}`,
-      paymentNote: `Location: ${location.name}. Fulfillment method: ${label}`,
+      paymentNote: `Location: ${location.name}. Fulfillment method: ${label}${verifiedShippingQuote ? `. Shippo rate: ${verifiedShippingQuote.carrier} ${verifiedShippingQuote.service} (${money(verifiedShippingQuote.amountCents)})` : ''}`,
     });
     const url = result.paymentLink?.url;
     if (!url) throw new Error('Square did not return a checkout URL.');
