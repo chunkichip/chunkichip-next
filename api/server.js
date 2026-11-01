@@ -55,7 +55,16 @@ app.get('/api/products', async (_req, res) => {
     ]);
     const listById = new Map(modifierLists.map((o) => [o.id, o]));
     const visible = items.filter((item) => item.itemData && !item.itemData.isArchived && item.itemData.ecomVisibility !== 'UNAVAILABLE');
-    const imageUrls = await getImageUrls(visible.map((i) => i.itemData.imageIds?.[0]));
+    const modifierImageIds = visible.flatMap((item) =>
+      (item.itemData.modifierListInfo || [])
+        .filter((ref) => ref.enabled !== false)
+        .flatMap((ref) => listById.get(ref.modifierListId)?.modifierListData?.modifiers || [])
+        .map((modifier) => modifier.modifierData?.imageId),
+    );
+    const imageUrls = await getImageUrls([
+      ...visible.map((item) => item.itemData.imageIds?.[0]),
+      ...modifierImageIds,
+    ]);
     const products = visible.map((item) => {
       const variation = selectedVariation(item);
       const amount = Number(variation?.itemVariationData?.priceMoney?.amount || 0);
@@ -90,6 +99,7 @@ app.get('/api/products', async (_req, res) => {
               return {
                 id: m.id,
                 name: m.modifierData?.name || 'Option',
+                imageUrl: m.modifierData?.imageId ? imageUrls[m.modifierData.imageId] || null : null,
                 priceAmount: modifierAmount,
                 price: rawAmount === undefined || rawAmount === null ? '' : money(modifierAmount),
               };

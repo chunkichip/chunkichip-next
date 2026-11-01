@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/cart';
 type Modifier = {
   id: string;
   name: string;
+  imageUrl?: string | null;
   priceAmount: number;
   price: string;
 };
@@ -155,7 +156,7 @@ export default function ProductPage({ params }: Props) {
       selectedFlavors: selectedModifiers.map((option) => ({
         id: option.id,
         name: option.name,
-        imageUrl: cookieProducts.find((cookie) => normalize(cookie.name) === normalize(option.name))?.imageUrl || null,
+        imageUrl: cookieImage(option),
       })),
     });
 
@@ -164,7 +165,7 @@ export default function ProductPage({ params }: Props) {
   }
 
   function cookieImage(option: Modifier) {
-    return cookieProducts.find((cookie) => normalize(cookie.name) === normalize(option.name))?.imageUrl || null;
+    return option.imageUrl || cookieProducts.find((cookie) => normalize(cookie.name) === normalize(option.name))?.imageUrl || null;
   }
 
   function BoxPreview() {
