@@ -2,192 +2,140 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const { SquareClient, SquareEnvironment } = require('square');
 const crypto = require('crypto');
+const { SquareClient, SquareEnvironment } = require('square');
 
 const app = express();
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((v) => v.trim()) : true }));
+app.use(express.json({ limit: '1mb' }));
 
-app.use(cors());
-app.use(express.json());
-
-const square = new SquareClient({
+const square = process.env.SQUARE_ACCESS_TOKEN ? new SquareClient({
   token: process.env.SQUARE_ACCESS_TOKEN,
-  environment:
-    process.env.SQUARE_ENV === 'production'
-      ? SquareEnvironment.Production
-      : SquareEnvironment.Sandbox,
-});
+  environment: process.env.SQUARE_ENV === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
+}) : null;
+const money = (amount) => `$${(Number(amount || 0) / 100).toFixed(2)}`;
 
-function money(amount) {
-  return `$${(Number(amount || 0) / 100).toFixed(2)}`;
+function requireSquare(res) {
+  if (square) return true;
+  res.status(503).json({ error: 'Square catalog is not configured on this server.' });
+  return false;
+}
+
+async function searchCatalog(objectTypes) {
+  const objects = [];
+  let cursor;
+  do {
+    const page = await square.catalog.search({ objectTypes, limit: 100, cursor });
+    objects.push(...(page.objects || []));
+    cursor = page.cursor;
+  } while (cursor);
+  return objects;
 }
 
 async function getImageUrls(imageIds) {
-  if (!imageIds.length) return {};
-
-  const result = await square.catalog.batchGet({
-    objectIds: imageIds,
-  });
-
-  const images = result.objects || [];
-  const map = {};
-
-  for (const image of images) {
-    map[image.id] = image.imageData?.url || null;
-  }
-
-  return map;
+  const ids = [...new Set(imageIds.filter(Boolean))];
+  if (!ids.length) return {};
+  const result = await square.catalog.batchGet({ objectIds: ids });
+  return Object.fromEntries((result.objects || []).map((image) => [image.id, image.imageData?.url || null]));
 }
 
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
-});
+function selectedVariation(item) {
+  const variations = item.itemData?.variations || [];
+  return variations.find((v) => v.itemVariationData?.itemId === item.id) || variations[0];
+}
 
-app.get('/api/products', async (req, res) => {
+app.get('/api/health', (_req, res) => res.json({ ok: true, squareConfigured: Boolean(square) }));
+
+app.get('/api/products', async (_req, res) => {
+  if (!requireSquare(res)) return;
   try {
-    const result = await square.catalog.search({
-      objectTypes: ['ITEM'],
-    });
-
-    const items = result.objects || [];
-
-    const visibleItems = items
-      .filter((item) => item.itemData)
-      .filter((item) => !item.itemData.isArchived)
-      .filter((item) => item.itemData.ecomVisibility !== 'UNAVAILABLE');
-
-    const imageIds = [
-      ...new Set(
-        visibleItems
-          .map((item) => item.itemData.imageIds?.[0])
-          .filter(Boolean)
-      ),
-    ];
-
-    const imageUrls = await getImageUrls(imageIds);
-
-    const products = visibleItems.map((item) => {
-      const variation = item.itemData.variations?.[0];
-      const priceAmount =
-        variation?.itemVariationData?.priceMoney?.amount || 0;
-
+    const [items, modifierLists] = await Promise.all([
+      searchCatalog(['ITEM']),
+      searchCatalog(['MODIFIER_LIST']),
+    ]);
+    const listById = new Map(modifierLists.map((o) => [o.id, o]));
+    const visible = items.filter((item) => item.itemData && !item.itemData.isArchived && item.itemData.ecomVisibility !== 'UNAVAILABLE');
+    const imageUrls = await getImageUrls(visible.map((i) => i.itemData.imageIds?.[0]));
+    const products = visible.map((item) => {
+      const variation = selectedVariation(item);
+      const amount = Number(variation?.itemVariationData?.priceMoney?.amount || 0);
       const imageId = item.itemData.imageIds?.[0] || null;
-
+      const modifierSets = (item.itemData.modifierListInfo || []).map((ref) => listById.get(ref.modifierListId)).filter(Boolean).map((list) => ({
+        id: list.id,
+        name: list.modifierListData?.name || 'Choose flavors',
+        minSelected: Number(list.modifierListData?.minSelectedModifiers || 0),
+        maxSelected: Number(list.modifierListData?.maxSelectedModifiers || 0),
+        modifiers: (list.modifierListData?.modifiers || []).filter((m) => !m.modifierData?.isArchived).map((m) => {
+          const modifierAmount = Number(m.modifierData?.priceMoney?.amount || 0);
+          return { id: m.id, name: m.modifierData?.name || 'Option', priceAmount: modifierAmount, price: money(modifierAmount) };
+        }),
+      }));
       return {
         id: item.id,
         name: item.itemData.name,
-        description:
-          item.itemData.descriptionPlaintext ||
-          item.itemData.description ||
-          '',
+        description: item.itemData.descriptionPlaintext || item.itemData.description || '',
         kitchenName: item.itemData.kitchenName || item.itemData.name,
         imageId,
         imageUrl: imageId ? imageUrls[imageId] : null,
         variationId: variation?.id || null,
-        priceAmount: priceAmount.toString(),
-        price: money(priceAmount),
+        priceAmount: amount,
+        price: money(amount),
         isBox: /box/i.test(item.itemData.name),
         boxSize: item.itemData.name.match(/\d+/)?.[0] || null,
+        modifierSets,
       };
     });
-
-    res.json(products);
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300').json(products);
   } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
-      error: 'Failed to load products',
-    });
+    console.error('Square catalog error:', err);
+    res.status(502).json({ error: 'Failed to load the Square catalog.' });
   }
 });
+
 app.post('/api/customers/subscribe', async (req, res) => {
+  if (!requireSquare(res)) return;
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
+  if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
   try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({
-        error: 'Email required',
-      });
-    }
-
-    const result = await square.customers.create({
-      idempotencyKey: crypto.randomUUID(),
-      emailAddress: email,
-      givenName: 'Drop List',
-      note: 'Joined Chunki Chip drop list from website popup',
-    });
-
-    res.json({
-  success: true,
+    await square.customers.create({ idempotencyKey: crypto.randomUUID(), emailAddress: email, givenName: 'Drop List', note: 'Joined Chunki Chip drop list from website popup' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Subscribe error:', err);
+    res.status(502).json({ error: 'Could not join the drop list right now.' });
+  }
 });
- } catch (err) {
-  console.error('Subscribe error:', err);
 
-  res.status(500).json({
-    error: err.message || 'Failed to subscribe',
-  });
-}
-});
-const PORT = process.env.PORT || 3001;
 app.post('/api/create-checkout', async (req, res) => {
+  if (!requireSquare(res)) return;
+  const { items, checkoutMethod } = req.body || {};
+  if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ error: 'Your bag is empty or contains too many items.' });
+  if (!['pickup', 'curbside', 'shipping'].includes(checkoutMethod)) return res.status(400).json({ error: 'Choose a valid fulfillment method.' });
   try {
-    const { items, checkoutMethod } = req.body;
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Cart is empty' });
-    }
-
-    const methodLabel =
-  checkoutMethod === 'shipping'
-    ? 'Nationwide Shipping'
-    : checkoutMethod === 'curbside'
-    ? 'Curbside Pickup'
-    : checkoutMethod === 'pickup'
-    ? 'In-Store Pickup'
-    : 'Standard Checkout';
-
     const lineItems = items.map((item) => {
-      const flavorText = item.selectedFlavors?.length
-        ? item.selectedFlavors.map((flavor) => flavor.name).join(', ')
-        : '';
-
+      const modifiers = Array.isArray(item.selectedFlavors) ? item.selectedFlavors.filter((m) => m?.id).map((m) => ({ catalogObjectId: m.id })) : [];
       return {
-        name: flavorText ? `${item.name} — ${flavorText}` : item.name,
-        quantity: String(item.quantity || 1),
-        basePriceMoney: {
-          amount: BigInt(item.priceAmount),
-          currency: 'USD',
-        },
+        ...(item.variationId ? { catalogObjectId: item.variationId } : { name: String(item.name || 'Chunki Chip order').slice(0, 100), basePriceMoney: { amount: BigInt(Math.max(0, Number(item.priceAmount) || 0)), currency: 'USD' } }),
+        quantity: String(Math.max(1, Math.min(99, Number(item.quantity) || 1))),
+        ...(modifiers.length ? { modifiers } : {}),
       };
     });
-
+    const label = checkoutMethod === 'shipping' ? 'Nationwide Shipping' : checkoutMethod === 'curbside' ? 'Curbside Pickup' : 'In-Store Pickup';
     const result = await square.checkout.paymentLinks.create({
       idempotencyKey: crypto.randomUUID(),
-      order: {
-        locationId: process.env.SQUARE_LOCATION_ID,
-        lineItems,
-        referenceId: methodLabel,
-      },
-      checkoutOptions: {
-        redirectUrl: 'https://chunkichip-next.vercel.app/success',
-        askForShippingAddress: checkoutMethod === 'shipping',
-      },
-      description: `Chunki Chip online order — ${methodLabel}`,
-      paymentNote: `Fulfillment method: ${methodLabel}`,
+      order: { locationId: process.env.SQUARE_LOCATION_ID, lineItems, referenceId: label },
+      checkoutOptions: { redirectUrl: process.env.CHECKOUT_REDIRECT_URL || 'https://chunkichip.com/', askForShippingAddress: checkoutMethod === 'shipping' },
+      description: `Chunki Chip online order — ${label}`,
+      paymentNote: `Fulfillment method: ${label}`,
     });
-
-    res.json({
-      url: result.paymentLink?.url,
-    });
+    const url = result.paymentLink?.url;
+    if (!url) throw new Error('Square did not return a checkout URL.');
+    res.json({ url });
   } catch (err) {
-    console.error(err);
-
-    res.status(500).json({
-      error: 'Failed to create checkout',
-    });
+    console.error('Square checkout error:', err);
+    res.status(502).json({ error: 'Could not start checkout. Please try again.' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`API running on ${PORT}`);
-});
+const PORT = process.env.PORT || 3001;
+if (require.main === module) app.listen(PORT, '0.0.0.0', () => console.log(`Chunki Chip API listening on ${PORT}`));
+module.exports = app;

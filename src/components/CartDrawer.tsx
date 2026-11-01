@@ -42,7 +42,7 @@ export default function CartDrawer({ open, setOpen }: Props) {
       setMethodModalOpen(false);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/create-checkout`,
+        '/api/create-checkout',
         {
           method: 'POST',
           headers: {
