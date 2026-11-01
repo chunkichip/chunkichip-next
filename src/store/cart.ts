@@ -12,6 +12,7 @@ export type CartItem = {
   quantity: number;
   isBox: boolean;
   boxSize: string | null;
+  shippingOnly?: boolean;
   selectedFlavors?: {
     id: string;
     name: string;

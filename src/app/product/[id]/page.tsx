@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Minus, Plus } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
+import { isShippingOnlyProduct } from '@/lib/catalog';
 
 type Modifier = {
   id: string;
@@ -31,6 +32,7 @@ type Product = {
   price: string;
   isBox: boolean;
   boxSize: string | null;
+  shippingOnly?: boolean;
   modifierSets: ModifierSet[];
 };
 
@@ -100,7 +102,9 @@ export default function ProductPage({ params }: Props) {
         const products = await response.json();
         if (!active) return;
 
-        const catalog = Array.isArray(products) ? products as Product[] : [];
+        const catalog = Array.isArray(products)
+          ? (products as Product[]).map((item) => ({ ...item, shippingOnly: isShippingOnlyProduct(item) }))
+          : [];
         setAllProducts(catalog);
         setProduct(catalog.find((item) => item.id === id) || null);
       } catch (loadError) {
@@ -153,6 +157,7 @@ export default function ProductPage({ params }: Props) {
       imageUrl: product.imageUrl,
       isBox: product.isBox,
       boxSize: product.boxSize,
+      shippingOnly: Boolean(product.shippingOnly),
       selectedFlavors: selectedModifiers.map((option) => ({
         id: option.id,
         name: option.name,
@@ -228,7 +233,7 @@ export default function ProductPage({ params }: Props) {
           <Link href="/#menu" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em]"><ArrowLeft size={16}/> Back to menu</Link>
           <div className="mt-8 grid gap-8 border-2 border-black bg-white md:grid-cols-2">
             <div className="flex min-h-[330px] items-center justify-center bg-[#ffccef] p-8">{product.imageUrl && <img src={product.imageUrl} alt={product.name} className="max-h-[440px] w-full object-contain"/>}</div>
-            <div className="flex flex-col justify-center p-6 md:p-10"><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">Chunki Chip®</p><h1 className="brand-heading mt-4 text-6xl md:text-8xl">{product.name}</h1><p className="mt-5 text-lg leading-7">{product.description}</p><p className="mt-6 text-xl font-black">{product.price}</p><button onClick={addCurrentProductToCart} className="mt-6 min-h-14 bg-black px-6 py-4 text-sm font-black uppercase tracking-wide text-white hover:bg-[#eb2327]">{added ? 'Added to bag' : 'Add to bag'}</button></div>
+            <div className="flex flex-col justify-center p-6 md:p-10"><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">{product.shippingOnly ? 'Nationwide shipping only' : 'Chunki Chip®'}</p><h1 className="brand-heading mt-4 text-6xl md:text-8xl">{product.name}</h1><p className="mt-5 text-lg leading-7">{product.description}</p><p className="mt-6 text-xl font-black">{product.price}</p><button onClick={addCurrentProductToCart} className="mt-6 min-h-14 bg-black px-6 py-4 text-sm font-black uppercase tracking-wide text-white hover:bg-[#eb2327]">{added ? 'Added to bag' : product.shippingOnly ? 'Add shipping box to bag' : 'Add to bag'}</button></div>
           </div>
         </div>
       </main>
@@ -239,12 +244,12 @@ export default function ProductPage({ params }: Props) {
     <main className="min-h-screen bg-[#fffafc] px-4 pb-32 pt-5 text-[#171315] md:px-8 md:pb-16">
       <style>{`@keyframes cookiePop { 0% { transform: scale(.4) rotate(-14deg); opacity: 0; } 75% { transform: scale(1.08) rotate(3deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }`}</style>
       <div className="mx-auto max-w-[1440px]">
-        <Link href="/#boxes" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] transition hover:text-[#eb2327]"><ArrowLeft size={16}/> All box sizes</Link>
+        <Link href={product.shippingOnly ? '/#shipping-boxes' : '/#boxes'} className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] transition hover:text-[#eb2327]"><ArrowLeft size={16}/> {product.shippingOnly ? 'Shipping boxes' : 'Pickup box sizes'}</Link>
 
         <section className="mt-5 grid gap-5 lg:grid-cols-[1.05fr_.95fr] lg:items-start">
           <div className="sticky top-[72px] z-30 bg-[#fffafc] pb-2 lg:top-[104px] lg:bg-transparent lg:pb-0">
             <div className="overflow-hidden border-2 border-black bg-[#ffccef] p-2 md:p-6">
-              <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-[.18em] md:mb-2 md:text-xs"><span>Live box preview</span><span>{selectedCount} / {maxCookies} picked</span></div>
+              <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-[.18em] md:mb-2 md:text-xs"><span>{product.shippingOnly ? 'Shipping box preview' : 'Live box preview'}</span><span>{selectedCount} / {maxCookies} picked</span></div>
               <div className="overflow-hidden rounded-xl bg-[#ffdeef]/70"><BoxPreview/></div>
               <div className="mt-1 flex items-center justify-between border-t-2 border-black pt-2 text-[10px] font-black uppercase tracking-[.12em] md:mt-3 md:pt-3 md:text-xs"><span>{product.name}</span><span>{formatPrice(totalPrice)}</span></div>
             </div>
@@ -253,7 +258,7 @@ export default function ProductPage({ params }: Props) {
 
           <div className="border-2 border-black bg-white p-4 md:p-7">
             <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-5">
-              <div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">Build your box</p><h1 className="brand-heading mt-2 text-5xl leading-[.88] md:text-7xl">{product.name}</h1><p className="mt-4 max-w-lg text-sm leading-6">Choose your cookies and watch your box fill up.</p></div>
+              <div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">{product.shippingOnly ? 'Build a shipping box' : 'Build your box'}</p><h1 className="brand-heading mt-2 text-5xl leading-[.88] md:text-7xl">{product.name}</h1><p className="mt-4 max-w-lg text-sm leading-6">{product.shippingOnly ? 'Choose your cookies. This box ships nationwide.' : 'Choose your cookies. This box is available for pickup or curbside.'}</p></div>
               <span className="shrink-0 bg-[#eb2327] px-3 py-2 text-sm font-black text-white md:px-4 md:text-base">{product.price}</span>
             </div>
 
@@ -280,7 +285,7 @@ export default function ProductPage({ params }: Props) {
             <div className="mt-5 flex items-center justify-between gap-4 border-t-2 border-black pt-4">
               <div><p className="text-xs font-black uppercase tracking-[.12em]">Box total</p><p className="brand-heading mt-1 text-4xl">{formatPrice(totalPrice)}</p></div>
               <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`hidden min-h-14 flex-1 bg-black px-4 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-not-allowed disabled:opacity-35 md:flex md:flex-none md:min-w-[220px] ${added ? 'bg-[#eb2327]' : ''}`}>
-                {added ? 'Added to bag' : selectedCount === maxCookies ? 'Add box to bag' : `Add ${Math.max(maxCookies - selectedCount, 0)} more`}
+                {added ? 'Added to bag' : selectedCount === maxCookies ? product.shippingOnly ? 'Add shipping box' : 'Add box to bag' : `Add ${Math.max(maxCookies - selectedCount, 0)} more`}
               </button>
             </div>
           </div>
@@ -290,7 +295,7 @@ export default function ProductPage({ params }: Props) {
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[.12em]">{selectedCount} / {maxCookies} · {formatPrice(totalPrice)}</p><p className="truncate text-xs font-semibold">{product.name}</p></div>
           <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`min-h-12 shrink-0 bg-black px-4 text-xs font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-35 ${added ? 'bg-[#eb2327]' : ''}`}>
-            {added ? 'Added' : selectedCount === maxCookies ? 'Add box' : `Pick ${Math.max(maxCookies - selectedCount, 0)} more`}
+            {added ? 'Added' : selectedCount === maxCookies ? product.shippingOnly ? 'Ship box' : 'Add box' : `Pick ${Math.max(maxCookies - selectedCount, 0)} more`}
           </button>
         </div>
       </div>

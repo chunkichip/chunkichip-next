@@ -27,6 +27,7 @@ export default function CartDrawer({ open, setOpen }: Props) {
   const clearCart = useCartStore((state) => state.clearCart);
   const totalItems = useCartStore((state) => state.totalItems);
   const totalAmount = useCartStore((state) => state.totalAmount);
+  const hasShippingOnlyProducts = items.some((item) => item.shippingOnly);
 
   useEffect(() => {
     document.body.style.overflow = open || methodModalOpen ? 'hidden' : 'auto';
@@ -113,9 +114,15 @@ export default function CartDrawer({ open, setOpen }: Props) {
             </div>
 
             <div className="mt-8 grid gap-4">
+              {hasShippingOnlyProducts && (
+                <p className="border-2 border-[#eb2327] bg-[#fff7fb] p-4 text-sm font-bold text-[#171315]">
+                  Your bag has a shipping-only box. Choose Nationwide Shipping to continue.
+                </p>
+              )}
               <button
                 onClick={() => handleCheckout('pickup')}
-                className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl"
+                disabled={hasShippingOnlyProducts}
+                className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <h3 className="text-xl font-black text-[#2b140d]">
                   In-Store Pickup
@@ -129,7 +136,8 @@ export default function CartDrawer({ open, setOpen }: Props) {
 
 	<button
   onClick={() => handleCheckout('curbside')}
-  className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl"
+  disabled={hasShippingOnlyProducts}
+  className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-40"
 >
   <h3 className="text-xl font-black text-[#2b140d]">
     Curbside Pickup
@@ -252,6 +260,8 @@ export default function CartDrawer({ open, setOpen }: Props) {
                               ).toFixed(2)}
                             </span>
                           </div>
+
+                          {item.shippingOnly && <p className="mt-2 text-[10px] font-black uppercase tracking-[.15em] text-[#eb2327]">Nationwide shipping only</p>}
 
                           {item.isBox && item.selectedFlavors?.length ? (
                             <div className="mt-3 flex flex-wrap gap-2">

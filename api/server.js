@@ -146,6 +146,9 @@ app.post('/api/create-checkout', async (req, res) => {
   const { items, checkoutMethod } = req.body || {};
   if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ error: 'Your bag is empty or contains too many items.' });
   if (!['pickup', 'curbside', 'shipping'].includes(checkoutMethod)) return res.status(400).json({ error: 'Choose a valid fulfillment method.' });
+  if (items.some((item) => item?.shippingOnly === true) && checkoutMethod !== 'shipping') {
+    return res.status(400).json({ error: 'This box is available for nationwide shipping only.' });
+  }
   try {
     const lineItems = items.map((item) => {
       const modifiers = Array.isArray(item.selectedFlavors) ? item.selectedFlavors.filter((m) => m?.id).map((m) => ({ catalogObjectId: m.id })) : [];
