@@ -45,10 +45,10 @@ type Props = { params: Promise<{ id: string }> };
 type Slot = { left: string; top: string };
 
 const slotsBySize: Record<string, Slot[]> = {
-  '1': [{ left: '50%', top: '67%' }],
+  '1': [{ left: '51.85%', top: '57.25%' }],
   '2': [
-    { left: '36%', top: '67%' },
-    { left: '64%', top: '67%' },
+    { left: '40.9%', top: '54.25%' },
+    { left: '59.55%', top: '54.25%' },
   ],
   '4': [
     { left: '22%', top: '62%' },
@@ -80,7 +80,7 @@ const slotsBySize: Record<string, Slot[]> = {
   ],
 };
 
-const boxArtSizes = new Set(['4', '6', '12']);
+const boxArtSizes = new Set(['1', '2', '4', '6', '12']);
 const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL || ''}${path}`;
 const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -266,11 +266,10 @@ export default function ProductPage({ params }: Props) {
   function BoxPreview() {
     if (!product) return null;
     const hasBrandedArt = boxArtSizes.has(product.boxSize || '');
-    const cookieSize = product.boxSize === '1' ? '39%' : product.boxSize === '2' ? '27%' : product.boxSize === '12' ? '14%' : product.boxSize === '6' ? '16%' : product.boxSize === '4' ? '15%' : '17%';
-    const previewRatio = product.boxSize === '2' ? 'aspect-[5/4]' : 'aspect-square';
+    const cookieSize = product.boxSize === '1' ? '17%' : product.boxSize === '2' ? '14%' : product.boxSize === '12' ? '14%' : product.boxSize === '6' ? '16%' : product.boxSize === '4' ? '15%' : '17%';
 
     return (
-      <div className={`relative mx-auto ${previewRatio} w-[68vw] max-w-full lg:w-full lg:max-w-[620px]`}>
+      <div className="relative mx-auto aspect-square w-[68vw] max-w-full lg:w-full lg:max-w-[620px]">
         {hasBrandedArt ? (
           <img
             src={`/boxes/${product.boxSize}-box.png`}
