@@ -232,7 +232,7 @@ export default function ProductPage({ params }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           checkoutMethod: selectedMethod,
-          ...(selectedMethod === 'shipping' ? { deliveryType: 'direct' } : {}),
+          
           locationId: selectedLocationId,
           items: [{
             variationId: selection.box.variationId,
