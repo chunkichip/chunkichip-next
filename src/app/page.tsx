@@ -40,7 +40,9 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const inPersonBoxes = products.filter(isInPersonCookieBox);
+  const inPersonBoxes = products
+    .filter(isInPersonCookieBox)
+    .sort((a, b) => Number(a.name.match(/^\d+/)?.[0] || 0) - Number(b.name.match(/^\d+/)?.[0] || 0));
   const shippingBoxes = products.filter((product) => isShippingOnlyProduct(product) && !isInternalPackaging(product));
   const cookies = products.filter((product) =>
     !isInPersonCookieBox(product) && !isShippingOnlyProduct(product) && !isInternalPackaging(product),
