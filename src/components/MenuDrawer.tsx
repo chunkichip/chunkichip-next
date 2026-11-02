@@ -20,7 +20,7 @@ const links = [
   },
   {
     label: 'Catering',
-    href: '/#catering',
+    href: '/catering',
   },
   {
     label: 'Rewards',
