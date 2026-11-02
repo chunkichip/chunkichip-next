@@ -11,6 +11,7 @@ export type CatalogFlavor = {
   imageUrl?: string | null;
   priceAmount?: number;
   price?: string;
+  soldOut?: boolean;
 };
 
 export type CatalogFlavorProduct = FulfillmentProduct & {
@@ -44,7 +45,7 @@ export function getWeeklyFlavors(products: CatalogFlavorProduct[]) {
     (box.modifierSets || []).forEach((set) => {
       (set.modifiers || []).forEach((modifier) => {
         const key = modifier.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (!key || uniqueFlavors.has(key)) return;
+        if (!key || uniqueFlavors.has(key) || modifier.soldOut) return;
         const matchingItem = cookieItems.find((item) =>
           item.name.toLowerCase().replace(/[^a-z0-9]/g, '') === key,
         );
