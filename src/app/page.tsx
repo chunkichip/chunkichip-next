@@ -47,33 +47,33 @@ export default function HomePage() {
   }));
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#fffafc] text-[#171315]">
-      <section className="relative border-b-2 border-black bg-[#ffccef] px-5 pb-14 pt-12 md:px-12 md:pb-20 md:pt-16">
-        <div className="mx-auto max-w-[1400px]">
-          <div className="flex items-center justify-between border-b-2 border-black pb-4 text-[11px] font-black uppercase tracking-[.2em]">
+    <main className="soft-page min-h-screen overflow-hidden text-[#171315]">
+      <section className="relative px-5 py-5 md:px-12 md:py-8">
+        <div className="soft-hero mx-auto max-w-[1400px] px-5 py-8 md:px-10 md:py-12">
+          <div className="flex items-center justify-between pb-4 text-[11px] font-black uppercase tracking-[.2em] text-black/70">
             <a href="/" aria-label="Chunki Chip home">CHUNKI CHIP®</a>
             <span>Milford, NH · Fresh baked daily</span>
             <a href="#menu" className="flex items-center gap-2">Order online <ShoppingBag size={16}/></a>
           </div>
-          <div className="grid items-end gap-10 pt-12 md:grid-cols-[1.3fr_.7fr] md:pt-20">
+          <div className="grid items-center gap-8 pt-10 md:grid-cols-[1.2fr_.8fr] md:pt-14">
             <div>
-              <p className="mb-5 inline-block bg-[#eb2327] px-3 py-2 text-xs font-black uppercase tracking-[.16em] text-white">Big cookie energy</p>
-              <h1 className="brand-heading text-[clamp(5rem,15vw,13.5rem)] leading-[.78] tracking-[-.055em] text-[#eb2327]">COOKIE<br/>CULTURE.</h1>
+              <p className="mb-5 inline-block rounded-full bg-[#ffccef] px-4 py-2 text-xs font-black uppercase tracking-[.16em] text-[#eb2327]">Fresh baked in Milford</p>
+              <h1 className="brand-heading text-[clamp(3.7rem,8vw,7.5rem)] leading-[.84] tracking-[-.035em] text-[#171315]">FRESH BAKED.<br/>BIG ENERGY.</h1>
             </div>
             <div className="md:pb-2">
               <p className="max-w-md text-xl font-semibold leading-snug md:text-2xl">Ridiculously thick cookies. Loud flavors. Made in New Hampshire and shipped nationwide.</p>
-              <a href="#menu" className="mt-8 inline-flex items-center gap-3 border-2 border-black bg-black px-6 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327]">Shop the menu <ArrowDown size={18}/></a>
+              <a href="#menu" className="soft-action mt-8 inline-flex items-center gap-3 px-6 py-4 text-sm font-black uppercase tracking-wide text-white transition">Shop the menu <ArrowDown size={18}/></a>
             </div>
           </div>
-          <div className="mt-12 flex flex-wrap gap-x-8 gap-y-2 border-t-2 border-black pt-4 text-[10px] font-black uppercase tracking-[.18em]">
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-2 pt-4 text-[10px] font-black uppercase tracking-[.18em] text-black/55">
             <span>01 / Amherst Street</span><span>02 / Somerset Plaza coming soon</span><span>Cookie boxes · Chiptinis™ · Catering</span>
           </div>
         </div>
       </section>
 
       <section id="menu" className="mx-auto max-w-[1400px] px-5 py-14 md:px-12 md:py-20">
-        <div className="flex flex-col justify-between gap-5 border-b-2 border-black pb-5 md:flex-row md:items-end">
-          <div><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">The current lineup</p><h2 className="brand-heading mt-3 text-6xl md:text-8xl">PICK YOUR<br className="md:hidden"/> FIX.</h2></div>
+        <div className="flex flex-col justify-between gap-5 pb-5 md:flex-row md:items-end">
+          <div><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">The current lineup</p><h2 className="brand-heading mt-3 text-5xl md:text-6xl">PICK YOUR<br className="md:hidden"/> FIX.</h2></div>
           <p className="max-w-sm text-sm font-medium leading-relaxed">Pickup boxes and nationwide shipping boxes are listed separately. Cookie names, photos, and prices sync from Square.</p>
         </div>
 
@@ -89,7 +89,7 @@ export default function HomePage() {
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {inPersonBoxes.map((product) => (
-                  <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group flex min-h-[190px] flex-col justify-between border-2 border-black bg-white p-5 text-left transition hover:-translate-y-1 hover:bg-[#ffccef] focus-visible:outline-[#eb2327]">
+                  <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group soft-card soft-link-card flex min-h-[190px] flex-col justify-between bg-white p-5 text-left transition focus-visible:outline-[#eb2327]">
                     <div><span className="text-xs font-black uppercase tracking-[.18em] text-[#eb2327]">{product.boxSize} cookies</span><h4 className="brand-heading mt-3 text-4xl">{product.name}</h4></div>
                     <span className="flex items-center justify-between border-t border-black pt-3 text-sm font-bold"><span>{product.price}</span><span className="flex items-center gap-1 uppercase">Build <ArrowUpRight size={16}/></span></span>
                   </Link>
@@ -108,8 +108,8 @@ export default function HomePage() {
                 {shippingBoxes.map((product, index) => {
                   const hasBuilder = product.isBox && Boolean(product.modifierSets?.some((set) => set.modifiers.length));
                   return (
-                    <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group grid grid-cols-[38%_1fr] border-2 border-black bg-white transition hover:-translate-y-1 hover:bg-[#fff4fa]">
-                      <div className={`flex min-h-[175px] items-center justify-center ${index % 3 === 1 ? 'bg-[#ffccef]' : index % 3 === 2 ? 'bg-[#eb2327]' : 'bg-[#f2eeec]'}`}>
+                    <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group soft-card soft-link-card grid grid-cols-[38%_1fr] bg-white transition">
+                      <div className={`soft-inset flex min-h-[175px] items-center justify-center ${index % 3 === 1 ? 'bg-[#fff7fb]' : index % 3 === 2 ? 'bg-[#fff7fb]' : 'bg-[#f8fafc]'}`}>
                         {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-36 w-full object-contain p-2"/> : <span className="text-6xl">🍪</span>}
                       </div>
                       <div className="flex min-w-0 flex-col justify-between p-4">
@@ -124,20 +124,20 @@ export default function HomePage() {
           )}
 
           <div id="single-cookies" className="mt-14 scroll-mt-24">
-            <div className="mb-4 flex flex-col gap-2 border-b-2 border-black pb-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">Fresh from the oven</p><h3 className="brand-heading text-5xl md:text-7xl">WEEKLY FLAVORS</h3></div><span className="text-xs font-black uppercase tracking-widest">Tap a flavor to order</span></div>
-            {cookies.length === 0 ? <p className="border-2 border-dashed border-black p-8 text-center">This week’s flavors are being refreshed. Check back soon.</p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cookies.map((product, index) => <Link href={`/product/${encodeURIComponent(product.id)}`} key={product.id} className="group grid border-2 border-black bg-white transition hover:-translate-y-1 hover:bg-[#fff4fa] focus-visible:outline-[#eb2327]"><div className={`flex min-h-[250px] items-center justify-center ${index % 3 === 1 ? 'bg-[#ffccef]' : index % 3 === 2 ? 'bg-[#eb2327]' : 'bg-[#f2eeec]'}`}>{product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-56 w-full object-contain p-5 transition duration-300 group-hover:scale-105"/> : <span className="text-7xl">🍪</span>}</div><div className="flex flex-col justify-between p-5"><div><h4 className="brand-heading text-3xl leading-tight md:text-4xl">{product.name}</h4><p className="mt-3 text-sm leading-6 text-black/75">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p></div><span className="mt-5 flex items-center justify-between border-t border-black pt-3 text-sm font-black uppercase"><span>{product.price}</span><span className="flex items-center gap-2">Order now <ArrowUpRight size={17}/></span></span></div></Link>)}</div>}
+            <div className="mb-5 flex flex-col gap-2 pb-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">Fresh from the oven</p><h3 className="brand-heading text-5xl md:text-7xl">WEEKLY FLAVORS</h3></div><span className="text-xs font-black uppercase tracking-widest">Tap a flavor to order</span></div>
+            {cookies.length === 0 ? <p className="border-2 border-dashed border-black p-8 text-center">This week’s flavors are being refreshed. Check back soon.</p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cookies.map((product, index) => <Link href={`/product/${encodeURIComponent(product.id)}`} key={product.id} className="group soft-card soft-link-card grid bg-white transition focus-visible:outline-[#eb2327]"><div className={`soft-inset flex min-h-[250px] items-center justify-center ${index % 3 === 1 ? 'bg-[#fff7fb]' : index % 3 === 2 ? 'bg-[#fff7fb]' : 'bg-[#f8fafc]'}`}>{product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-56 w-full object-contain p-5 transition duration-300 group-hover:scale-105"/> : <span className="text-7xl">🍪</span>}</div><div className="flex flex-col justify-between p-5"><div><h4 className="brand-heading text-3xl leading-tight md:text-4xl">{product.name}</h4><p className="mt-3 text-sm leading-6 text-black/75">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p></div><span className="mt-5 flex items-center justify-between border-t border-black pt-3 text-sm font-black uppercase"><span>{product.price}</span><span className="flex items-center gap-2">Order now <ArrowUpRight size={17}/></span></span></div></Link>)}</div>}
           </div>
         </>}
 
         <div className="mt-14 grid gap-4 md:grid-cols-3">
-          <a href="https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/" className="border-2 border-black bg-[#eb2327] p-6 text-white"><span className="text-xs font-black uppercase tracking-widest">Local delivery</span><h3 className="brand-heading mt-4 text-4xl">DOORDASH</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Order nearby ↗</span></a>
-          <a href="#shipping-boxes" className="border-2 border-black bg-[#ffccef] p-6"><span className="text-xs font-black uppercase tracking-widest">Send Chunki nationwide</span><h3 className="brand-heading mt-4 text-4xl">SHIPPING BOXES</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Choose a box ↗</span></a>
-          <a href="#locations" className="border-2 border-black bg-white p-6"><span className="text-xs font-black uppercase tracking-widest">Find a cookie</span><h3 className="brand-heading mt-4 text-4xl">COME BY</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Hours & locations ↗</span></a>
+          <a href="https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/" className="soft-card soft-link-card bg-white p-6 text-[#171315]"><span className="text-xs font-black uppercase tracking-widest">Local delivery</span><h3 className="brand-heading mt-4 text-4xl">DOORDASH</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Order nearby ↗</span></a>
+          <a href="#shipping-boxes" className="soft-card soft-link-card bg-white p-6"><span className="text-xs font-black uppercase tracking-widest">Send Chunki nationwide</span><h3 className="brand-heading mt-4 text-4xl">SHIPPING BOXES</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Choose a box ↗</span></a>
+          <a href="#locations" className="soft-card soft-link-card bg-white p-6"><span className="text-xs font-black uppercase tracking-widest">Find a cookie</span><h3 className="brand-heading mt-4 text-4xl">COME BY</h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4">Hours & locations ↗</span></a>
         </div>
       </section>
 
-      <section id="locations" className="border-y-2 border-black bg-black px-5 py-12 text-white md:px-12"><div className="mx-auto grid max-w-[1400px] gap-8 md:grid-cols-2"><div><p className="text-xs font-black uppercase tracking-[.22em] text-[#ffccef]">Find us</p><h2 className="brand-heading mt-3 text-5xl md:text-6xl">MILFORD, NEW HAMPSHIRE</h2><p className="mt-4 max-w-lg text-sm leading-6 text-white/75">Fresh baked in Milford. Find current hours and directions on Google, or order local delivery through DoorDash.</p><a className="mt-5 inline-block text-sm font-bold underline underline-offset-4" href="https://maps.google.com/?q=Chunki+Chip+Milford+NH">Directions ↗</a></div><div className="border-t border-white/30 pt-5 md:border-l md:border-t-0 md:pl-8 md:pt-0"><p className="text-xs font-black uppercase tracking-[.22em] text-[#ffccef]">Next stop</p><h3 className="brand-heading mt-3 text-4xl">SOMERSET PLAZA<br/>NASHUA</h3><p className="mt-4 text-sm text-white/75">Coming soon. The second cookie counter is on the way.</p></div></div></section>
-      <footer className="flex flex-col justify-between gap-3 px-5 py-6 text-xs font-bold uppercase tracking-[.12em] md:flex-row md:px-12"><span>© Chunki Chip · Baked in New Hampshire</span><span>Cookies before plans.</span><a href="https://chunkichip.com">Shipping & more ↗</a></footer>
+      <section id="locations" className="px-5 py-12 md:px-12"><div className="soft-hero mx-auto grid max-w-[1400px] gap-8 bg-white p-7 text-[#171315] md:grid-cols-2 md:p-10"><div><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">Find us</p><h2 className="brand-heading mt-3 text-5xl md:text-6xl">MILFORD, NEW HAMPSHIRE</h2><p className="mt-4 max-w-lg text-sm leading-6 text-black/65">Fresh baked in Milford. Find current hours and directions on Google, or order local delivery through DoorDash.</p><a className="mt-5 inline-block text-sm font-bold underline underline-offset-4" href="https://maps.google.com/?q=Chunki+Chip+Milford+NH">Directions ↗</a></div><div className="border-t border-black/10 pt-5 md:border-l md:border-t-0 md:pl-8 md:pt-0"><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">Next stop</p><h3 className="brand-heading mt-3 text-4xl">SOMERSET PLAZA<br/>NASHUA</h3><p className="mt-4 text-sm text-black/65">Coming soon. The second cookie counter is on the way.</p></div></div></section>
+      <footer className="mx-5 mb-5 flex flex-col justify-between gap-3 rounded-[1.5rem] bg-white px-5 py-6 text-xs font-bold uppercase tracking-[.12em] shadow-[10px_10px_24px_rgba(190,199,212,.42),-8px_-8px_20px_rgba(255,255,255,.9)] md:mx-12 md:flex-row"><span>© Chunki Chip · Baked in New Hampshire</span><span>Cookies before plans.</span><a href="https://chunkichip.com">Shipping & more ↗</a></footer>
     </main>
   );
 }
