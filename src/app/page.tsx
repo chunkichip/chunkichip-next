@@ -87,11 +87,16 @@ export default function HomePage() {
                 <div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">In-store pickup or curbside</p><h3 className="brand-heading mt-2 text-4xl md:text-5xl">BUILD A BOX</h3></div>
                 <span className="text-xs font-black uppercase tracking-widest">Numbered cookie boxes</span>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-5 lg:grid-cols-3">
                 {inPersonBoxes.map((product) => (
-                  <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group soft-card soft-link-card flex min-h-[190px] flex-col justify-between bg-white p-5 text-left transition focus-visible:outline-[#eb2327]">
-                    <div><span className="text-xs font-black uppercase tracking-[.18em] text-[#eb2327]">{product.boxSize} cookies</span><h4 className="brand-heading mt-3 text-4xl">{product.name}</h4></div>
-                    <span className="flex items-center justify-between border-t border-black pt-3 text-sm font-bold"><span>{product.price}</span><span className="flex items-center gap-1 uppercase">Build <ArrowUpRight size={16}/></span></span>
+                  <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group soft-card soft-link-card flex min-h-[360px] flex-col bg-white text-left transition focus-visible:outline-[#eb2327]">
+                    <div className="soft-inset flex min-h-[225px] items-center justify-center p-4">
+                      {product.boxSize ? <img src={`/boxes/${product.boxSize}-box.png`} alt={`Open ${product.name}`} className="h-52 w-full object-contain transition duration-300 group-hover:scale-[1.03]"/> : <span className="text-7xl">🍪</span>}
+                    </div>
+                    <div className="flex flex-1 flex-col justify-between p-5">
+                      <div><span className="text-xs font-black uppercase tracking-[.18em] text-[#eb2327]">{product.boxSize} cookies</span><h4 className="brand-heading mt-3 text-4xl">{product.name}</h4></div>
+                      <span className="mt-5 flex items-center justify-between border-t border-black/10 pt-3 text-sm font-bold"><span>{product.price}</span><span className="flex items-center gap-1 uppercase">Build <ArrowUpRight size={16}/></span></span>
+                    </div>
                   </Link>
                 ))}
               </div>
