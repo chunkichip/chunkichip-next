@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Minus, Plus } from 'lucide-react';
+import { ArrowLeft, ArrowRight, LoaderCircle, Minus, Plus } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
 import { getWeeklyFlavors, isInPersonCookieBox, isShippingOnlyProduct } from '@/lib/catalog';
 import ShippingCheckout from '@/components/ShippingCheckout';
@@ -14,6 +15,7 @@ type Modifier = {
   imageUrl?: string | null;
   priceAmount: number;
   price: string;
+  soldOut?: boolean;
 };
 
 type ModifierSet = {
@@ -90,6 +92,7 @@ function formatPrice(amount: number) {
 }
 
 export default function ProductPage({ params }: Props) {
+  const searchParams = useSearchParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [locations, setLocations] = useState<StoreLocation[]>([]);
@@ -159,6 +162,13 @@ export default function ProductPage({ params }: Props) {
     () => product?.modifierSets?.flatMap((set) => set.modifiers) || [],
     [product],
   );
+  useEffect(() => {
+    if (!product?.isBox || !options.length) return;
+    const flavorId = searchParams.get('flavor');
+    const preselectedFlavor = options.find((option) => option.id === flavorId && !option.soldOut);
+    if (!preselectedFlavor) return;
+    setQuantities((previous) => Object.keys(previous).length ? previous : { [preselectedFlavor.id]: 1 });
+  }, [options, product?.isBox, searchParams]);
   const cookieProducts = useMemo(
     () => allProducts.filter((item) => !item.isBox),
     [allProducts],
@@ -211,44 +221,9 @@ export default function ProductPage({ params }: Props) {
       return;
     }
 
-    if (selectedMethod === 'shipping') {
-      const cookieCount = Number(selection.box.boxSize || 1);
-      setShippingCheckoutItems([{
-        variationId: selection.box.variationId,
-        name: selection.box.name,
-        quantity: 1,
-        shippingOnly: true,
-        selectedFlavors: Array.from({ length: cookieCount }, () => ({ id: selection.flavor.id, name: selection.flavor.name })),
-      }]);
-      return;
-    }
-
+    const query = new URLSearchParams({ flavor: selection.flavor.id });
     setStartingCheckout(true);
-    setOrderError('');
-    try {
-      const cookieCount = Number(selection.box.boxSize || 1);
-      const response = await fetch(api('/api/create-checkout'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          checkoutMethod: selectedMethod,
-          
-          locationId: selectedLocationId,
-          items: [{
-            variationId: selection.box.variationId,
-            name: selection.box.name,
-            quantity: 1,
-            selectedFlavors: Array.from({ length: cookieCount }, () => ({ id: selection.flavor.id })),
-          }],
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok || !result.url) throw new Error(result.error || 'Could not start checkout. Please try again.');
-      window.location.assign(result.url);
-    } catch (checkoutError) {
-      setOrderError(checkoutError instanceof Error ? checkoutError.message : 'Could not start checkout. Please try again.');
-      setStartingCheckout(false);
-    }
+    window.location.assign(`/product/${encodeURIComponent(selection.box.id)}?${query.toString()}`);
   }
 
   function increase(option: Modifier) {
@@ -380,7 +355,7 @@ export default function ProductPage({ params }: Props) {
               </div>
 
               {orderError && <p role="alert" className="soft-card mt-5 bg-white p-4 text-sm font-bold">{orderError}</p>}
-              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="soft-action mt-5 flex min-h-14 w-full items-center justify-center gap-2 px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-40">{selectedMethod === 'shipping' ? 'Get shipping rates' : startingCheckout ? 'Connecting to Square…' : 'Continue to secure checkout'} <ArrowRight size={18}/></button>}
+              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="soft-action mt-5 flex min-h-14 w-full items-center justify-center gap-2 px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-40">{startingCheckout ? <><LoaderCircle className="animate-spin" size={18}/> Opening your box…</> : <>Continue to build your box <ArrowRight size={18}/></>}</button>}
               {orderStep !== 'fulfillment' && <button type="button" onClick={goBackInOrder} className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.15em]"><ArrowLeft size={15}/> Back</button>}
             </div>
           </div>
@@ -421,9 +396,9 @@ export default function ProductPage({ params }: Props) {
                   const quantity = quantities[option.id] || 0;
                   const imageUrl = cookieImage(option);
                   return (
-                    <article key={option.id} className={`soft-card grid grid-cols-[70px_1fr] items-center gap-3 p-2 transition ${quantity ? 'bg-[#ffccef]' : 'bg-white'}`}>
+                    <article key={option.id} className={`soft-card grid grid-cols-[70px_1fr] items-center gap-3 p-2 transition ${option.soldOut ? 'bg-black/[.03] opacity-55' : quantity ? 'bg-[#ffccef]' : 'bg-white'}`}>
                       <div className="soft-inset flex h-[70px] items-center justify-center">{imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-contain p-1"/> : <span className="text-3xl" aria-hidden="true">🍪</span>}</div>
-                      <div className="min-w-0"><h3 className="line-clamp-2 text-sm font-black leading-tight">{option.name}</h3><p className="mt-1 text-xs font-semibold">{option.price || 'Included'}</p><div className="mt-2 flex items-center gap-2"><button type="button" onClick={() => decrease(option)} disabled={!quantity} aria-label={`Remove one ${option.name}`} className="soft-inset flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-30"><Minus size={15}/></button><span className="min-w-5 text-center text-sm font-black" aria-live="polite">{quantity}</span><button type="button" onClick={() => increase(option)} disabled={selectedCount >= maxCookies} aria-label={`Add one ${option.name}`} className="soft-inset flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-30"><Plus size={15}/></button></div></div>
+                      <div className="min-w-0"><h3 className="line-clamp-2 text-sm font-black leading-tight">{option.name}</h3><p className="mt-1 text-xs font-semibold">{option.soldOut ? 'Sold out' : option.price || 'Included'}</p><div className="mt-2 flex items-center gap-2"><button type="button" onClick={() => decrease(option)} disabled={!quantity || option.soldOut} aria-label={`Remove one ${option.name}`} className="soft-inset flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-30"><Minus size={15}/></button><span className="min-w-5 text-center text-sm font-black" aria-live="polite">{quantity}</span><button type="button" onClick={() => increase(option)} disabled={option.soldOut || selectedCount >= maxCookies} aria-label={`Add one ${option.name}`} className="soft-inset flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-30"><Plus size={15}/></button></div></div>
                     </article>
                   );
                 })}
