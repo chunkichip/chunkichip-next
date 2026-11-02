@@ -402,7 +402,12 @@ app.post('/api/create-checkout', async (req, res) => {
       : checkoutMethod === 'curbside' ? 'Curbside Pickup' : 'Carry Out';
     const result = await square.checkout.paymentLinks.create({
       idempotencyKey: crypto.randomUUID(),
-      order: { locationId: location.squareLocationId, lineItems, referenceId: `${location.name} · ${label}` },
+      order: {
+        locationId: location.squareLocationId,
+        lineItems,
+        referenceId: `${location.name} · ${label}`,
+        source: { name: 'Online Order' },
+      },
       checkoutOptions: {
         redirectUrl: process.env.CHECKOUT_REDIRECT_URL || 'https://chunkichip.com/',
         askForShippingAddress: checkoutMethod === 'shipping',
