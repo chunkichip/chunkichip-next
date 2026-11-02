@@ -43,6 +43,9 @@ export default function Footer() {
             <a href="/catering" className="transition hover:text-[#eb2327]">
               Catering
             </a>
+            <a href="/flavor-archive" className="transition hover:text-[#eb2327]">
+              Flavor Archive
+            </a>
             <a href="/#reviews" className="transition hover:text-[#eb2327]">
               Reviews
             </a>
