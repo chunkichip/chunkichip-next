@@ -4,14 +4,16 @@
   --pink: #ffccef;
   --red: #eb2327;
   --text: #171315;
+  --canvas: #f6f8fb;
+  --surface: #ffffff;
+  --shadow-dark: #dce2ea;
+  --shadow-light: #ffffff;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background: #fffafc;
+  background: var(--canvas);
   color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -19,14 +21,36 @@ body {
 .brand-heading {
   font-family: 'Anton', Impact, sans-serif;
   text-transform: uppercase;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.025em;
   line-height: 0.95;
 }
 
-button,
-a {
-  transition: 0.2s ease;
+.soft-page { background: var(--canvas); }
+.soft-hero, .soft-card, .soft-panel, .soft-nav {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,.92);
+  box-shadow: 14px 14px 30px rgba(190,199,212,.52), -12px -12px 28px rgba(255,255,255,.94);
 }
+.soft-hero, .soft-nav { border-radius: 2rem; }
+.soft-card { border-radius: 1.5rem; overflow: hidden; }
+.soft-panel { border-radius: 1.25rem; }
+.soft-inset {
+  background: #f8fafc;
+  box-shadow: inset 7px 7px 14px rgba(205,213,224,.45), inset -7px -7px 14px rgba(255,255,255,.94);
+}
+.soft-action {
+  background: var(--red);
+  border-radius: 999px;
+  box-shadow: 7px 7px 15px rgba(214,35,39,.22), -5px -5px 12px rgba(255,255,255,.9);
+}
+.soft-action:hover { filter: brightness(.93); transform: translateY(-1px); }
+.soft-link-card:hover { box-shadow: 18px 18px 34px rgba(190,199,212,.63), -14px -14px 30px rgba(255,255,255,.96); transform: translateY(-3px); }
 
+button, a { transition: .2s ease; }
 ::selection { background: var(--red); color: #fff; }
 button:focus-visible, a:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+@media (max-width: 640px) {
+  .soft-hero, .soft-nav { border-radius: 1.35rem; }
+  .soft-card { border-radius: 1.1rem; }
+}
