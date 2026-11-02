@@ -223,6 +223,7 @@ app.get('/api/products', async (_req, res) => {
             modifiers: (listData.modifiers || []).filter((m) => !m.modifierData?.isArchived).map((m) => {
               const rawAmount = m.modifierData?.priceMoney?.amount;
               const modifierAmount = Number(rawAmount || 0);
+              const locationOverrides = m.modifierData?.locationOverrides || [];
               return {
                 id: m.id,
                 name: m.modifierData?.name || 'Option',
@@ -230,6 +231,9 @@ app.get('/api/products', async (_req, res) => {
                 imageUrl: m.modifierData?.imageId ? imageUrls[m.modifierData.imageId] || null : null,
                 priceAmount: modifierAmount,
                 price: rawAmount === undefined || rawAmount === null ? '' : money(modifierAmount),
+                // Square exposes manual modifier availability as a location override.
+                // A sold-out flavor must not be selectable on the storefront.
+                soldOut: locationOverrides.some((override) => override.soldOut === true),
               };
             }),
           };
