@@ -23,6 +23,10 @@ const links = [
     href: '/catering',
   },
   {
+    label: 'Flavor Archive',
+    href: '/flavor-archive',
+  },
+  {
     label: 'Rewards',
     href: '/#rewards',
   },
