@@ -337,50 +337,50 @@ export default function ProductPage({ params }: Props) {
   }
 
   if (error) {
-    return <main className="min-h-screen bg-[#fffafc] px-5 py-20 text-center"><p className="font-semibold">{error}</p><Link href="/#boxes" className="mt-6 inline-flex items-center gap-2 font-black uppercase text-[#eb2327]"><ArrowLeft size={16}/> Back to boxes</Link></main>;
+    return <main className="soft-page min-h-screen px-5 py-20 text-center"><p className="font-semibold">{error}</p><Link href="/#boxes" className="mt-6 inline-flex items-center gap-2 font-black uppercase text-[#eb2327]"><ArrowLeft size={16}/> Back to boxes</Link></main>;
   }
 
   if (!product) {
-    return <main className="min-h-screen bg-[#fffafc] px-5 py-20 text-center"><p className="font-black uppercase tracking-[.2em]">Loading your box…</p></main>;
+    return <main className="soft-page min-h-screen px-5 py-20 text-center"><p className="font-black uppercase tracking-[.2em]">Loading your box…</p></main>;
   }
 
   if (!product.isBox) {
     return (
-      <main className="min-h-screen bg-[#fffafc] px-5 pb-16 pt-8 text-[#171315] md:px-10">
+      <main className="soft-page min-h-screen px-5 pb-16 pt-8 text-[#171315] md:px-10">
         <div className="mx-auto max-w-6xl">
           <Link href="/#single-cookies" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em]"><ArrowLeft size={16}/> Back to weekly flavors</Link>
-          <div className="mt-8 grid overflow-hidden border-2 border-black bg-white md:grid-cols-2">
-            <div className="flex min-h-[360px] items-center justify-center bg-[#ffccef] p-7 md:min-h-[560px]">{product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="max-h-[500px] w-full object-contain"/> : <span className="text-8xl" aria-hidden="true">🍪</span>}</div>
-            <div className="flex flex-col justify-center p-6 md:p-12"><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">This week’s flavor</p><h1 className="brand-heading mt-4 text-6xl md:text-8xl">{product.name}</h1><p className="mt-5 text-lg leading-7">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p><p className="mt-6 text-xs font-black uppercase tracking-[.16em]">Starting at {numberedBoxes[0]?.price || product.price} · Choose pickup or delivery</p><button onClick={() => { setOrderError(''); setSelectedSizeId(''); setSelectedMethod(null); setSelectedLocationId(''); setFulfillmentChoice(null); setOrderStep('fulfillment'); }} className="mt-7 inline-flex min-h-14 items-center justify-center gap-3 border-2 border-black bg-[#eb2327] px-7 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-black">Order now <ArrowRight size={18}/></button></div>
+          <div className="soft-card mt-8 grid bg-white md:grid-cols-2">
+            <div className="soft-inset flex min-h-[360px] items-center justify-center bg-white p-7 md:min-h-[560px]">{product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="max-h-[500px] w-full object-contain"/> : <span className="text-8xl" aria-hidden="true">🍪</span>}</div>
+            <div className="flex flex-col justify-center p-6 md:p-12"><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">This week’s flavor</p><h1 className="brand-heading mt-4 text-6xl md:text-8xl">{product.name}</h1><p className="mt-5 text-lg leading-7">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p><p className="mt-6 text-xs font-black uppercase tracking-[.16em]">Starting at {numberedBoxes[0]?.price || product.price} · Choose pickup or delivery</p><button onClick={() => { setOrderError(''); setSelectedSizeId(''); setSelectedMethod(null); setSelectedLocationId(''); setFulfillmentChoice(null); setOrderStep('fulfillment'); }} className="soft-action mt-7 inline-flex min-h-14 items-center justify-center gap-3 px-7 py-4 text-sm font-black uppercase tracking-wide text-white transition">Order now <ArrowRight size={18}/></button></div>
           </div>
         </div>
 
         {orderStep && (
           <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-labelledby="order-flow-title">
-            <div className="max-h-[94vh] w-full max-w-2xl overflow-y-auto border-2 border-black bg-[#fffafc] p-5 shadow-[8px_8px_0_#eb2327] sm:p-8">
-              <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-5">
+            <div className="soft-card max-h-[94vh] w-full max-w-2xl overflow-y-auto bg-white p-5 sm:p-8">
+              <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5">
                 <div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">{product.name} · Step {orderStep === 'fulfillment' ? '1' : orderStep === 'location' ? '2' : orderStep === 'method' ? '3' : '4'} of 4</p><h2 id="order-flow-title" className="brand-heading mt-2 text-4xl leading-none sm:text-5xl">{orderStep === 'fulfillment' ? 'PICKUP OR DELIVERY?' : orderStep === 'location' ? 'CHOOSE A LOCATION' : orderStep === 'method' ? fulfillmentChoice === 'pickup' ? 'HOW SHOULD WE HAND IT OFF?' : 'DELIVERY' : 'CHOOSE YOUR BOX SIZE'}</h2></div>
-                <button type="button" onClick={() => { setOrderStep(null); setOrderError(''); }} aria-label="Close ordering" className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-black bg-white text-2xl">×</button>
+                <button type="button" onClick={() => { setOrderStep(null); setOrderError(''); }} aria-label="Close ordering" className="soft-inset flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-2xl">×</button>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 {orderStep === 'fulfillment' && <>
-                  <button type="button" onClick={() => { setFulfillmentChoice('pickup'); setOrderStep('location'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Pick up fresh</span><span className="brand-heading mt-3 block text-3xl">PICKUP</span><span className="mt-2 block text-sm">Choose a shop, then curbside or carry out.</span></button>
-                  <button type="button" onClick={() => { setFulfillmentChoice('delivery'); setOrderStep('location'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Delivered to you</span><span className="brand-heading mt-3 block text-3xl">DELIVERY</span><span className="mt-2 block text-sm">Get a live carrier quote before paying securely through Square.</span></button>
+                  <button type="button" onClick={() => { setFulfillmentChoice('pickup'); setOrderStep('location'); }} className="soft-card soft-link-card min-h-32 bg-white p-5 text-left transition"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Pick up fresh</span><span className="brand-heading mt-3 block text-3xl">PICKUP</span><span className="mt-2 block text-sm">Choose a shop, then curbside or carry out.</span></button>
+                  <button type="button" onClick={() => { setFulfillmentChoice('delivery'); setOrderStep('location'); }} className="soft-card soft-link-card min-h-32 bg-white p-5 text-left transition"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Delivered to you</span><span className="brand-heading mt-3 block text-3xl">DELIVERY</span><span className="mt-2 block text-sm">Get a live carrier quote before paying securely through Square.</span></button>
                 </>}
 
-                {orderStep === 'location' && (locations.length ? locations.map((location) => <button type="button" key={location.id} onClick={() => { setSelectedLocationId(location.id); setOrderStep('method'); }} className={`min-h-28 border-2 border-black p-5 text-left transition hover:bg-[#ffccef] ${selectedLocationId === location.id ? 'bg-[#ffccef]' : 'bg-white'}`}><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Chunki Chip</span><span className="brand-heading mt-2 block text-3xl">{location.name}</span><span className="mt-1 block text-sm">{location.address}</span></button>) : <p className="border-2 border-[#eb2327] bg-white p-5 text-sm font-semibold sm:col-span-2">Online ordering is not available right now. Please contact the shop.</p>)}
+                {orderStep === 'location' && (locations.length ? locations.map((location) => <button type="button" key={location.id} onClick={() => { setSelectedLocationId(location.id); setOrderStep('method'); }} className={`soft-card soft-link-card min-h-28 p-5 text-left transition ${selectedLocationId === location.id ? 'bg-[#ffccef]' : 'bg-white'}`}><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Chunki Chip</span><span className="brand-heading mt-2 block text-3xl">{location.name}</span><span className="mt-1 block text-sm">{location.address}</span></button>) : <p className="soft-card bg-white p-5 text-sm font-semibold sm:col-span-2">Online ordering is not available right now. Please contact the shop.</p>)}
 
                 {orderStep === 'method' && (fulfillmentChoice === 'pickup' ? <>
-                  <button type="button" onClick={() => { setSelectedMethod('curbside'); setOrderStep('size'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">We’ll bring it out</span><span className="brand-heading mt-3 block text-3xl">CURBSIDE</span><span className="mt-2 block text-sm">Park outside and let us know when you arrive.</span></button>
-                  <button type="button" onClick={() => { setSelectedMethod('pickup'); setOrderStep('size'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef]"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Come inside</span><span className="brand-heading mt-3 block text-3xl">CARRY OUT</span><span className="mt-2 block text-sm">Pick up your order at the counter.</span></button>
-                </> : <button type="button" onClick={() => { setSelectedMethod('shipping'); setSelectedSizeId(''); setOrderStep('size'); }} className="min-h-32 border-2 border-black bg-white p-5 text-left transition hover:bg-[#ffccef] sm:col-span-2"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Live carrier rates</span><span className="brand-heading mt-3 block text-3xl">NATIONWIDE SHIPPING</span><span className="mt-2 block text-sm">Choose a shipping box, enter its destination, compare Shippo rates, then pay securely through Square.</span></button>)}
+                  <button type="button" onClick={() => { setSelectedMethod('curbside'); setOrderStep('size'); }} className="soft-card soft-link-card min-h-32 bg-white p-5 text-left transition"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">We’ll bring it out</span><span className="brand-heading mt-3 block text-3xl">CURBSIDE</span><span className="mt-2 block text-sm">Park outside and let us know when you arrive.</span></button>
+                  <button type="button" onClick={() => { setSelectedMethod('pickup'); setOrderStep('size'); }} className="soft-card soft-link-card min-h-32 bg-white p-5 text-left transition"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Come inside</span><span className="brand-heading mt-3 block text-3xl">CARRY OUT</span><span className="mt-2 block text-sm">Pick up your order at the counter.</span></button>
+                </> : <button type="button" onClick={() => { setSelectedMethod('shipping'); setSelectedSizeId(''); setOrderStep('size'); }} className="soft-card soft-link-card min-h-32 bg-white p-5 text-left transition sm:col-span-2"><span className="text-xs font-black uppercase tracking-[.15em] text-[#eb2327]">Live carrier rates</span><span className="brand-heading mt-3 block text-3xl">NATIONWIDE SHIPPING</span><span className="mt-2 block text-sm">Choose a shipping box, enter its destination, compare Shippo rates, then pay securely through Square.</span></button>)}
 
-                {orderStep === 'size' && (flavorBoxChoices.length ? flavorBoxChoices.map(({ box }) => <button type="button" key={box.id} onClick={() => setSelectedSizeId(box.id)} className={`flex min-h-24 items-center justify-between border-2 border-black p-5 text-left transition hover:bg-[#ffccef] ${selectedSizeId === box.id ? 'bg-[#ffccef] shadow-[4px_4px_0_#eb2327]' : 'bg-white'}`}><span><span className="brand-heading block text-3xl">{box.name}</span><span className="mt-1 block text-xs font-black uppercase tracking-[.12em]">{box.boxSize} {Number(box.boxSize) === 1 ? 'cookie' : 'cookies'} · {selectedMethod === 'shipping' ? 'Shipping' : selectedMethod === 'curbside' ? 'Curbside' : 'Carry out'}</span></span><span className="text-lg font-black">{box.price}</span></button>) : <p className="border-2 border-[#eb2327] bg-white p-5 text-sm font-semibold sm:col-span-2">{selectedMethod === 'shipping' ? 'No shipping box with this flavor is currently available.' : 'No numbered cookie boxes are currently available with this flavor.'}</p>)}
+                {orderStep === 'size' && (flavorBoxChoices.length ? flavorBoxChoices.map(({ box }) => <button type="button" key={box.id} onClick={() => setSelectedSizeId(box.id)} className={`flex soft-card soft-link-card min-h-24 items-center justify-between p-5 text-left transition ${selectedSizeId === box.id ? 'bg-[#ffccef] shadow-[4px_4px_0_#eb2327]' : 'bg-white'}`}><span><span className="brand-heading block text-3xl">{box.name}</span><span className="mt-1 block text-xs font-black uppercase tracking-[.12em]">{box.boxSize} {Number(box.boxSize) === 1 ? 'cookie' : 'cookies'} · {selectedMethod === 'shipping' ? 'Shipping' : selectedMethod === 'curbside' ? 'Curbside' : 'Carry out'}</span></span><span className="text-lg font-black">{box.price}</span></button>) : <p className="soft-card bg-white p-5 text-sm font-semibold sm:col-span-2">{selectedMethod === 'shipping' ? 'No shipping box with this flavor is currently available.' : 'No numbered cookie boxes are currently available with this flavor.'}</p>)}
               </div>
 
-              {orderError && <p role="alert" className="mt-5 border-2 border-[#eb2327] bg-white p-4 text-sm font-bold">{orderError}</p>}
-              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 border-2 border-black bg-black px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-not-allowed disabled:opacity-40">{selectedMethod === 'shipping' ? 'Get shipping rates' : startingCheckout ? 'Connecting to Square…' : 'Continue to secure checkout'} <ArrowRight size={18}/></button>}
+              {orderError && <p role="alert" className="soft-card mt-5 bg-white p-4 text-sm font-bold">{orderError}</p>}
+              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="soft-action mt-5 flex min-h-14 w-full items-center justify-center gap-2 px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-40">{selectedMethod === 'shipping' ? 'Get shipping rates' : startingCheckout ? 'Connecting to Square…' : 'Continue to secure checkout'} <ArrowRight size={18}/></button>}
               {orderStep !== 'fulfillment' && <button type="button" onClick={goBackInOrder} className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.15em]"><ArrowLeft size={15}/> Back</button>}
             </div>
           </div>
@@ -391,29 +391,29 @@ export default function ProductPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[#fffafc] px-4 pb-32 pt-5 text-[#171315] md:px-8 md:pb-16">
+    <main className="soft-page min-h-screen px-4 pb-32 pt-5 text-[#171315] md:px-8 md:pb-16">
       <style>{`@keyframes cookiePop { 0% { transform: scale(.4) rotate(-14deg); opacity: 0; } 75% { transform: scale(1.08) rotate(3deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }`}</style>
       <div className="mx-auto max-w-[1440px]">
         <Link href={product.shippingOnly ? '/#shipping-boxes' : '/#boxes'} className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] transition hover:text-[#eb2327]"><ArrowLeft size={16}/> {product.shippingOnly ? 'Shipping boxes' : 'Pickup box sizes'}</Link>
 
         <section className="mt-5 grid gap-5 lg:grid-cols-[1.05fr_.95fr] lg:items-start">
-          <div className="sticky top-[72px] z-30 bg-[#fffafc] pb-2 lg:top-[104px] lg:bg-transparent lg:pb-0">
-            <div className="overflow-hidden border-2 border-black bg-[#ffccef] p-2 md:p-6">
+          <div className="sticky top-[72px] z-30 pb-2 lg:top-[104px] lg:pb-0">
+            <div className="soft-card overflow-hidden bg-white p-2 md:p-6">
               <div className="mb-1 flex items-center justify-between text-[10px] font-black uppercase tracking-[.18em] md:mb-2 md:text-xs"><span>{product.shippingOnly ? 'Shipping box preview' : 'Live box preview'}</span><span>{selectedCount} / {maxCookies} picked</span></div>
-              <div className="overflow-hidden rounded-xl bg-[#ffdeef]/70"><BoxPreview/></div>
-              <div className="mt-1 flex items-center justify-between border-t-2 border-black pt-2 text-[10px] font-black uppercase tracking-[.12em] md:mt-3 md:pt-3 md:text-xs"><span>{product.name}</span><span>{formatPrice(totalPrice)}</span></div>
+              <div className="soft-inset overflow-hidden rounded-xl"><BoxPreview/></div>
+              <div className="mt-1 flex items-center justify-between border-t border-black/10 pt-2 text-[10px] font-black uppercase tracking-[.12em] md:mt-3 md:pt-3 md:text-xs"><span>{product.name}</span><span>{formatPrice(totalPrice)}</span></div>
             </div>
             <p className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[.12em] text-black/65 md:mt-3 md:block md:text-xs">Your selection appears in the box as you build.</p>
           </div>
 
-          <div className="border-2 border-black bg-white p-4 md:p-7">
-            <div className="flex items-start justify-between gap-4 border-b-2 border-black pb-5">
+          <div className="soft-card bg-white p-4 md:p-7">
+            <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-5">
               <div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">{product.shippingOnly ? 'Build a shipping box' : 'Build your box'}</p><h1 className="brand-heading mt-2 text-5xl leading-[.88] md:text-7xl">{product.name}</h1><p className="mt-4 max-w-lg text-sm leading-6">{product.shippingOnly ? 'Choose your cookies. This box ships nationwide.' : 'Choose your cookies. This box is available for pickup or curbside.'}</p></div>
               <span className="shrink-0 bg-[#eb2327] px-3 py-2 text-sm font-black text-white md:px-4 md:text-base">{product.price}</span>
             </div>
 
             <div className="mt-5 flex items-center justify-between"><h2 className="brand-heading text-3xl md:text-4xl">Pick your flavors</h2><span className="text-xs font-black uppercase tracking-[.12em]">{selectedCount} / {maxCookies}</span></div>
-            <div className="mt-3 h-2 border border-black bg-[#fffafc]"><div className="h-full bg-[#eb2327] transition-[width] duration-300" style={{ width: `${maxCookies ? Math.min(100, (selectedCount / maxCookies) * 100) : 0}%` }}/></div>
+            <div className="soft-inset mt-3 h-2 rounded-full"><div className="h-full bg-[#eb2327] transition-[width] duration-300" style={{ width: `${maxCookies ? Math.min(100, (selectedCount / maxCookies) * 100) : 0}%` }}/></div>
 
             {options.length ? (
               <div className="mt-4 grid max-h-[540px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
@@ -421,30 +421,30 @@ export default function ProductPage({ params }: Props) {
                   const quantity = quantities[option.id] || 0;
                   const imageUrl = cookieImage(option);
                   return (
-                    <article key={option.id} className={`grid grid-cols-[70px_1fr] items-center gap-3 border-2 border-black p-2 transition ${quantity ? 'bg-[#ffccef]' : 'bg-white'}`}>
-                      <div className="flex h-[70px] items-center justify-center bg-[#fff3fa]">{imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-contain p-1"/> : <span className="text-3xl" aria-hidden="true">🍪</span>}</div>
-                      <div className="min-w-0"><h3 className="line-clamp-2 text-sm font-black leading-tight">{option.name}</h3><p className="mt-1 text-xs font-semibold">{option.price || 'Included'}</p><div className="mt-2 flex items-center gap-2"><button type="button" onClick={() => decrease(option)} disabled={!quantity} aria-label={`Remove one ${option.name}`} className="flex h-8 w-8 items-center justify-center border border-black bg-white disabled:opacity-30"><Minus size={15}/></button><span className="min-w-5 text-center text-sm font-black" aria-live="polite">{quantity}</span><button type="button" onClick={() => increase(option)} disabled={selectedCount >= maxCookies} aria-label={`Add one ${option.name}`} className="flex h-8 w-8 items-center justify-center border border-black bg-white disabled:opacity-30"><Plus size={15}/></button></div></div>
+                    <article key={option.id} className={`soft-card grid grid-cols-[70px_1fr] items-center gap-3 p-2 transition ${quantity ? 'bg-[#ffccef]' : 'bg-white'}`}>
+                      <div className="soft-inset flex h-[70px] items-center justify-center">{imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-contain p-1"/> : <span className="text-3xl" aria-hidden="true">🍪</span>}</div>
+                      <div className="min-w-0"><h3 className="line-clamp-2 text-sm font-black leading-tight">{option.name}</h3><p className="mt-1 text-xs font-semibold">{option.price || 'Included'}</p><div className="mt-2 flex items-center gap-2"><button type="button" onClick={() => decrease(option)} disabled={!quantity} aria-label={`Remove one ${option.name}`} className="soft-inset flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-30"><Minus size={15}/></button><span className="min-w-5 text-center text-sm font-black" aria-live="polite">{quantity}</span><button type="button" onClick={() => increase(option)} disabled={selectedCount >= maxCookies} aria-label={`Add one ${option.name}`} className="soft-inset flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-30"><Plus size={15}/></button></div></div>
                     </article>
                   );
                 })}
               </div>
             ) : (
-              <p className="mt-4 border-2 border-dashed border-black p-5 text-sm font-medium">Flavor choices are temporarily unavailable for this box. Please check back soon.</p>
+              <p className="soft-inset mt-4 rounded-xl border border-dashed border-black/15 p-5 text-sm font-medium">Flavor choices are temporarily unavailable for this box. Please check back soon.</p>
             )}
 
-            <div className="mt-5 flex items-center justify-between gap-4 border-t-2 border-black pt-4">
+            <div className="mt-5 flex items-center justify-between gap-4 border-t border-black/10 pt-4">
               <div><p className="text-xs font-black uppercase tracking-[.12em]">Box total</p><p className="brand-heading mt-1 text-4xl">{formatPrice(totalPrice)}</p></div>
-              <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`hidden min-h-14 flex-1 bg-black px-4 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-not-allowed disabled:opacity-35 md:flex md:flex-none md:min-w-[220px] ${added ? 'bg-[#eb2327]' : ''}`}>
+              <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`soft-action hidden min-h-14 flex-1 px-4 py-4 text-sm font-black uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-35 md:flex md:flex-none md:min-w-[220px] ${added ? 'bg-[#eb2327]' : ''}`}>
                 {added ? 'Added to bag' : selectedCount === maxCookies ? product.shippingOnly ? 'Add shipping box' : 'Add box to bag' : `Add ${Math.max(maxCookies - selectedCount, 0)} more`}
               </button>
             </div>
           </div>
         </section>
       </div>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-black bg-white p-3 md:hidden">
+      <div className="soft-nav fixed inset-x-0 bottom-0 z-50 bg-white p-3 md:hidden">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[.12em]">{selectedCount} / {maxCookies} · {formatPrice(totalPrice)}</p><p className="truncate text-xs font-semibold">{product.name}</p></div>
-          <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`min-h-12 shrink-0 bg-black px-4 text-xs font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-35 ${added ? 'bg-[#eb2327]' : ''}`}>
+          <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`soft-action min-h-12 shrink-0 px-4 text-xs font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-35 ${added ? 'bg-[#eb2327]' : ''}`}>
             {added ? 'Added' : selectedCount === maxCookies ? product.shippingOnly ? 'Ship box' : 'Add box' : `Pick ${Math.max(maxCookies - selectedCount, 0)} more`}
           </button>
         </div>
