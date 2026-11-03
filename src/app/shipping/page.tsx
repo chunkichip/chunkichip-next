@@ -48,3 +48,11 @@ export default function ShippingPage() {
     </main>
   );
 }
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Shipping | Chunki Chip',
+  description: 'Shipping information for Chunki Chip cookie orders.',
+  alternates: { canonical: '/shipping' },
+};
+

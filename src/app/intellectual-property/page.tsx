@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Intellectual Property | Chunki Chip',
+  description: 'Information about Chunki Chip brand, photography, artwork, and other intellectual property.',
+  alternates: { canonical: '/intellectual-property' },
+};
+
 export default function IntellectualPropertyPage() {
   return (
     <main className="min-h-screen bg-[#fff7f9] px-6 py-24 text-[#2b140d] md:px-10">

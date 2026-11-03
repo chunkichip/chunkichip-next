@@ -4,6 +4,12 @@ const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
 const { SquareClient, SquareEnvironment } = require('square');
+const configuredModifierDescriptions = require('./modifierDescriptions.json');
+
+const normalizeCatalogName = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const modifierDescriptions = Object.fromEntries(
+  Object.entries(configuredModifierDescriptions).map(([name, description]) => [normalizeCatalogName(name), description]),
+);
 
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((v) => v.trim()) : true }));
@@ -182,6 +188,10 @@ app.get('/api/products', async (_req, res) => {
     ]);
     const listById = new Map(modifierLists.map((o) => [o.id, o]));
     const visible = items.filter((item) => item.itemData && !item.itemData.isArchived && item.itemData.ecomVisibility !== 'UNAVAILABLE');
+    const itemDescriptions = new Map(visible.map((item) => [
+      normalizeCatalogName(item.itemData.name),
+      item.itemData.descriptionPlaintext || item.itemData.description || '',
+    ]));
     const modifierImageIds = visible.flatMap((item) =>
       (item.itemData.modifierListInfo || [])
         .filter((ref) => ref.enabled !== false)
@@ -227,7 +237,9 @@ app.get('/api/products', async (_req, res) => {
               return {
                 id: m.id,
                 name: m.modifierData?.name || 'Option',
-                description: m.modifierData?.descriptionPlaintext || m.modifierData?.description || '',
+                description: modifierDescriptions[normalizeCatalogName(m.modifierData?.name)]
+                  || itemDescriptions.get(normalizeCatalogName(m.modifierData?.name))
+                  || '',
                 imageUrl: m.modifierData?.imageId ? imageUrls[m.modifierData.imageId] || null : null,
                 priceAmount: modifierAmount,
                 price: rawAmount === undefined || rawAmount === null ? '' : money(modifierAmount),

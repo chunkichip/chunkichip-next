@@ -46,3 +46,11 @@ export default function RefundsPage() {
     </main>
   );
 }
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Refund Policy | Chunki Chip',
+  description: 'Refund and order issue information for Chunki Chip customers.',
+  alternates: { canonical: '/refunds' },
+};
+
