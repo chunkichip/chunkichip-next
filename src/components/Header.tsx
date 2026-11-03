@@ -1,5 +1,7 @@
 'use client';
 
+import ManagedText, { ManagedImage } from '@/components/ManagedText';
+
 import { useEffect, useState } from 'react';
 import { Menu, ShoppingBag } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -48,15 +50,13 @@ export default function Header({
           >
             <Menu size={24} strokeWidth={2.2} />
 
-            <span className="hidden text-[15px] font-semibold tracking-tight md:block">
-              Menu
-            </span>
+            <span className="hidden text-[15px] font-semibold tracking-tight md:block"><ManagedText id="c02ec2b875972a34dd330f37" fallback={"Menu"} /></span>
           </button>
 
           <div className="absolute left-1/2 top-[60%] z-10 -translate-x-1/2 -translate-y-1/2 md:top-[54%]">
             <a href="/">
               <div className="flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#eb2327] bg-white shadow-xl transition hover:scale-105 md:h-24 md:w-24">
-                <img
+                <ManagedImage cmsId="image-b56fb3b6bfb0c379db92"
                   src="/logo.png"
                   alt="Chunki Chip"
                   className="h-[88%] w-[88%] object-contain"
@@ -69,9 +69,7 @@ export default function Header({
             <a
               href="/#boxes"
               className="hidden h-11 items-center rounded-full bg-[#eb2327] px-5 text-[13px] font-semibold tracking-tight text-white shadow-lg transition hover:scale-105 md:flex md:px-6 md:text-sm"
-            >
-              Order Now
-            </a>
+            ><ManagedText id="2093be5a7308ce83f905460e" fallback={"Order Now"} /></a>
 
             <button
               onClick={onCartClick}
@@ -97,22 +95,17 @@ export default function Header({
           className="fixed bottom-4 left-4 right-4 z-40 flex h-[60px] items-center justify-between rounded-full bg-black px-6 text-white shadow-2xl transition hover:scale-[1.01] md:hidden"
         >
           <div className="flex flex-col items-start">
-            <span className="text-xs uppercase tracking-[0.2em] text-white/60">
-              Cart
-            </span>
+            <span className="text-xs uppercase tracking-[0.2em] text-white/60"><ManagedText id="fa34dc9623864d9ca76d2fce" fallback={"Cart"} /></span>
 
             <span className="text-sm font-semibold">
-              {totalItems} items
-            </span>
+              {totalItems}<ManagedText id="691f7dd68b3f64e5ff2004b8" fallback={"items"} /></span>
           </div>
 
           <div className="brand-heading text-2xl">
             ${(totalAmount / 100).toFixed(2)}
           </div>
 
-          <div className="rounded-full bg-[#eb2327] px-4 py-2 text-sm font-semibold">
-            View Cart
-          </div>
+          <div className="rounded-full bg-[#eb2327] px-4 py-2 text-sm font-semibold"><ManagedText id="a6f8e4acc63fd3635cfb8c60" fallback={"View Cart"} /></div>
         </button>
       )}
     </>
