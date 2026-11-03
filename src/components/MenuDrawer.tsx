@@ -9,7 +9,7 @@ const links = [
   { label: 'Order', href: '/#boxes' },
   { label: 'Menu', href: '/#single-cookies' },
   { label: 'Catering', href: '/catering' },
-  { label: 'Rewards', href: '/#rewards' },
+  { label: 'Rewards', href: 'https://profile.squareup.com/merchantportal/MLGF722JEEMCW/loyalty' },
   { label: 'Careers', href: '/careers' },
   { label: 'Write a Google review', href: 'https://search.google.com/local/writereview?placeid=ChIJqYTlQgXL44kRrKF__H_Au4E' },
   { label: 'Locations and contact', href: '/#locations' },
