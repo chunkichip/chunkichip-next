@@ -6,54 +6,13 @@ type Props = {
 };
 
 const links = [
-  {
-    label: 'Order',
-    href: '/#order',
-  },
-  {
-    label: 'Build a Box',
-    href: '/#build-box',
-  },
-  {
-    label: 'Single Cookies',
-    href: '/#single-cookies',
-  },
-  {
-    label: 'Catering',
-    href: '/catering',
-  },
-  {
-    label: 'Flavor Archive',
-    href: '/flavor-archive',
-  },
-  {
-    label: 'Reviews',
-    href: '/reviews',
-  },
-  {
-    label: 'Careers',
-    href: '/careers',
-  },
-  {
-    label: 'Press',
-    href: '/press',
-  },
-  {
-    label: 'Allergy Notice',
-    href: '/allergy-notice',
-  },
-  {
-    label: 'Rewards',
-    href: '/#rewards',
-  },
-  {
-    label: 'Locations',
-    href: '/#locations',
-  },
-  {
-    label: 'Contact',
-    href: '/#contact',
-  },
+  { label: 'Order', href: '/#boxes' },
+  { label: 'Menu', href: '/#single-cookies' },
+  { label: 'Catering', href: '/catering' },
+  { label: 'Rewards', href: '/#rewards' },
+  { label: 'Careers', href: '/careers' },
+  { label: 'Write a Google review', href: 'https://search.google.com/local/writereview?placeid=ChIJqYTlQgXL44kRrKF__H_Au4E' },
+  { label: 'Locations and contact', href: '/#locations' },
 ];
 
 export default function MenuDrawer({
@@ -95,8 +54,8 @@ export default function MenuDrawer({
           </button>
         </div>
 
-        <div className="flex min-h-full flex-1 flex-col px-6 py-6">
-          <nav className="flex flex-col">
+        <div className="flex flex-1 flex-col px-6 py-6">
+          <nav aria-label="Main menu" className="flex flex-col">
             {links.map((link) => (
               <a
                 key={link.href}
@@ -127,7 +86,7 @@ export default function MenuDrawer({
             </h3>
 
             <a
-              href="/"
+              href="/#boxes"
               onClick={() => setOpen(false)}
               className="mt-5 flex h-[52px] items-center justify-center rounded-full bg-black text-sm font-semibold text-white transition hover:scale-[1.02]"
             >

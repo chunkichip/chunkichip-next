@@ -6,7 +6,7 @@ import CartDrawer from './CartDrawer';
 import MobileOrderBar from './MobileOrderBar';
 import MenuDrawer from './MenuDrawer';
 import PageTransition from './PageTransition';
-import DropListPopup from './DropListPopup';
+import Footer from './Footer';
 
 export default function SiteShell({
   children,
@@ -29,7 +29,7 @@ export default function SiteShell({
 
       <MobileOrderBar />
 
-      <DropListPopup />
+      <Footer />
 
       <MenuDrawer open={menuOpen} setOpen={setMenuOpen} />
 
