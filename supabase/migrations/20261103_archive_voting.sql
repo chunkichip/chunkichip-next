@@ -1,4 +1,4 @@
--- Apply once through the Supabase connector. Voting stays closed until email delivery is tested.
+-- Archive voting with browser-based weekly ballots. No email or login required.
 begin;
 create schema if not exists archive_private;
 revoke all on schema archive_private from public, anon;
@@ -134,11 +134,65 @@ insert into public.archive_flavors (name) values
   ('Snickers')
 on conflict (name) do nothing;
 
+-- Guest voting uses a random browser token, without collecting email.
+create table if not exists archive_private.guest_ballots (
+  voter_id uuid not null,
+  week_start date not null,
+  choices text[] not null check (cardinality(choices) between 1 and 3),
+  created_at timestamptz not null default now(),
+  primary key (voter_id, week_start)
+);
+alter table archive_private.guest_ballots enable row level security;
+create policy guest_ballots_internal_only on archive_private.guest_ballots for all to anon, authenticated using (false) with check (false);
+revoke all on archive_private.guest_ballots from public, anon, authenticated;
+grant usage on schema archive_private to anon, authenticated;
+
+create or replace function archive_private.archive_guest_ballot(p_voter uuid)
+returns jsonb language sql stable security definer set search_path = ''
+as $$
+ select case when p_voter is null then null else (
+ select jsonb_build_object('choices',choices,'week_start',week_start)
+ from archive_private.guest_ballots
+ where voter_id=p_voter and week_start=date_trunc('week',now() at time zone 'America/New_York')::date
+ ) end;
+$$;
+create or replace function archive_private.submit_archive_guest_ballot(p_voter uuid,p_choices text[])
+returns jsonb language plpgsql security definer set search_path = ''
+as $$
+declare current_week date := date_trunc('week',now() at time zone 'America/New_York')::date;
+begin
+ if p_voter is null then raise exception 'Browser identifier is required.'; end if;
+ if not coalesce((select enabled from public.archive_voting_settings where id=true),false) then
+ raise exception 'Comeback voting is currently closed.'; end if;
+ if p_choices is null or cardinality(p_choices) not between 1 and 3
+ or (select count(distinct choice) from unnest(p_choices) as choice) <> cardinality(p_choices)
+ or exists(select 1 from unnest(p_choices) as choice where choice is null or not exists(
+ select 1 from public.archive_flavors f where f.name=choice and f.eligible)) then
+ raise exception 'Choose one to three different archive flavors.'; end if;
+ insert into archive_private.guest_ballots(voter_id,week_start,choices) values(p_voter,current_week,p_choices)
+ on conflict(voter_id,week_start) do nothing;
+ if not found then raise exception 'You have already voted this week.'; end if;
+ return jsonb_build_object('saved',true,'week_start',current_week,'choices',p_choices);
+end;
+$$;
+create or replace function public.archive_guest_ballot(p_voter uuid)
+returns jsonb language sql stable security invoker set search_path=''
+as $$ select archive_private.archive_guest_ballot(p_voter); $$;
+create or replace function public.submit_archive_guest_ballot(p_voter uuid,p_choices text[])
+returns jsonb language sql security invoker set search_path=''
+as $$ select archive_private.submit_archive_guest_ballot(p_voter,p_choices); $$;
+revoke all on function archive_private.archive_guest_ballot(uuid),archive_private.submit_archive_guest_ballot(uuid,text[]),
+ public.archive_guest_ballot(uuid),public.submit_archive_guest_ballot(uuid,text[]) from public,anon,authenticated;
+grant execute on function archive_private.archive_guest_ballot(uuid),archive_private.submit_archive_guest_ballot(uuid,text[]),
+ public.archive_guest_ballot(uuid),public.submit_archive_guest_ballot(uuid,text[]) to anon,authenticated;
+-- Retire the email-based submission endpoint.
+revoke all on function public.submit_archive_ballot(text[]) from public,anon,authenticated;
+
 commit;
 
 -- Private results: run in Supabase SQL Editor as project owner.
 -- select week_start, choice as flavor, count(*) as votes
--- from public.archive_ballots cross join lateral unnest(choices) as choice
+-- from archive_private.guest_ballots cross join lateral unnest(choices) as choice
 -- group by week_start, choice order by week_start desc, votes desc, flavor;
--- Enable only after production email verification has been tested:
+-- Enable after deploying the guest voting interface:
 -- update public.archive_voting_settings set enabled = true where id = true;
