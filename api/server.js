@@ -11,6 +11,24 @@ const modifierDescriptions = Object.fromEntries(
   Object.entries(configuredModifierDescriptions).map(([name, description]) => [normalizeCatalogName(name), description]),
 );
 
+async function loadManagedFlavorDescriptions() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return {};
+  try {
+    const response = await fetch(`${url}/rest/v1/site_content?select=id,value&id=like.weekly-flavor-*`, {
+      headers: { apikey: key }, signal: AbortSignal.timeout(4000),
+    });
+    if (!response.ok) throw new Error('Description lookup unavailable');
+    const rows = await response.json();
+    return Object.fromEntries(rows.filter(row => typeof row.value === 'string' && row.value.trim())
+      .map(row => [row.id.slice('weekly-flavor-'.length), row.value]));
+  } catch {
+    console.warn('Managed flavor descriptions unavailable; using catalog descriptions.');
+    return {};
+  }
+}
+
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((v) => v.trim()) : true }));
 app.use(express.json({ limit: '1mb' }));
@@ -182,9 +200,10 @@ app.get('/api/locations', (_req, res) => {
 app.get('/api/products', async (_req, res) => {
   if (!requireSquare(res)) return;
   try {
-    const [items, modifierLists] = await Promise.all([
+    const [items, modifierLists, managedDescriptions] = await Promise.all([
       searchCatalog(['ITEM']),
       searchCatalog(['MODIFIER_LIST']),
+      loadManagedFlavorDescriptions(),
     ]);
     const listById = new Map(modifierLists.map((o) => [o.id, o]));
     const visible = items.filter((item) => item.itemData && !item.itemData.isArchived && item.itemData.ecomVisibility !== 'UNAVAILABLE');
@@ -237,7 +256,8 @@ app.get('/api/products', async (_req, res) => {
               return {
                 id: m.id,
                 name: m.modifierData?.name || 'Option',
-                description: modifierDescriptions[normalizeCatalogName(m.modifierData?.name)]
+                description: managedDescriptions[normalizeCatalogName(m.modifierData?.name)]
+                  || modifierDescriptions[normalizeCatalogName(m.modifierData?.name)]
                   || itemDescriptions.get(normalizeCatalogName(m.modifierData?.name))
                   || '',
                 imageUrl: m.modifierData?.imageId ? imageUrls[m.modifierData.imageId] || null : null,
@@ -253,7 +273,7 @@ app.get('/api/products', async (_req, res) => {
       return {
         id: item.id,
         name: item.itemData.name,
-        description: item.itemData.descriptionPlaintext || item.itemData.description || '',
+        description: managedDescriptions[normalizeCatalogName(item.itemData.name)] || item.itemData.descriptionPlaintext || item.itemData.description || '',
         kitchenName: item.itemData.kitchenName || item.itemData.name,
         imageId,
         imageUrl: imageId ? imageUrls[imageId] : null,
@@ -265,7 +285,7 @@ app.get('/api/products', async (_req, res) => {
         modifierSets,
       };
     });
-    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300').json(products);
+    res.set('Cache-Control', 'no-store').json(products);
   } catch (err) {
     console.error('Square catalog error:', err);
     res.status(502).json({ error: 'Failed to load the Square catalog.' });
