@@ -1,5 +1,8 @@
 -- Apply once through the Supabase connector. Voting stays closed until email delivery is tested.
 begin;
+create schema if not exists archive_private;
+revoke all on schema archive_private from public, anon;
+grant usage on schema archive_private to authenticated;
 
 create table if not exists public.archive_flavors (
   name text primary key,
@@ -21,14 +24,17 @@ create table if not exists public.archive_ballots (
 alter table public.archive_flavors enable row level security;
 alter table public.archive_voting_settings enable row level security;
 alter table public.archive_ballots enable row level security;
+create policy archive_flavors_internal_only on public.archive_flavors for all to anon, authenticated using (false) with check (false);
 
 revoke all on public.archive_flavors, public.archive_voting_settings, public.archive_ballots from anon, authenticated;
 grant select on public.archive_ballots to authenticated;
+grant select on public.archive_voting_settings to anon, authenticated;
+create policy archive_read_status on public.archive_voting_settings for select to anon, authenticated using (true);
 drop policy if exists archive_read_own_ballot on public.archive_ballots;
 create policy archive_read_own_ballot on public.archive_ballots for select to authenticated using ((select auth.uid()) = user_id);
 
 create or replace function public.archive_voting_status()
-returns jsonb language sql stable security definer set search_path = ''
+returns jsonb language sql stable security invoker set search_path = ''
 as $$
   select jsonb_build_object(
     'enabled', coalesce((select enabled from public.archive_voting_settings where id = true), false),
@@ -37,7 +43,7 @@ as $$
   );
 $$;
 
-create or replace function public.submit_archive_ballot(p_choices text[])
+create or replace function archive_private.submit_archive_ballot(p_choices text[])
 returns jsonb language plpgsql security definer set search_path = ''
 as $$
 declare
@@ -67,8 +73,13 @@ begin
   return jsonb_build_object('saved', true, 'week_start', current_week, 'choices', p_choices);
 end;
 $$;
+create or replace function public.submit_archive_ballot(p_choices text[])
+returns jsonb language sql security invoker set search_path = ''
+as $$ select archive_private.submit_archive_ballot(p_choices); $$;
+revoke all on function archive_private.submit_archive_ballot(text[]) from public, anon;
+grant execute on function archive_private.submit_archive_ballot(text[]) to authenticated;
 revoke all on function public.archive_voting_status() from public;
-revoke all on function public.submit_archive_ballot(text[]) from public;
+revoke all on function public.submit_archive_ballot(text[]) from public, anon, authenticated;
 grant execute on function public.archive_voting_status() to anon, authenticated;
 grant execute on function public.submit_archive_ballot(text[]) to authenticated;
 
