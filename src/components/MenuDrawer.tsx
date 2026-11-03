@@ -6,10 +6,10 @@ type Props = {
 };
 
 const links = [
-{
-  label: 'Order',
-  href: '/#order',
-},
+  {
+    label: 'Order',
+    href: '/#order',
+  },
   {
     label: 'Build a Box',
     href: '/#build-box',
@@ -25,6 +25,22 @@ const links = [
   {
     label: 'Flavor Archive',
     href: '/flavor-archive',
+  },
+  {
+    label: 'Reviews',
+    href: '/reviews',
+  },
+  {
+    label: 'Careers',
+    href: '/careers',
+  },
+  {
+    label: 'Press',
+    href: '/press',
+  },
+  {
+    label: 'Allergy Notice',
+    href: '/allergy-notice',
   },
   {
     label: 'Rewards',

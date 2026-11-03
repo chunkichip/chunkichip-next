@@ -46,9 +46,12 @@ export default function Footer() {
             <a href="/flavor-archive" className="transition hover:text-[#eb2327]">
               Flavor Archive
             </a>
-            <a href="/#reviews" className="transition hover:text-[#eb2327]">
+            <a href="/reviews" className="transition hover:text-[#eb2327]">
               Reviews
             </a>
+            <a href="/careers" className="transition hover:text-[#eb2327]">Careers</a>
+            <a href="/press" className="transition hover:text-[#eb2327]">Press</a>
+            <a href="/allergy-notice" className="transition hover:text-[#eb2327]">Allergy Notice</a>
             <a href="/#faq" className="transition hover:text-[#eb2327]">
               FAQ
             </a>

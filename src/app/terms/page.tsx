@@ -52,3 +52,11 @@ export default function TermsPage() {
     </main>
   );
 }
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Use | Chunki Chip',
+  description: 'Terms for using the Chunki Chip website and online ordering services.',
+  alternates: { canonical: '/terms' },
+};
+

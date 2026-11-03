@@ -1,3 +1,11 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Chunki Chip',
+  description: 'How Chunki Chip handles website, order, and job application information.',
+  alternates: { canonical: '/privacy' },
+};
+
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-[#fff7f9] px-6 py-24 text-[#2b140d] md:px-10">
@@ -36,6 +44,13 @@ export default function PrivacyPage() {
               Customer information may be used for order fulfillment, customer
               support, rewards programs, marketing communications, promotions,
               and improving our services.
+            </p>
+
+            <p>
+              If you apply for a job, we collect the contact and experience
+              details you submit to review your application and contact you
+              about employment. Applications are stored in our database and
+              are not visible to the public.
             </p>
 
             <p>

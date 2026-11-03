@@ -48,3 +48,11 @@ export default function CateringPage() {
     </main>
   );
 }
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Catering | Chunki Chip',
+  description: 'Ask Chunki Chip about cookie catering, dessert tables, and larger orders in Milford, New Hampshire.',
+  alternates: { canonical: '/catering' },
+};
+

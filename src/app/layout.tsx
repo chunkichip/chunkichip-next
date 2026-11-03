@@ -59,8 +59,9 @@ metadataBase: new URL('https://chunkichip.com'),
   },
 
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.svg',
   },
+  alternates: { canonical: '/' },
 };
 
 export default function RootLayout({
