@@ -5,7 +5,7 @@ import EmailSignup from '@/components/EmailSignup';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowDown, ArrowUpRight, ShoppingBag } from 'lucide-react';
+import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { getWeeklyFlavors, isInPersonCookieBox, isInternalPackaging, isShippingOnlyProduct } from '@/lib/catalog';
 
 type ModifierSet = { modifiers: { id: string; name: string; priceAmount: number; price: string }[] };
@@ -53,12 +53,7 @@ export default function HomePage() {
     <main className="soft-page min-h-screen overflow-hidden text-[#171315]">
       <section className="relative px-5 py-5 md:px-12 md:py-8">
         <div className="soft-hero mx-auto max-w-[1400px] px-5 py-8 md:px-10 md:py-12">
-          <div className="flex items-center justify-between pb-4 text-[11px] font-black uppercase tracking-[.2em] text-black/70">
-            <a href="/" aria-label="Chunki Chip home"><ManagedText id="d89e44936bfa7dcce8590698" fallback={"CHUNKI CHIP®"} /></a>
-            <span><ManagedText id="4da116b4eb144b507795662e" fallback={"Milford, NH · Fresh baked daily"} /></span>
-            <a href="#menu" className="flex items-center gap-2"><ManagedText id="dd511e6b4934ba45664b4773" fallback={"Order online"} /><ShoppingBag size={16}/></a>
-          </div>
-          <div className="grid items-center gap-8 pt-10 md:grid-cols-[1.2fr_.8fr] md:pt-14">
+          <div className="grid items-center gap-8 md:grid-cols-[1.2fr_.8fr]">
             <div>
               <p className="mb-5 inline-block rounded-full bg-[#ffccef] px-4 py-2 text-xs font-black uppercase tracking-[.16em] text-[#eb2327]"><ManagedText id="e9e585e32a011519ea561caf" fallback={"Fresh baked in Milford"} /></p>
               <h1 className="brand-heading text-[clamp(3.7rem,8vw,7.5rem)] leading-[.84] tracking-[-.035em] text-[#171315]"><ManagedText id="48020e09c7eea6664cd12bc5" fallback={"FRESH BAKED."} /><br/><ManagedText id="770fbe5bed1ee98ef237e5bd" fallback={"BIG ENERGY."} /></h1>
