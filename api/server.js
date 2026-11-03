@@ -277,7 +277,7 @@ app.post('/api/customers/subscribe', async (req, res) => {
   const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
   if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
   try {
-    await square.customers.create({ idempotencyKey: crypto.randomUUID(), emailAddress: email, givenName: 'Drop List', note: 'Joined Chunki Chip drop list from website popup' });
+    await square.customers.create({ idempotencyKey: crypto.randomUUID(), emailAddress: email, givenName: 'Drop List', note: 'Consented to Chunki Chip marketing emails through homepage signup' });
     res.json({ success: true });
   } catch (err) {
     console.error('Subscribe error:', err);

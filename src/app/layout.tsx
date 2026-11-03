@@ -36,9 +36,7 @@ metadataBase: new URL('https://chunkichip.com'),
 
     images: [
       {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
+        url: '/logo.png',
         alt: 'Chunki Chip Cookies',
       },
     ],
@@ -56,13 +54,13 @@ metadataBase: new URL('https://chunkichip.com'),
     description:
       'Fresh baked stuffed cookies and weekly flavor drops.',
 
-    images: ['/og-image.png'],
+    images: ['/logo.png'],
   },
 
   icons: {
     icon: '/icon.svg',
   },
-  alternates: { canonical: '/' },
+
 };
 
 export default function RootLayout({
