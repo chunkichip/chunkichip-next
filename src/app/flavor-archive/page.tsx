@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Archive } from 'lucide-react';
 import photographedFlavors from './flavors.json';
+import { ArchiveVotingProvider, ArchiveVotePanel, ComebackButton } from './Voting';
 import { ArchiveFavoritesProvider, FavoriteButton, FavoriteEntry, FavoritesToolbar, OtherFavoritesSection } from './Favorites';
 
 const otherFlavors = [
@@ -9,6 +10,7 @@ const otherFlavors = [
 
 export default function FlavorArchivePage() {
   return (
+    <ArchiveVotingProvider names={[...photographedFlavors.map((flavor) => flavor.name), ...otherFlavors]}>
     <ArchiveFavoritesProvider names={[...photographedFlavors.map((flavor) => flavor.name), ...otherFlavors]}>
     <main className="soft-page min-h-screen px-5 pb-16 pt-8 text-[#171315] md:px-10 md:pt-12">
       <div className="mx-auto max-w-7xl">
@@ -21,6 +23,7 @@ export default function FlavorArchivePage() {
 
         <section className="py-14"><div className="flex flex-col justify-between gap-4 border-b border-black/15 pb-5 md:flex-row md:items-end"><div><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">Former weekly drops</p><h2 className="brand-heading mt-3 text-5xl leading-none md:text-6xl">THE FLAVOR FILES</h2></div><p className="text-sm font-black uppercase tracking-[.14em]">{photographedFlavors.length + otherFlavors.length} archived flavors</p></div>
           <FavoritesToolbar />
+          <ArchiveVotePanel />
           <div className="mt-8 grid grid-cols-1 gap-7 md:grid-cols-3">
             {photographedFlavors.map((flavor) => (
               <FavoriteEntry key={flavor.name} name={flavor.name} className="soft-card flex flex-col overflow-hidden bg-white p-4">
@@ -32,6 +35,7 @@ export default function FlavorArchivePage() {
                   <h3 className="brand-heading mt-3 text-3xl leading-tight lg:text-4xl">{flavor.name}</h3>
                   <p className="mt-4 flex-1 text-sm leading-7 text-black/65">{flavor.description}</p>
                   <FavoriteButton name={flavor.name} />
+                  <ComebackButton name={flavor.name} />
                   <span className="mt-6 border-t border-black/10 pt-3 text-xs font-bold uppercase tracking-[.12em] text-black/50">Past flavor</span>
                 </div>
               </FavoriteEntry>
@@ -39,7 +43,7 @@ export default function FlavorArchivePage() {
           </div>
           <OtherFavoritesSection names={otherFlavors}>
           <h3 className="brand-heading mt-14 text-4xl">MORE FROM THE ARCHIVE</h3>
-          <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">{otherFlavors.map((flavor) => <FavoriteEntry key={flavor} name={flavor} className="soft-card bg-white p-6"><h4 className="brand-heading text-3xl leading-tight">{flavor}</h4><p className="mt-3 text-xs font-bold uppercase tracking-[.12em] text-black/50">Past flavor</p><FavoriteButton name={flavor} /></FavoriteEntry>)}</div>
+          <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">{otherFlavors.map((flavor) => <FavoriteEntry key={flavor} name={flavor} className="soft-card bg-white p-6"><h4 className="brand-heading text-3xl leading-tight">{flavor}</h4><p className="mt-3 text-xs font-bold uppercase tracking-[.12em] text-black/50">Past flavor</p><FavoriteButton name={flavor} /><ComebackButton name={flavor} /></FavoriteEntry>)}</div>
           </OtherFavoritesSection>
         </section>
 
@@ -47,5 +51,6 @@ export default function FlavorArchivePage() {
       </div>
     </main>
     </ArchiveFavoritesProvider>
+    </ArchiveVotingProvider>
   );
 }
