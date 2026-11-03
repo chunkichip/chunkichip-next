@@ -1,18 +1,27 @@
 [
   {
+    "name": "Apple Cider Donut",
+    "description": "",
+    "image": "/archive/apple-cider-donut-isolated.webp",
+    "isolated": true
+  },
+  {
     "name": "Banana Cream",
     "description": "Nilla Wafer dough topped with banana cream, a Nilla Wafer and a dusting of powdered sugar.",
-    "image": "/archive/banana-cream.webp"
+    "image": "/archive/banana-cream-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Blueberry Pancake",
     "description": "Maple brown sugar dough loaded with blueberries, topped with butter and served with pancake syrup.",
-    "image": "/archive/blueberry-pancake.webp"
+    "image": "/archive/blueberry-pancake-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Butterfinger",
     "description": "Brown sugar dough loaded with crushed Butterfinger®, chocolate chips and peanut butter chips, topped with torched Butterfinger® bits and chocolate drizzle.",
-    "image": "/archive/butterfinger.webp"
+    "image": "/archive/butterfinger-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Carrot Cake",
@@ -22,146 +31,181 @@
   {
     "name": "Chai Frosted Sugar",
     "description": "Sugar dough topped with chai frosting and a chai spice dusting. Served chilled.",
-    "image": "/archive/chai-frosted-sugar.webp"
+    "image": "/archive/chai-frosted-sugar-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Chocolate Chip Banana Bread",
     "description": "Banana brown sugar dough loaded with chocolate chips, topped with a chocolate drizzle.",
-    "image": "/archive/chocolate-chip-banana-bread.webp"
+    "image": "/archive/chocolate-chip-banana-bread-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Chocolate Chip Banana Nut Bread",
     "description": "Banana brown sugar dough loaded with chocolate chips and pecans, topped with a chocolate drizzle.",
-    "image": "/archive/chocolate-chip-banana-nut-bread.webp"
+    "image": "/archive/chocolate-chip-banana-nut-bread-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Chunki Chip Chiptinis",
     "description": "Brown sugar dough loaded with chocolate chips. Your choice of dip.",
-    "image": "/archive/chunki-chip-chiptinis.webp"
+    "image": "/archive/chunki-chip-chiptinis-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Chunki Chip Cookie Dough Frosted",
     "description": "Brown sugar dough loaded with chocolate chips, topped with edible chocolate chip cookie dough frosting and a mini cookie.",
-    "image": "/archive/chunki-chip-cookie-dough-frosted.webp"
+    "image": "/archive/chunki-chip-cookie-dough-frosted-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Cinnamon Roll",
     "description": "Brown sugar dough swirled with buttery cinnamon sugar, topped with sweet vanilla glaze.",
-    "image": "/archive/cinnamon-roll.webp"
+    "image": "/archive/cinnamon-roll-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Circus Animal",
     "description": "Brown sugar dough loaded with animal crackers and rainbow sprinkles, dipped in white chocolate and topped with buttercream.",
-    "image": "/archive/circus-animal.webp"
+    "image": "/archive/circus-animal-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Fluffernutter",
     "description": "Peanut butter dough topped with marshmallow frosting, chopped peanuts, mini marshmallows and peanut butter drizzle.",
-    "image": "/archive/fluffernutter.webp"
+    "image": "/archive/fluffernutter-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Froot Loops",
     "description": "Brown sugar dough loaded with Froot Loops, topped with sweet vanilla glaze and Froot Loops.",
-    "image": "/archive/froot-loops.webp"
+    "image": "/archive/froot-loops-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Frosted Birthday Cake",
     "description": "Brown sugar dough loaded with vanilla cake chunks, topped with vanilla frosting and sprinkles.",
-    "image": "/archive/frosted-birthday-cake.webp"
+    "image": "/archive/frosted-birthday-cake-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Frosted Cookie Monster",
     "description": "Brown sugar dough topped with blue vanilla frosting, dipped into crushed Oreos and Chips Ahoy.",
-    "image": "/archive/frosted-cookie-monster.webp"
+    "image": "/archive/frosted-cookie-monster-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Frosted Toffee Crunch",
     "description": "Brown sugar dough topped with vanilla frosting and dipped into toffee and chocolate.",
-    "image": "/archive/frosted-toffee-crunch.webp"
+    "image": "/archive/frosted-toffee-crunch-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Fruity Pebbles",
     "description": "Cereal milk dough loaded with Fruity Pebbles, topped with vanilla icing and dipped in Fruity Pebbles.",
-    "image": "/archive/fruity-pebbles.webp"
+    "image": "/archive/fruity-pebbles-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Funfetti Brownie",
     "description": "Fudge brownie dough loaded with white chocolate chips and rainbow sprinkles, topped with a white chocolate drizzle.",
-    "image": "/archive/funfetti-brownie.webp"
+    "image": "/archive/funfetti-brownie-isolated.webp",
+    "isolated": true
   },
   {
     "name": "M&M",
     "description": "Brown sugar dough loaded with M&Ms.",
-    "image": "/archive/m-m.webp"
+    "image": "/archive/m-m-isolated.webp",
+    "isolated": true
   },
   {
     "name": "M&M Krispy Treat",
     "description": "Brown sugar dough loaded with M&M’s, chocolate chips and crispy rice cereal.",
-    "image": "/archive/m-m-krispy-treat.webp"
+    "image": "/archive/m-m-krispy-treat-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Maple Cinnamon Roll",
     "description": "Maple cinnamon dough rolled in cinnamon and brown sugar, topped with a maple icing drizzle.",
-    "image": "/archive/maple-cinnamon-roll.webp"
+    "image": "/archive/maple-cinnamon-roll-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Maple Walnut",
     "description": "Maple brown sugar dough loaded with house roasted walnuts.",
-    "image": "/archive/maple-walnut.webp"
+    "image": "/archive/maple-walnut-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Oatmeal Apple Crisp",
     "description": "Apple spice oatmeal dough loaded with apple chunks, topped with brown sugar streusel.",
-    "image": "/archive/oatmeal-apple-crisp.webp"
+    "image": "/archive/oatmeal-apple-crisp-isolated.webp",
+    "isolated": true
+  },
+  {
+    "name": "Oatmeal Raisin",
+    "description": "",
+    "image": "/archive/oatmeal-raisin-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Peanut Butter Cup Chiptinis",
     "description": "Peanut butter dough loaded with chocolate chips and peanut butter chips, topped with a peanut butter cup. Your choice of dip.",
-    "image": "/archive/peanut-butter-cup-chiptinis.webp"
+    "image": "/archive/peanut-butter-cup-chiptinis-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Peanut Butter M&M",
     "description": "Chocolate dough loaded with Peanut Butter M&Ms®.",
-    "image": "/archive/peanut-butter-m-m.webp"
+    "image": "/archive/peanut-butter-m-m-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Pecan Turtle Crunch",
     "description": "Brown sugar dough topped with salted caramel frosting, dipped into roasted pecans and mini chocolate chips, finished with caramel drizzle.",
-    "image": "/archive/pecan-turtle-crunch.webp"
+    "image": "/archive/pecan-turtle-crunch-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Pistachio Cream",
     "description": "Brown sugar dough topped with pistachio cream frosting and chopped pistachios.",
-    "image": "/archive/pistachio-cream.webp"
+    "image": "/archive/pistachio-cream-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Pumpkin Cheesecake",
     "description": "Cinnamon graham cracker crust dough topped with real pumpkin cheesecake frosting.",
-    "image": "/archive/pumpkin-cheesecake.webp"
+    "image": "/archive/pumpkin-cheesecake-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Pumpkin Pie Pop-Tarts",
     "description": "Brown sugar dough loaded with Pumpkin Pie Pop-Tarts®, topped with vanilla glaze and harvest sugar.",
-    "image": "/archive/pumpkin-pie-pop-tarts.webp"
+    "image": "/archive/pumpkin-pie-pop-tarts-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Red Velvet Oreo®",
     "description": "Red velvet dough loaded with crushed Oreos®, topped with a mini Oreo®.",
-    "image": "/archive/red-velvet-oreo.webp"
+    "image": "/archive/red-velvet-oreo-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Spooky M&M’s Chiptinis",
     "description": "Brown sugar dough loaded with Spooky M&M’s. Your choice of dip.",
-    "image": "/archive/spooky-m-m-s-chiptinis.webp"
+    "image": "/archive/spooky-m-m-s-chiptinis-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Strawberry Frosted Cupcake",
     "description": "Brown sugar dough loaded with yellow cupcake chunks, topped with strawberry buttercream made with real strawberries.",
-    "image": "/archive/strawberry-frosted-cupcake.webp"
+    "image": "/archive/strawberry-frosted-cupcake-isolated.webp",
+    "isolated": true
   },
   {
     "name": "Vanilla Bean Iced Pumpkin Bread",
     "description": "Real pumpkin dough topped with a thick vanilla bean glaze.",
-    "image": "/archive/vanilla-bean-iced-pumpkin-bread.webp"
+    "image": "/archive/vanilla-bean-iced-pumpkin-bread-isolated.webp",
+    "isolated": true
   }
 ]

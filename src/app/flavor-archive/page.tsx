@@ -3,8 +3,8 @@ import { ArrowRight, Archive } from 'lucide-react';
 import photographedFlavors from './flavors.json';
 
 const otherFlavors = [
-  'Apple Cider Donut', 'Blueberry Cheesecake', 'Brown Sugar Pop-Tart', 'Cookie Monster',
-  'Oatmeal Chocolate Chip', 'Oatmeal Raisin', 'Reese’s Pieces', 'Snickers', 'Strawberry Cheesecake',
+  'Blueberry Cheesecake', 'Brown Sugar Pop-Tart', 'Cookie Monster',
+  'Oatmeal Chocolate Chip', 'Reese’s Pieces', 'Snickers', 'Strawberry Cheesecake',
 ];
 
 export default function FlavorArchivePage() {
@@ -23,8 +23,7 @@ export default function FlavorArchivePage() {
             {photographedFlavors.map((flavor) => (
               <article key={flavor.name} className="soft-card flex flex-col overflow-hidden bg-white p-4">
                 <a href={flavor.image} target="_blank" rel="noopener noreferrer" aria-label={`View ${flavor.name} photo`} className="soft-inset block overflow-hidden rounded-2xl bg-white transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#eb2327]">
-                  {/* Original flavor artwork, with names taken from the image itself. */}
-                  <img src={flavor.image} alt={flavor.name} loading="lazy" decoding="async" width={900} height={900} className="aspect-square h-auto w-full object-contain" />
+                  <img src={flavor.image} alt={flavor.name} loading="lazy" decoding="async" width={900} height={900} className={`aspect-square h-auto w-full object-contain ${'isolated' in flavor && flavor.isolated ? 'p-6 drop-shadow-[0_12px_12px_rgba(40,20,20,0.12)]' : ''}`} />
                 </a>
                 <div className="flex flex-1 flex-col px-3 pb-3 pt-6">
                   <p className="text-[10px] font-black uppercase tracking-[.2em] text-[#eb2327]">From the flavor archive</p>
