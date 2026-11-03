@@ -4,8 +4,7 @@ import photographedFlavors from './flavors.json';
 import { ArchiveFavoritesProvider, FavoriteButton, FavoriteEntry, FavoritesToolbar, OtherFavoritesSection } from './Favorites';
 
 const otherFlavors = [
-  'Blueberry Cheesecake', 'Brown Sugar Pop-Tart', 'Cookie Monster',
-  'Oatmeal Chocolate Chip', 'Reese’s Pieces', 'Snickers', 'Strawberry Cheesecake',
+  'Blueberry Cheesecake', 'Brown Sugar Pop-Tart', 'Oatmeal Chocolate Chip', 'Snickers',
 ];
 
 export default function FlavorArchivePage() {

@@ -71,6 +71,18 @@
     "isolated": true
   },
   {
+    "name": "Cookie Monster",
+    "description": "",
+    "image": "/archive/cookie-monster-isolated.webp",
+    "isolated": true
+  },
+  {
+    "name": "Cookies & Scream",
+    "description": "",
+    "image": "/archive/cookies-scream-isolated.webp",
+    "isolated": true
+  },
+  {
     "name": "Fluffernutter",
     "description": "Peanut butter dough topped with marshmallow frosting, chopped peanuts, mini marshmallows and peanut butter drizzle.",
     "image": "/archive/fluffernutter-isolated.webp",
@@ -137,6 +149,12 @@
     "isolated": true
   },
   {
+    "name": "Monster Mash",
+    "description": "",
+    "image": "/archive/monster-mash-isolated.webp",
+    "isolated": true
+  },
+  {
     "name": "Oatmeal Apple Crisp",
     "description": "Apple spice oatmeal dough loaded with apple chunks, topped with brown sugar streusel.",
     "image": "/archive/oatmeal-apple-crisp-isolated.webp",
@@ -146,6 +164,18 @@
     "name": "Oatmeal Raisin",
     "description": "",
     "image": "/archive/oatmeal-raisin-isolated.webp",
+    "isolated": true
+  },
+  {
+    "name": "Patriotic Cupcake",
+    "description": "",
+    "image": "/archive/patriotic-cupcake-isolated.webp",
+    "isolated": true
+  },
+  {
+    "name": "Peach Cobbler",
+    "description": "",
+    "image": "/archive/peach-cobbler-isolated.webp",
     "isolated": true
   },
   {
@@ -191,9 +221,33 @@
     "isolated": true
   },
   {
+    "name": "Reese’s Pieces",
+    "description": "",
+    "image": "/archive/reese-s-pieces-isolated.webp",
+    "isolated": true
+  },
+  {
+    "name": "S’mores",
+    "description": "",
+    "image": "/archive/s-mores-isolated.webp",
+    "isolated": true
+  },
+  {
+    "name": "Snick Or Treat",
+    "description": "",
+    "image": "/archive/snick-or-treat-isolated.webp",
+    "isolated": true
+  },
+  {
     "name": "Spooky M&M’s Chiptinis",
     "description": "Brown sugar dough loaded with Spooky M&M’s. Your choice of dip.",
     "image": "/archive/spooky-m-m-s-chiptinis-isolated.webp",
+    "isolated": true
+  },
+  {
+    "name": "Strawberry Cheesecake",
+    "description": "",
+    "image": "/archive/strawberry-cheesecake-isolated.webp",
     "isolated": true
   },
   {
