@@ -51,13 +51,22 @@ export default function HomePage() {
 
   return (
     <main className="soft-page min-h-screen overflow-hidden text-[#171315]">
-      <section aria-label="Chunki Chip cookies" className="bg-white px-2 py-2 md:px-8 md:py-6">
-        <img
-          src="/hero-cookies.webp"
-          alt="Three oversized Chunki Chip cookies: a hot cocoa cookie, a frosted sprinkle cookie, and a candy-stuffed cookie"
-          className="mx-auto block h-auto w-full max-w-[1800px] object-contain"
-          fetchPriority="high"
-        />
+      <section className="relative px-5 py-5 md:px-12 md:py-8">
+        <div className="soft-hero mx-auto max-w-[1400px] px-5 py-8 md:px-10 md:py-12">
+          <div className="grid items-center gap-8 md:grid-cols-[1.2fr_.8fr]">
+            <div>
+              <p className="mb-5 inline-block rounded-full bg-[#ffccef] px-4 py-2 text-xs font-black uppercase tracking-[.16em] text-[#eb2327]"><ManagedText id="e9e585e32a011519ea561caf" fallback={"Fresh baked in Milford"} /></p>
+              <h1 className="brand-heading text-[clamp(3.7rem,8vw,7.5rem)] leading-[.84] tracking-[-.035em] text-[#171315]"><ManagedText id="48020e09c7eea6664cd12bc5" fallback={"FRESH BAKED."} /><br/><ManagedText id="770fbe5bed1ee98ef237e5bd" fallback={"BIG ENERGY."} /></h1>
+            </div>
+            <div className="md:pb-2">
+              <p className="max-w-md text-xl font-semibold leading-snug md:text-2xl"><ManagedText id="6487ad8af01f5a29a2fe9ce3" fallback={"Ridiculously thick cookies. Loud flavors. Made in New Hampshire and shipped nationwide."} /></p>
+              <a href="#menu" className="soft-action mt-8 inline-flex items-center gap-3 px-6 py-4 text-sm font-black uppercase tracking-wide text-white transition"><ManagedText id="dca18c02a92fa798fbe0a886" fallback={"Shop the menu"} /><ArrowDown size={18}/></a>
+            </div>
+          </div>
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-2 pt-4 text-[10px] font-black uppercase tracking-[.18em] text-black/55">
+            <span><ManagedText id="31f8e229dc29c1a2dac2c066" fallback={"01 / 183 Elm Street, Milford"} /></span><span><ManagedText id="343fdb173fbfbe42a8e02a56" fallback={"02 / Somerset Plaza coming soon"} /></span><span><ManagedText id="9079c7e5f07f8004610e1048" fallback={"Cookie boxes · Chiptinis™ · Catering"} /></span>
+          </div>
+        </div>
       </section>
 
       <section id="menu" className="mx-auto max-w-[1400px] px-5 py-14 md:px-12 md:py-20">
