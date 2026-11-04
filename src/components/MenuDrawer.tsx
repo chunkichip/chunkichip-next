@@ -8,6 +8,7 @@ type Props = {
 const links = [
   { label: 'Order', href: '/#boxes' },
   { label: 'Menu', href: '/#single-cookies' },
+  { label: 'Flavor Archive', href: '/flavor-archive' },
   { label: 'Catering', href: '/catering' },
   { label: 'Gift cards', href: 'https://www.chunkichip.com/s/gift-cards' },
   { label: 'Rewards', href: 'https://profile.squareup.com/merchantportal/MLGF722JEEMCW/loyalty' },
