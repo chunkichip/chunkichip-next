@@ -49,7 +49,7 @@ export default function IntellectualPropertyPage() {
       <section className="bg-[#ffccef] p-7 md:p-10">
         <h2 className="brand-heading text-4xl"><ManagedText id="ip-contact-title" fallback="QUESTIONS & PERMISSION REQUESTS" /></h2>
         <p className="mt-4 max-w-3xl text-sm leading-7"><ManagedText id="ip-contact" fallback="For licensing, media assets, collaborations, or a concern about use of our intellectual property, contact Chunki Chip. Tell us what you would like to use and where it will appear. Requests do not grant permission unless we agree in writing." /></p>
-        <a href="/#locations" className="mt-6 inline-block rounded-full bg-[#eb2327] px-6 py-4 text-sm font-bold text-white">Contact Chunki Chip</a>
+        <a href="/contact" className="mt-6 inline-block rounded-full bg-[#eb2327] px-6 py-4 text-sm font-bold text-white">Contact Chunki Chip</a>
       </section>
     </div>
   </main>;
