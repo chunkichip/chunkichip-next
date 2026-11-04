@@ -30,7 +30,7 @@ export default function ApplyForm({ url, publishableKey, roles }: Props) {
       form.reset();
       setStatus('Thanks for applying. Your application has been received.');
     } catch {
-      setStatus('We could not submit your application right now. Please call or text (603) 554-8571.');
+      setStatus('We could not submit your application right now. Please call (603) 554-8571.');
     } finally {
       setSubmitting(false);
     }

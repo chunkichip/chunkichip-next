@@ -20,7 +20,7 @@ export default function CateringPage() {
               <h1 className="brand-heading mt-4 max-w-3xl text-6xl leading-[.86] md:text-8xl"><ManagedText id="cb16f732ea6a89dc3a253290" fallback={"CATERING, BUT MAKE IT CHUNKI."} /></h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-black/70"><ManagedText id="03d6839ab83868bd611d8da4" fallback={"Big cookies for the group chat, the office, birthdays, showers, team wins, and every reason to bring dessert."} /></p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="tel:+16035548571" className="soft-action inline-flex min-h-14 items-center justify-center gap-3 px-6 py-4 text-sm font-black uppercase tracking-wide text-white transition"><Phone size={18}/><ManagedText id="20c7ad008cf1adf197501c76" fallback={"Call or text to plan it"} /></a>
+                <a href="tel:+16035548571" className="soft-action inline-flex min-h-14 items-center justify-center gap-3 px-6 py-4 text-sm font-black uppercase tracking-wide text-white transition"><Phone size={18}/><ManagedText id="20c7ad008cf1adf197501c76" fallback={"Call to plan it"} /></a>
                 <Link href="/#boxes" className="soft-card soft-link-card inline-flex min-h-14 items-center justify-center gap-3 bg-white px-6 py-4 text-sm font-black uppercase tracking-wide transition"><ManagedText id="ac8ac2329e34aff73adc7411" fallback={"Order cookie boxes"} /><ArrowRight size={18}/></Link>
               </div>
             </div>
