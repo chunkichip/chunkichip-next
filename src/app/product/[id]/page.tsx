@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, LoaderCircle, Minus, Plus } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
+import { useCartUI } from '@/components/CartUIContext';
 import { getWeeklyFlavors, isInPersonCookieBox, isShippingOnlyProduct } from '@/lib/catalog';
 import ShippingCheckout from '@/components/ShippingCheckout';
 
@@ -98,6 +99,8 @@ export default function ProductPage({ params }: Props) {
   const [locations, setLocations] = useState<StoreLocation[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [added, setAdded] = useState(false);
+  const addedToCart = useRef(false);
+  const { openCart } = useCartUI();
   const [error, setError] = useState('');
   const [orderStep, setOrderStep] = useState<OrderStep | null>(null);
   const [fulfillmentChoice, setFulfillmentChoice] = useState<'pickup' | 'delivery' | null>(null);
@@ -157,6 +160,12 @@ export default function ProductPage({ params }: Props) {
     load();
     return () => { active = false; };
   }, [params]);
+
+  useEffect(() => {
+    addedToCart.current = false;
+    setAdded(false);
+    setQuantities({});
+  }, [product?.id]);
 
   const options = useMemo(
     () => product?.modifierSets?.flatMap((set) => set.modifiers) || [],
@@ -229,6 +238,7 @@ export default function ProductPage({ params }: Props) {
   function increase(option: Modifier) {
     if (selectedCount >= maxCookies) return;
     setQuantities((previous) => ({ ...previous, [option.id]: (previous[option.id] || 0) + 1 }));
+    addedToCart.current = false;
     setAdded(false);
   }
 
@@ -238,8 +248,17 @@ export default function ProductPage({ params }: Props) {
     setAdded(false);
   }
 
+  function resetBoxBuilder() {
+    addedToCart.current = false;
+    setAdded(false);
+    setQuantities({});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function addCurrentProductToCart() {
     if (!product || (maxCookies > 0 && selectedCount !== maxCookies)) return;
+    if (addedToCart.current) { openCart(resetBoxBuilder); return; }
+    addedToCart.current = true;
 
     addItem({
       productId: product.id,
@@ -259,7 +278,7 @@ export default function ProductPage({ params }: Props) {
     });
 
     setAdded(true);
-    window.setTimeout(() => setAdded(false), 1800);
+    openCart(resetBoxBuilder);
   }
 
   function cookieImage(option: Modifier) {
@@ -410,7 +429,7 @@ export default function ProductPage({ params }: Props) {
             <div className="mt-5 flex items-center justify-between gap-4 border-t border-black/10 pt-4">
               <div><p className="text-xs font-black uppercase tracking-[.12em]">Box total</p><p className="brand-heading mt-1 text-4xl">{formatPrice(totalPrice)}</p></div>
               <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`soft-action hidden min-h-14 flex-1 px-4 py-4 text-sm font-black uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-35 md:flex md:flex-none md:min-w-[220px] ${added ? 'bg-[#eb2327]' : ''}`}>
-                {added ? 'Added to bag' : selectedCount === maxCookies ? product.shippingOnly ? 'Add shipping box' : 'Add box to bag' : `Add ${Math.max(maxCookies - selectedCount, 0)} more`}
+                {added ? 'View cart' : selectedCount === maxCookies ? product.shippingOnly ? 'Add shipping box' : 'Add box to bag' : `Add ${Math.max(maxCookies - selectedCount, 0)} more`}
               </button>
             </div>
           </div>
@@ -420,7 +439,7 @@ export default function ProductPage({ params }: Props) {
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[.12em]">{selectedCount} / {maxCookies} · {formatPrice(totalPrice)}</p><p className="truncate text-xs font-semibold">{product.name}</p></div>
           <button type="button" onClick={addCurrentProductToCart} disabled={(maxCookies > 0 && selectedCount !== maxCookies) || options.length === 0} className={`soft-action min-h-12 shrink-0 px-4 text-xs font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-35 ${added ? 'bg-[#eb2327]' : ''}`}>
-            {added ? 'Added' : selectedCount === maxCookies ? product.shippingOnly ? 'Ship box' : 'Add box' : `Pick ${Math.max(maxCookies - selectedCount, 0)} more`}
+            {added ? 'View cart' : selectedCount === maxCookies ? product.shippingOnly ? 'Ship box' : 'Add box' : `Pick ${Math.max(maxCookies - selectedCount, 0)} more`}
           </button>
         </div>
       </div>

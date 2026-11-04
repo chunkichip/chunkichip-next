@@ -7,6 +7,7 @@ import ShippingCheckout from '@/components/ShippingCheckout';
 type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
+  onBuildAnotherBox: () => void;
 };
 
 type CheckoutMethod =
@@ -17,7 +18,7 @@ type CheckoutMethod =
 const DOORDASH_URL =
   'https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/';
 
-export default function CartDrawer({ open, setOpen }: Props) {
+export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) {
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [methodModalOpen, setMethodModalOpen] = useState(false);
   const [shippingFlowOpen, setShippingFlowOpen] = useState(false);
@@ -194,7 +195,7 @@ export default function CartDrawer({ open, setOpen }: Props) {
       {shippingFlowOpen && <ShippingCheckout items={items} onClose={() => setShippingFlowOpen(false)} />}
 
       {open && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-labelledby="cart-title">
           <button
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -219,7 +220,7 @@ export default function CartDrawer({ open, setOpen }: Props) {
                   Your Order
                 </p>
 
-                <h2 className="brand-heading mt-2 text-4xl">CART</h2>
+                <h2 id="cart-title" className="brand-heading mt-2 text-4xl">CART</h2>
               </div>
 
               <button
@@ -346,6 +347,15 @@ export default function CartDrawer({ open, setOpen }: Props) {
                     className="flex h-[54px] w-full items-center justify-center rounded-full bg-black text-base font-semibold text-white shadow-xl transition hover:scale-[1.02] disabled:opacity-50"
                   >
                     Checkout
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onBuildAnotherBox}
+                    disabled={loadingCheckout}
+                    className="mt-3 flex min-h-[50px] w-full items-center justify-center rounded-full border border-[#eb2327] px-5 py-3 font-semibold text-[#eb2327] disabled:opacity-50"
+                  >
+                    Build another box
                   </button>
 
                   <button
