@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/contact' },
 };
 
-const directions = 'https://www.google.com/maps/place/?q=place_id:ChIJqYTlQgXL44kRrKF__H_Au4E';
+const directions = 'https://www.google.com/maps/search/?api=1&query=Chunki+Chip+Cookies%2C+183+Elm+St+Unit+8%2C+Milford+NH+03055&query_place_id=ChIJqYTlQgXL44kRrKF__H_Au4E';
 
 export default function ContactPage() {
   return <main className="soft-page min-h-screen px-5 py-12 text-[#171315] md:px-12 md:py-16">

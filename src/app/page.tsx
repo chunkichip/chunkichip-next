@@ -11,7 +11,7 @@ const business = {
   "@id": "https://chunkichip.com/#milford",
   "url": "https://chunkichip.com/",
   "telephone": "+16035548571",
-  "hasMap": "https://www.google.com/maps/place/?q=place_id:ChIJqYTlQgXL44kRrKF__H_Au4E",
+  "hasMap": "https://www.google.com/maps/search/?api=1&query=Chunki+Chip+Cookies%2C+183+Elm+St+Unit+8%2C+Milford+NH+03055&query_place_id=ChIJqYTlQgXL44kRrKF__H_Au4E",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "183 Elm St Unit 8",
