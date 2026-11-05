@@ -62,8 +62,8 @@ export default function HomePage() {
 
       <section id="menu" className="mx-auto max-w-[1400px] px-5 py-14 md:px-12 md:py-20">
         <div className="flex flex-col justify-between gap-5 pb-5 md:flex-row md:items-end">
-          <div><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]"><ManagedText id="a0fbc3c25208f137cfb3045a" fallback={"The current lineup"} /></p><h2 className="brand-heading mt-3 text-5xl md:text-6xl"><ManagedText id="c63a62841b4303eed83e28b5" fallback={"PICK YOUR"} /><br className="md:hidden"/><ManagedText id="919357b3769a16ef9c7a10a0" fallback={"FIX."} /></h2></div>
-          <p className="max-w-sm text-sm font-medium leading-relaxed"><ManagedText id="8bc20eb646cff76bd6a901e2" fallback={"Pickup boxes and nationwide shipping boxes are listed separately. Cookie names, photos, and prices sync from Square."} /></p>
+          <div><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]"><ManagedText id="a0fbc3c25208f137cfb3045a" fallback={"The current lineup"} /></p><h2 className="brand-heading mt-3 text-5xl md:text-6xl"><ManagedText id="c63a62841b4303eed83e28b5" fallback={"PICK YOUR"} />{" "}<br className="md:hidden"/><ManagedText id="919357b3769a16ef9c7a10a0" fallback={"FIX."} /></h2></div>
+          
         </div>
 
         {error && <div role="alert" className="mt-8 border-2 border-[#eb2327] bg-white p-5 font-semibold">{error}<p className="mt-1 text-sm font-normal"><ManagedText id="8024259a33ae162674f8cede" fallback={"Please call the shop or try again later."} /></p></div>}
