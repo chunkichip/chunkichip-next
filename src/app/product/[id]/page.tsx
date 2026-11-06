@@ -336,7 +336,7 @@ export default function ProductPage({ params }: Props) {
   }
 
   if (!product) {
-    return <main className="soft-page min-h-screen px-5 py-20 text-center"><div className="flex flex-col items-center gap-4"><CookieSpinner size={64}/><p className="font-black uppercase tracking-[.2em]">Loading your box…</p></div></main>;
+    return <main className="soft-page flex min-h-[calc(100svh-88px)] items-center justify-center px-5 py-20 text-center"><div className="flex flex-col items-center gap-4"><CookieSpinner size={64}/><p className="font-black uppercase tracking-[.2em]">Loading your box…</p></div></main>;
   }
 
   if (!product.isBox) {
