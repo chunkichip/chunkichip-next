@@ -1,5 +1,6 @@
 'use client';
 
+import CookieSpinner from '@/components/CookieSpinner';
 import ManagedText from '@/components/ManagedText';
 import EmailSignup from '@/components/EmailSignup';
 
@@ -62,7 +63,7 @@ export default function HomePage() {
 
       <section id="menu" className="mx-auto max-w-[1400px] px-5 py-14 md:px-12 md:py-20">
         {error && <div role="alert" className="mt-8 border-2 border-[#eb2327] bg-white p-5 font-semibold">{error}<p className="mt-1 text-sm font-normal"><ManagedText id="8024259a33ae162674f8cede" fallback={"Please call the shop or try again later."} /></p></div>}
-        {loading && <p className="py-14 text-center font-black uppercase tracking-widest"><ManagedText id="5dda26ff5d79e8c670546ba2" fallback={"Loading today’s cookies…"} /></p>}
+        {loading && <div className="flex flex-col items-center gap-4 py-14 text-center font-black uppercase tracking-widest"><CookieSpinner size={64}/><p><ManagedText id="5dda26ff5d79e8c670546ba2" fallback={"Loading today’s cookies…"} /></p></div>}
 
         {!loading && !error && <>
           <div id="single-cookies" className="scroll-mt-24">

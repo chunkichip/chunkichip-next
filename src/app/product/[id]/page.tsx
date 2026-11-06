@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, LoaderCircle, Minus, Plus } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Minus, Plus } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
 import { useCartUI } from '@/components/CartUIContext';
 import { getWeeklyFlavors, isInPersonCookieBox, isShippingOnlyProduct } from '@/lib/catalog';
+import CookieSpinner from '@/components/CookieSpinner';
 import ShippingCheckout from '@/components/ShippingCheckout';
 
 type Modifier = {
@@ -335,7 +336,7 @@ export default function ProductPage({ params }: Props) {
   }
 
   if (!product) {
-    return <main className="soft-page min-h-screen px-5 py-20 text-center"><p className="font-black uppercase tracking-[.2em]">Loading your box…</p></main>;
+    return <main className="soft-page min-h-screen px-5 py-20 text-center"><div className="flex flex-col items-center gap-4"><CookieSpinner size={64}/><p className="font-black uppercase tracking-[.2em]">Loading your box…</p></div></main>;
   }
 
   if (!product.isBox) {
@@ -374,7 +375,7 @@ export default function ProductPage({ params }: Props) {
               </div>
 
               {orderError && <p role="alert" className="soft-card mt-5 bg-white p-4 text-sm font-bold">{orderError}</p>}
-              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="soft-action mt-5 flex min-h-14 w-full items-center justify-center gap-2 px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-40">{startingCheckout ? <><LoaderCircle className="animate-spin" size={18}/> Opening your box…</> : <>Continue to build your box <ArrowRight size={18}/></>}</button>}
+              {orderStep === 'size' && <button type="button" disabled={!selectedSizeId || startingCheckout} onClick={continueToSquareCheckout} className="soft-action mt-5 flex min-h-14 w-full items-center justify-center gap-2 px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:opacity-40">{startingCheckout ? <><CookieSpinner size={24}/> Opening your box…</> : <>Continue to build your box <ArrowRight size={18}/></>}</button>}
               {orderStep !== 'fulfillment' && <button type="button" onClick={goBackInOrder} className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.15em]"><ArrowLeft size={15}/> Back</button>}
             </div>
           </div>

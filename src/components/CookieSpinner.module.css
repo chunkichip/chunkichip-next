@@ -1,0 +1,21 @@
+.spinner {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+  animation: rotate 1.8s linear infinite;
+}
+.icon, .pink {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.pink { animation: fade 2.4s ease-in-out infinite; }
+@keyframes rotate { to { transform: rotate(360deg); } }
+@keyframes fade { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner, .pink { animation: none; }
+  .pink { opacity: 0; }
+}
