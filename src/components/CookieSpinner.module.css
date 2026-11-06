@@ -14,8 +14,8 @@
 }
 .pink { animation: fade 2.4s ease-in-out infinite; }
 @keyframes rotate { to { transform: rotate(360deg); } }
-@keyframes fade { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes fade { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .spinner, .pink { animation: none; }
-  .pink { opacity: 0; }
+  .pink { opacity: 1; }
 }
