@@ -38,6 +38,7 @@ const square = process.env.SQUARE_ACCESS_TOKEN ? new SquareClient({
   environment: process.env.SQUARE_ENV === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
 }) : null;
 const money = (amount) => `$${(Number(amount || 0) / 100).toFixed(2)}`;
+app.use('/api/benefits', require('./customerBenefits')());
 
 function parseShippoPackages() {
   if (!process.env.SHIPPO_PACKAGES_JSON) return {};
