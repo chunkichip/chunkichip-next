@@ -14,6 +14,7 @@ export default function CookieCheckout() {
  const [order, setOrder] = useState<Order | null>(null); const [config, setConfig] = useState<Config | null>(null);
  const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [ready, setReady] = useState(false);
  const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [phone, setPhone] = useState('');
+ const [fieldsError, setFieldsError] = useState(''); const [fieldAttempt, setFieldAttempt] = useState(0);
  const forms = useRef<{ gift?: PaymentForm; card?: PaymentForm }>({});
  const clearCart = useCartStore(state => state.clearCart);
  const ref = useRef<{ id: string; token: string } | null>(null);
@@ -43,8 +44,10 @@ export default function CookieCheckout() {
  }, [order?.status, order?.curbsideToken, clearCart]);
  const hasContact = Boolean(order?.contact);
  useEffect(() => {
-  if (!hasContact || order?.status !== 'open' || !config?.available || !order.locationId) return;
-  let active = true; const attached: PaymentForm[] = []; setReady(false);
+  if (!hasContact || order?.status !== 'open' || !config?.available || order.needsRecovery) return;
+  if (!order.locationId) { setFieldsError('We could not load the shop details. Refresh your order, then retry the payment fields.'); return; }
+  let active = true; const attached: PaymentForm[] = []; setReady(false); setFieldsError('');
+  const timeout = setTimeout(() => { if (active) setFieldsError('The secure payment fields are taking too long to load. Check your connection and retry.'); }, 20000);
   void (async () => {
    const host = config.sandbox ? 'https://sandbox.web.squarecdn.com/v1/square.js' : 'https://web.squarecdn.com/v1/square.js';
    if (!(window as SquareGlobal).Square) await new Promise<void>((resolve, reject) => {
@@ -58,10 +61,10 @@ export default function CookieCheckout() {
    const form = kind === 'gift' ? await payments.giftCard() : await payments.card(); attached.push(form);
    if (!active) { await form.destroy(); return; }
    await form.attach(kind === 'gift' ? '#cookie-gift-card' : '#cookie-payment-card');
-   if (active) { forms.current = { [kind]: form }; setReady(true); }
-  })().catch(e => { if (active) setError(e instanceof Error ? e.message : 'Could not load payment fields.'); });
-  return () => { active = false; setReady(false); forms.current = {}; attached.forEach(form => { void form.destroy(); }); };
- }, [hasContact, order?.status, order?.giftApplied, order?.locationId, config?.applicationId, config?.available, config?.sandbox]);
+   if (active) { clearTimeout(timeout); setFieldsError(''); forms.current = { [kind]: form }; setReady(true); }
+  })().catch(e => { clearTimeout(timeout); if (active) setFieldsError(e instanceof Error ? e.message : 'Could not load payment fields.'); });
+  return () => { active = false; clearTimeout(timeout); setReady(false); forms.current = {}; attached.forEach(form => { void form.destroy().catch(() => {}); }); };
+ }, [fieldAttempt, hasContact, order?.needsRecovery, order?.status, order?.giftApplied, order?.locationId, config?.applicationId, config?.available, config?.sandbox]);
  async function action(path: string, body: object) {
   setBusy(true); setError('');
   try { setOrder(await call(path, body)); }
@@ -89,7 +92,8 @@ export default function CookieCheckout() {
     {order.needsRecovery ? <div className="mt-6 rounded-2xl bg-[#fff0f8] p-5"><p className="text-sm leading-6">A payment attempt needs checking before another can be made. Release that unconfirmed attempt, then try again. Any gift card already applied below stays on this order.</p><button disabled={busy} onClick={() => action('recover', {})} className={`${button} mt-4`}>Release unconfirmed attempt</button></div> : <>
      <div className={order.giftApplied ? 'hidden' : 'mt-7'}><h2 className="text-xl font-black">Chunki Chip gift card</h2><div id="cookie-gift-card" className="mt-5 min-h-16"/><button disabled={busy || !ready} onClick={() => pay('gift')} className={`${button} mt-4`}>Apply gift card{order.remaining === order.amount ? ` · up to ${dollars(order.remaining)}` : ''}</button></div>
      <div className={order.giftApplied && order.remaining > 0 ? 'mt-8' : 'hidden'}><h2 className="text-xl font-black">Pay the remaining {dollars(order.remaining)}</h2><div id="cookie-payment-card" className="mt-5 min-h-32"/><button disabled={busy || !ready} onClick={() => pay('card')} className={`${button} mt-4`}>Pay {dollars(order.remaining)} & place order</button></div>
-     {!ready && <div className="mt-5 flex items-center gap-3"><CookieSpinner size={24}/><span className="text-sm">Loading secure payment fields…</span></div>}
+     {!ready && !fieldsError && <div className="mt-5 flex items-center gap-3"><CookieSpinner size={24}/><span className="text-sm">Loading secure payment fields…</span></div>}
+     {fieldsError && <div role="alert" className="mt-5 rounded-2xl bg-[#fff0f8] p-4 text-sm leading-6"><p>{fieldsError}</p><button disabled={busy} onClick={async () => { await refresh(); setFieldAttempt(value => value + 1); }} className="mt-3 font-bold underline">Retry secure payment fields</button></div>}
      {order.remaining === 0 && <button disabled={busy} onClick={() => action('complete', {})} className={`${button} mt-6`}>Complete order</button>}
      <p className="mt-5 text-xs leading-6 text-black/65">Applying a gift card authorizes its available balance up to your order total. If it covers the full order, your order is placed immediately. Otherwise, pay the remainder by credit or debit card to finish. Canceling releases any unused authorization; unfinished checkouts expire after 30 minutes.</p>
     </>}
