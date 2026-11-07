@@ -108,7 +108,7 @@ export default function Rewards() {
         <div><h2 className="brand-heading px-2 text-4xl">THE PERKS</h2><div className="mt-5 grid gap-4">
           {tiers.map(tier => <article key={tier.id} className="soft-card flex items-center gap-5 p-6"><div className="soft-inset flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-full"><strong className="text-2xl text-[#eb2327]">{tier.points}</strong><span className="text-[10px] font-bold uppercase">points</span></div><div><h3 className="text-lg font-black">{tier.name}</h3>{account?.enrolled && account.balance >= tier.points && <p className="mt-2 inline-block rounded-full bg-[#ffccef] px-3 py-1 text-xs font-bold">Available with your points</p>}</div></article>)}
           {!loading && tiers.length === 0 && <div className="soft-card p-6 text-sm leading-7">View the current earning rules and rewards in your Square rewards account.</div>}
-        </div><a href={portal} className="mt-6 inline-block text-sm font-bold underline underline-offset-4">Full program details</a></div>
+        </div></div>
       </section>
     </div>
   </main>;
