@@ -46,10 +46,12 @@ const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL || ''}${path}`;
 type Props = {
   items: ShippingItem[];
   locationId?: string;
+  giftCardCheckoutDefault?: boolean;
   onClose: () => void;
 };
 
-export default function ShippingCheckout({ items, locationId, onClose }: Props) {
+export default function ShippingCheckout({ items, locationId, onClose, giftCardCheckoutDefault = false }: Props) {
+  const [giftCardCheckout, setGiftCardCheckout] = useState(giftCardCheckoutDefault);
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
   const [rates, setRates] = useState<ShippingRate[]>([]);
   const [selectedRate, setSelectedRate] = useState<ShippingRate | null>(null);
@@ -98,6 +100,7 @@ export default function ShippingCheckout({ items, locationId, onClose }: Props) 
         body: JSON.stringify({
           items,
           checkoutMethod: 'shipping',
+          giftCardCheckout,
           deliveryType: 'direct',
           locationId,
           address,
@@ -152,7 +155,8 @@ export default function ShippingCheckout({ items, locationId, onClose }: Props) 
                 </button>
               ))}
             </div>
-            {selectedRate && <button type="button" disabled={loadingCheckout} onClick={continueToSquare} className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 border-2 border-black bg-black px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-wait disabled:opacity-60">{loadingCheckout ? <><CookieSpinner size={24}/> Preparing checkout…</> : <>Continue to Square · {selectedRate.amount} shipping <ArrowRight size={18}/></>}</button>}
+            {selectedRate && <div className="mt-5 rounded-2xl bg-[#fff0f8] p-4"><label className="flex items-center gap-3 text-sm font-bold"><input type="checkbox" checked={giftCardCheckout} onChange={e => setGiftCardCheckout(e.target.checked)} className="h-5 w-5 accent-[#eb2327]"/>Pay with a Chunki Chip gift card</label><p className="mt-2 text-xs leading-5">Pay any remaining balance by credit or debit card. Coupon codes and reward redemption are available in regular checkout.</p></div>}
+            {selectedRate && <button type="button" disabled={loadingCheckout} onClick={continueToSquare} className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 border-2 border-black bg-black px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-wait disabled:opacity-60">{loadingCheckout ? <><CookieSpinner size={24}/> Preparing checkout…</> : <>{giftCardCheckout ? 'Continue with gift card' : 'Continue to Square'} · {selectedRate.amount} shipping <ArrowRight size={18}/></>}</button>}
           </div>
         )}
 

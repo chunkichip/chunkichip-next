@@ -20,6 +20,7 @@ const DOORDASH_URL =
   'https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/';
 
 export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) {
+  const [giftCardCheckout, setGiftCardCheckout] = useState(false);
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [methodModalOpen, setMethodModalOpen] = useState(false);
   const [shippingFlowOpen, setShippingFlowOpen] = useState(false);
@@ -57,6 +58,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
           body: JSON.stringify({
             items,
             checkoutMethod,
+            giftCardCheckout,
           }),
         }
       );
@@ -120,6 +122,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
               </button>
             </div>
 
+            <div className="mt-6 rounded-2xl bg-[#fff0f8] p-4"><label className="flex items-center gap-3 font-bold"><input type="checkbox" checked={giftCardCheckout} onChange={e => setGiftCardCheckout(e.target.checked)} className="h-5 w-5 accent-[#eb2327]"/>Pay with a Chunki Chip gift card</label><p className="mt-2 text-xs leading-5">Apply your gift card, then pay any remaining balance by card. Coupon codes and reward redemption are available in regular checkout.</p></div>
             <div className="mt-8 grid gap-4">
               {hasShippingOnlyProducts && (
                 <p className="border-2 border-[#eb2327] bg-[#fff7fb] p-4 text-sm font-bold text-[#171315]">
@@ -189,7 +192,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
         </div>
       )}
 
-      {shippingFlowOpen && <ShippingCheckout items={items} onClose={() => setShippingFlowOpen(false)} />}
+      {shippingFlowOpen && <ShippingCheckout items={items} giftCardCheckoutDefault={giftCardCheckout} onClose={() => setShippingFlowOpen(false)} />}
 
       {open && (
         <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-labelledby="cart-title">

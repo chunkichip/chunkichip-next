@@ -1,0 +1,18 @@
+const {test,after}=require('node:test');const assert=require('node:assert/strict');const crypto=require('crypto');
+Object.assign(process.env,{SQUARE_ACCESS_TOKEN:'token-test',SQUARE_APPLICATION_ID:'app-test',SQUARE_ENV:'sandbox',SQUARE_LOCATION_ID:'loc',NEXT_PUBLIC_SUPABASE_URL:'https://cookie-db.invalid',SUPABASE_SECRET_KEY:'sb_secret_test',SHIPPO_API_TOKEN:'shippo-test'});
+const realFetch=global.fetch;let created,stored,seq=0;
+global.fetch=async(input,options={})=>{const url=String(input);if(url.startsWith('https://connect.squareupsandbox.com/v2/orders')){created=JSON.parse(options.body);return Response.json({order:{id:'order-'+(++seq),location_id:'loc',line_items:created.order.line_items,total_money:{amount:1600+(created.order.service_charges?.[0]?.amount_money.amount||0),currency:'USD'}}});}if(url.startsWith('https://cookie-db.invalid')){stored=JSON.parse(options.body);return Response.json([stored]);}return realFetch(input,options);};
+const server=require('../server').listen(0,'127.0.0.1');after(async()=>{global.fetch=realFetch;await new Promise(resolve=>server.close(resolve));});
+const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+test('custom gift checkout uses Square catalog prices and real pickup/curbside/shipment fulfillments',async()=>{
+ if(!server.listening)await new Promise(resolve=>server.once('listening',resolve));const base=`http://127.0.0.1:${server.address().port}`;
+ const items=[{variationId:'catalog-variation',quantity:1,priceAmount:1}];
+ const send=async(body)=>{const r=await realFetch(base+'/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return{status:r.status,data:await r.json()};};
+ for(const method of ['pickup','curbside']){const r=await send({items,checkoutMethod:method,giftCardCheckout:true});assert.equal(r.status,200,JSON.stringify(r));assert.ok(r.data.url.startsWith('/checkout#'));assert.equal(created.order.line_items[0].base_price_money,undefined);assert.equal(created.order.line_items[0].catalog_object_id,'catalog-variation');assert.equal(created.order.fulfillments[0].pickup_details.is_curbside_pickup,method==='curbside'?true:undefined);assert.equal(stored.method,method);assert.equal(stored.amount,1600);assert.ok(stored.token_hash);assert.equal(stored.token,undefined);}
+ const address={name:'Test',phone:'6035550123',street1:'123 Main St',street2:'',city:'Milford',state:'NH',zip:'03055',country:'US'};
+ const payload={locationId:'milford',itemsFingerprint:hash([{variationId:'catalog-variation',quantity:1,selectedFlavorIds:[]}]),addressFingerprint:hash(address),amountCents:750,carrier:'USPS',service:'Ground',exp:Date.now()+60000};
+ const encoded=Buffer.from(JSON.stringify(payload)).toString('base64url');const token=encoded+'.'+crypto.createHmac('sha256','shippo-test').update(encoded).digest('base64url');
+ const r=await send({items,checkoutMethod:'shipping',giftCardCheckout:true,address,shippingQuoteToken:token});assert.equal(r.status,200,JSON.stringify(r));assert.equal(created.order.fulfillments[0].type,'SHIPMENT');assert.equal(created.order.fulfillments[0].shipment_details.recipient.address.postal_code,'03055');assert.equal(created.order.service_charges[0].amount_money.amount,750);assert.equal(stored.amount,2350);
+ assert.equal((await send({items,checkoutMethod:'shipping',giftCardCheckout:true,address,shippingQuoteToken:'tampered'})).status,400);
+ assert.equal((await send({items:[{name:'fake',priceAmount:1}],checkoutMethod:'pickup',giftCardCheckout:true})).status,400);
+});

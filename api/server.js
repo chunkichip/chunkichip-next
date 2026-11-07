@@ -41,6 +41,7 @@ const money = (amount) => `$${(Number(amount || 0) / 100).toFixed(2)}`;
 app.use('/api/benefits', require('./customerBenefits')());
 app.use('/api/gift-cards', require('./giftCards')());
 app.use('/api/curbside', require('./curbside')(configuredLocations));
+app.use('/api/cookie-checkout', require('./cookieCheckout')());
 
 function parseShippoPackages() {
   if (!process.env.SHIPPO_PACKAGES_JSON) return {};
@@ -439,6 +440,20 @@ app.post('/api/create-checkout', async (req, res) => {
     const label = checkoutMethod === 'shipping'
       ? deliveryType === 'direct' ? 'Delivery' : 'Nationwide Shipping'
       : checkoutMethod === 'curbside' ? 'Curbside Pickup' : 'Carry Out';
+    if (req.body.giftCardCheckout === true) {
+      if (!require('./cookieCheckout').configured()) return res.status(503).json({ error: 'Gift card checkout is temporarily unavailable. Please use regular checkout.' });
+      if (items.some(item => typeof item.variationId !== 'string' || !item.variationId)) return res.status(400).json({ error: 'These items need to be refreshed before gift card checkout. Please reload the menu.' });
+      const recipient = shippingAddress ? { displayName: shippingAddress.name || 'Shipping customer', phoneNumber: shippingAddress.phone || undefined, address: { addressLine1: shippingAddress.street1, addressLine2: shippingAddress.street2 || undefined, locality: shippingAddress.city, administrativeDistrictLevel1: shippingAddress.state, postalCode: shippingAddress.zip, country: 'US' } } : { displayName: 'Online customer' };
+      const created = await square.orders.create({ idempotencyKey: crypto.randomUUID(), order: {
+        locationId: location.squareLocationId, lineItems, referenceId: `${location.name} · ${label}`, source: { name: 'Online Order' },
+        pricingOptions: { autoApplyTaxes: true, autoApplyDiscounts: true },
+        fulfillments: [{ uid: checkoutMethod === 'curbside' ? 'curbside' : 'fulfillment', type: checkoutMethod === 'shipping' ? 'SHIPMENT' : 'PICKUP', state: 'PROPOSED', ...(checkoutMethod === 'shipping' ? { shipmentDetails: { recipient } } : { pickupDetails: { recipient, scheduleType: 'ASAP', prepTimeDuration: 'PT15M', ...(checkoutMethod === 'curbside' ? { isCurbsidePickup: true } : {}) } }) }],
+        ...(verifiedShippingQuote ? { serviceCharges: [{ uid: 'shipping', name: `${verifiedShippingQuote.carrier} · ${verifiedShippingQuote.service}`, amountMoney: { amount: BigInt(verifiedShippingQuote.amountCents), currency: 'USD' }, calculationPhase: 'TOTAL_PHASE', taxable: false, scope: 'ORDER' }] } : {}),
+      } });
+      if (created.order?.lineItems?.some(item => item.itemType === 'GIFT_CARD')) throw new Error('Gift cards cannot be purchased with gift card checkout.');
+      const session = await require('./cookieCheckout').createSession({ order: created.order, locationName: location.name, method: checkoutMethod });
+      return res.json({ url: `/checkout#${session.id}.${session.token}` });
+    }
     const result = await square.checkout.paymentLinks.create({
       idempotencyKey: crypto.randomUUID(),
       order: {
