@@ -34,6 +34,7 @@ before(async () => {
       return response({ order: { id: row.square_order_id, state: row.payment_id ? 'COMPLETED' : 'OPEN', total_money: { amount: row.amount, currency: 'USD' }, tenders: row.payment_id ? [{ payment_id: row.payment_id }] : [] } });
     }
     if (url.endsWith('/v2/payments') && body) {
+      assert.ok(body.idempotency_key.length <= 45, 'Square payment keys must fit its 45-character limit');
       if (body.source_id === 'declined') return response({ errors: [{ code: 'CARD_DECLINED' }] }, 400);
       return response({ payment: { id: `pay-${body.reference_id}`, status: 'COMPLETED', receipt_url: 'https://squareup.com/receipt/test' } });
     }

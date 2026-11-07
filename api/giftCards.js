@@ -69,6 +69,7 @@ module.exports = function giftCards() {
       const code = String(result.errors?.[0]?.code || 'UNAVAILABLE').replace(/[^A-Z_]/g, '').slice(0, 70);
       console.error('Gift card Square request failed', response.status, code);
       const error = new Error('Square is temporarily unavailable');
+      error.paymentRejected = path === '/payments' && response.status === 400 && code === 'VALUE_TOO_LONG';
       error.declined = ['CARD_DECLINED','CVV_FAILURE','ADDRESS_VERIFICATION_FAILURE','INSUFFICIENT_FUNDS','EXPIRATION_FAILURE','INVALID_EXPIRATION','CARD_EXPIRED','GENERIC_DECLINE'].includes(code);
       throw error;
     }
@@ -205,13 +206,14 @@ module.exports = function giftCards() {
       const { order } = await square(`/orders/${encodeURIComponent(row.square_order_id)}`);
       if (order.state !== 'COMPLETED') {
         await save(row, { status: 'processing' });
-        const { payment } = await square('/payments', { idempotency_key: `gift-payment-${row.id}`, source_id: req.body.sourceId, amount_money: { amount: row.amount, currency: 'USD' }, order_id: row.square_order_id, location_id: row.location_id, autocomplete: true, buyer_email_address: row.buyer_email, reference_id: row.id, note: 'Chunki Chip eGift Card' });
+        const { payment } = await square('/payments', { idempotency_key: `gift-payment-${row.id.replace(/-/g, '')}`, source_id: req.body.sourceId, amount_money: { amount: row.amount, currency: 'USD' }, order_id: row.square_order_id, location_id: row.location_id, autocomplete: true, buyer_email_address: row.buyer_email, reference_id: row.id, note: 'Chunki Chip eGift Card' });
         await save(row, { payment_id: payment.id, receipt_url: payment.receipt_url || null });
         if (payment.status !== 'COMPLETED') return res.status(202).json({ accepted: true });
       }
       await fulfill(row);
       res.json({ accepted: true });
     } catch (error) {
+      if (row && error.paymentRejected) { await save(row, { status: 'payment_failed' }); return res.status(400).json({ error: 'Payment could not be submitted. Your card was not charged. Please start a new order.' }); }
       if (row && error.declined) { await save(row, { status: 'payment_failed' }); return res.status(400).json({ error: 'Your card was declined. Start a new order to try another card.' }); }
       if (row) {
         // The charge might have completed even if the network response was lost.
