@@ -9,12 +9,16 @@ Existing `SQUARE_ACCESS_TOKEN`, `SQUARE_ENV=production`, `SQUARE_LOCATION_ID_MIL
 Add privately to the main Render web service:
 
 - `SQUARE_APPLICATION_ID`: production application ID matching the Square access token.
-- `SUPABASE_SERVICE_ROLE_KEY`: server-only service-role key (or Supabase secret key authorizing service_role) for the existing project. Never prefix with NEXT_PUBLIC.
+- `SUPABASE_SECRET_KEY`: server-only sb_secret key for the existing project. Legacy SUPABASE_SERVICE_ROLE_KEY remains a fallback. Never prefix with NEXT_PUBLIC.
 - `RESEND_API_KEY`: sending key for the verified Chunki Chip email domain.
 - `GIFT_CARD_EMAIL_FROM`: verified sender, e.g. `Chunki Chip <gifts@chunkichip.com>`. Verify domain ownership with Resend and use a sender the business controls.
 - `GIFT_CARD_SALES_ENABLED`: leave unset or false until payment and email testing is complete. Set to true to enable purchases.
 
 For sandbox QA use a separate service with matching Square Sandbox application ID, token, location, and `SQUARE_ENV=sandbox`. Do not temporarily change the production service's Square environment: that also affects cookie checkout. Resend test delivery needs an authorized test recipient or a verified sending domain.
+
+## Restricted production test
+
+Keep GIFT_CARD_SALES_ENABLED unset or false. Set GIFT_CARD_TEST_EMAIL privately to the tester email. Open /gift-cards?test=1 and use that email for both buyer and recipient. This uses real production payments and issues a real card; the tester must explicitly pay. Ordinary visitors continue seeing the Square fallback. After testing, set GIFT_CARD_SALES_ENABLED=true.
 
 ## Database
 

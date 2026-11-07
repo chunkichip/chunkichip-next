@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import CookieSpinner from '@/components/CookieSpinner';
 
 type Design = { id: string; name: string; image: string };
-type Config = { available: boolean; designs: Design[]; applicationId?: string; locationId?: string; sandbox?: boolean };
+type Config = { available: boolean; testMode?: boolean; designs: Design[]; applicationId?: string; locationId?: string; sandbox?: boolean };
 type Card = { attach: (selector: string) => Promise<void>; destroy: () => Promise<void>; tokenize: (details: object) => Promise<{ status: string; token?: string }> };
 type SquareWindow = Window & { Square?: { payments: (app: string, location: string) => { card: () => Promise<Card> } } };
 type OrderStatus = { status: string; amount: number; recipientEmail: string; receiptUrl?: string };
@@ -43,7 +43,7 @@ export default function GiftCardOrder() {
   const selected = config?.designs.find(d => d.id === designId);
 
   useEffect(() => {
-    api('/config').then(setConfig).catch(() => setError('Could not load gift card designs. Please refresh to try again.'));
+    api(new URLSearchParams(window.location.search).get('test') === '1' ? '/config?test=1' : '/config').then(setConfig).catch(() => setError('Could not load gift card designs. Please refresh to try again.'));
     try {
       const saved = sessionStorage.getItem(storageKey);
       if (saved) { const value = JSON.parse(saved); if (value.id && value.token) { setOrder(value); setStep('status'); } }
@@ -127,7 +127,7 @@ export default function GiftCardOrder() {
   }
 
   return <section id="send-gift-card" className="mt-10 scroll-mt-28">
-    <div className="mb-6"><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">A little cookie money</p><h2 className="brand-heading mt-3 text-5xl">MAKE IT THEIRS.</h2></div>
+    <div className="mb-6">{config?.testMode && <p className="mb-5 rounded-2xl bg-[#ffccef] p-4 text-sm font-bold">Test checkout: use your configured test email for both sender and recipient. {config.sandbox ? 'Square Sandbox. No real charge.' : 'Production payments. Clicking Pay will charge your card and issue a real gift card.'}</p>}<p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]">A little cookie money</p><h2 className="brand-heading mt-3 text-5xl">MAKE IT THEIRS.</h2></div>
     {!config ? <div className="soft-card flex justify-center p-12"><CookieSpinner size={48}/></div> : step === 'status' && order ? <div className="soft-card p-7 md:p-10" aria-live="polite">
       <h3 className="brand-heading text-4xl">{status?.status === 'sent' ? 'GIFT ON ITS WAY.' : status?.status === 'payment_failed' ? 'PAYMENT DECLINED.' : 'YOUR GIFT ORDER.'}</h3>
       {status?.status === 'sent' ? <><p className="mt-5 leading-7">Your {amountLabel(status.amount)} gift card email has been submitted for delivery to <strong>{status.recipientEmail}</strong>. Ask them to check their inbox and spam folder.</p>{status.receiptUrl && <a href={status.receiptUrl} target="_blank" rel="noreferrer" className="mt-5 inline-block font-bold underline">View payment receipt</a>}<div><button className={`${button} mt-6`} onClick={reset}>Send another gift</button></div></> : status?.status === 'payment_failed' ? <><p className="mt-4">The payment was declined. Your gift card has not been issued.</p><button className={`${button} mt-6`} onClick={reset}>Start a new order</button></> : <><div className="mt-6 flex items-center gap-4"><CookieSpinner size={36}/><p className="leading-7">{status?.status === 'paid' ? 'Payment confirmed. We’re preparing the gift card email.' : status?.status === 'attention' ? 'This gift order needs a delivery check. Contact Chunki Chip with the order number below.' : 'We’re checking the payment and preparing your gift. Please do not place another order for the same gift.'}</p></div><button className="mt-6 font-bold underline" onClick={() => setChecking(value => !value)}>Check order status</button></>}

@@ -55,7 +55,7 @@ async function request(path, body, token, extra = {}) {
   const result = await realFetch(`${base}/api/gift-cards${path}`, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', ...(token ? { 'x-gift-order-token': token } : {}), ...extra }, ...(body ? { body: JSON.stringify(body) } : {}) });
   return { status: result.status, data: await result.json() };
 }
-function reset() { state = new Map(); calls = []; failMail = false; return { id: crypto.randomUUID(), token: crypto.randomBytes(32).toString('hex') }; }
+function reset() { process.env.GIFT_CARD_SALES_ENABLED = 'true'; delete process.env.GIFT_CARD_TEST_EMAIL; state = new Map(); calls = []; failMail = false; return { id: crypto.randomUUID(), token: crypto.randomBytes(32).toString('hex') }; }
 test('validates price, design, emails and escapes the message', () => {
   for (const change of [{amount: 1}, {amount: 50001}, {amount: 500.5}, {designId:'fake'}, {recipientEmail:'invalid'}]) assert.throws(() => gifts.validateGift({ ...good, ...change }));
   const html = gifts.emailBody({ ...gifts.validateGift(good), id: 'order' }, '7783000000001234');
@@ -64,7 +64,7 @@ test('validates price, design, emails and escapes the message', () => {
 test('blocks purchases when not configured and cross-origin requests', async () => {
   reset(); process.env.GIFT_CARD_SALES_ENABLED = 'false';
   const config = await request('/config'); assert.equal(config.data.available, false); assert.equal(config.data.applicationId, undefined);
-  assert.equal((await request('/orders', good)).status, 503); process.env.GIFT_CARD_SALES_ENABLED = 'true';
+  assert.equal((await request('/orders', good)).status, 403); process.env.GIFT_CARD_SALES_ENABLED = 'true';
   assert.equal((await request('/orders', good, null, { origin: 'https://evil.example' })).status, 403);
 });
 test('order ownership, changed details, and unpaid order safety', async () => {
@@ -110,4 +110,21 @@ test('parallel pay clicks cannot charge twice', async () => {
   const path = `/orders/${access.id}/pay`;
   await Promise.all([request(path, { sourceId: 'card-token' }, access.token), request(path, { sourceId: 'card-token' }, access.token)]);
   assert.equal(calls.filter(c => c.url.endsWith('/v2/payments')).length, 1);
+});
+
+test('new Supabase secret keys use apikey without a bearer JWT', async () => {
+  reset(); process.env.SUPABASE_SECRET_KEY = 'sb_secret_test';
+  const previous = global.fetch; let seen;
+  global.fetch = async (url, options) => { if (String(url).startsWith('https://gift-db.invalid')) seen = options.headers; return previous(url, options); };
+  try { assert.equal((await request('/config')).data.setupComplete, true); assert.equal(seen.apikey, 'sb_secret_test'); assert.equal(seen.Authorization, undefined); }
+  finally { global.fetch = previous; delete process.env.SUPABASE_SECRET_KEY; }
+});
+test('test checkout is hidden publicly and restricted to the test sender and recipient', async () => {
+  const access = reset(); process.env.GIFT_CARD_SALES_ENABLED = 'false'; process.env.GIFT_CARD_TEST_EMAIL = good.buyerEmail;
+  try {
+    assert.equal((await request('/config')).data.available, false);
+    const config = (await request('/config?test=1')).data; assert.equal(config.available, true); assert.equal(config.testMode, true); assert.ok(!JSON.stringify(config).includes(good.buyerEmail));
+    assert.equal((await request('/orders', { ...good, ...access })).status, 403);
+    assert.equal((await request('/orders', { ...good, ...access, recipientEmail: good.buyerEmail })).status, 200);
+  } finally { delete process.env.GIFT_CARD_TEST_EMAIL; process.env.GIFT_CARD_SALES_ENABLED = 'true'; }
 });

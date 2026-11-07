@@ -27,7 +27,10 @@ module.exports = function giftCards() {
   const limits = new Map();
   const env = key => (process.env[key] || '').trim();
   const location = () => env('SQUARE_LOCATION_ID_MILFORD') || env('SQUARE_LOCATION_ID');
-  const ready = () => Boolean(env('GIFT_CARD_SALES_ENABLED') === 'true' && env('SQUARE_APPLICATION_ID') && env('SQUARE_ACCESS_TOKEN') && location() && env('NEXT_PUBLIC_SUPABASE_URL') && (env('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_ROLE_KEY')) && env('RESEND_API_KEY') && env('GIFT_CARD_EMAIL_FROM'));
+  const configured = () => Boolean( env('SQUARE_APPLICATION_ID') && env('SQUARE_ACCESS_TOKEN') && location() && env('NEXT_PUBLIC_SUPABASE_URL') && (env('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_ROLE_KEY')) && env('RESEND_API_KEY') && env('GIFT_CARD_EMAIL_FROM'));
+  const salesEnabled = () => env('GIFT_CARD_SALES_ENABLED') === 'true';
+  const testEmail = () => env('GIFT_CARD_TEST_EMAIL').toLowerCase();
+  const canPurchase = (buyer, recipient) => salesEnabled() || Boolean(testEmail() && buyer?.toLowerCase() === testEmail() && recipient?.toLowerCase() === testEmail());
   router.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
     const origin = req.get('origin');
@@ -132,7 +135,7 @@ module.exports = function giftCards() {
   }
   let working = false;
   async function work() {
-    if (!ready() || working) return;
+    if (!configured() || working) return;
     working = true;
     try {
       const rows = await db(`square_order_id=not.is.null&status=in.(pending,processing,paid)&next_retry=lt.${encodeURIComponent(new Date().toISOString())}&order=created_at.asc&limit=10`);
@@ -148,15 +151,18 @@ module.exports = function giftCards() {
   }
   const timer = setInterval(work, 30000);
   timer.unref();
-  router.get('/config', async (_req, res) => {
-    let available = ready();
-    if (available) { try { await db('select=id&limit=0'); } catch { available = false; } }
-    res.json({ available, designs, minAmount: 500, maxAmount: 50000, ...(available ? { applicationId: env('SQUARE_APPLICATION_ID'), locationId: location(), sandbox: env('SQUARE_ENV') !== 'production' } : {}) });
+  router.get('/config', async (req, res) => {
+    let setupComplete = configured();
+    if (setupComplete) { try { await db('select=id&limit=0'); } catch { setupComplete = false; } }
+    const testMode = !salesEnabled() && Boolean(testEmail()) && req.query.test === '1';
+    const available = setupComplete && (salesEnabled() || testMode);
+    res.json({ available, setupComplete, testMode, designs, minAmount: 500, maxAmount: 50000, ...(available ? { applicationId: env('SQUARE_APPLICATION_ID'), locationId: location(), sandbox: env('SQUARE_ENV') !== 'production' } : {}) });
   });
   router.post('/orders', async (req, res) => {
-    if (!ready()) return res.status(503).json({ error: 'Gift card checkout is being prepared. Please check back shortly.' });
+    if (!configured()) return res.status(503).json({ error: 'Gift card checkout is being prepared. Please check back shortly.' });
     let gift;
     try { gift = validateGift(req.body); } catch (error) { return res.status(400).json({ error: error.message }); }
+    if (!canPurchase(gift.buyer_email, gift.recipient_email)) return res.status(403).json({ error: 'Custom gift card purchases are not open yet. In test mode, use the configured test email for both sender and recipient.' });
     const { id, token } = req.body;
     if (!uuidOK(id) || !tokenOK(token)) return res.status(400).json({ error: 'Refresh this page to start a new gift order.' });
     const fingerprint = hash(JSON.stringify(gift));
@@ -181,11 +187,12 @@ module.exports = function giftCards() {
     } catch { res.status(503).json({ error: 'Could not check your gift order. Please try again.' }); }
   });
   router.post('/orders/:id/pay', async (req, res) => {
-    if (!ready()) return res.status(503).json({ error: 'Gift card payments are temporarily unavailable.' });
+    if (!configured()) return res.status(503).json({ error: 'Gift card payments are temporarily unavailable.' });
     let row;
     try {
       const existing = await owned(req);
       if (!existing) return res.status(404).json({ error: 'Gift order not found.' });
+      if (!canPurchase(existing.buyer_email, existing.recipient_email)) return res.status(403).json({ error: 'Custom gift card purchases are not open yet.' });
       if (['sent','paid','attention'].includes(existing.status)) return res.json({ accepted: true });
       if (existing.status === 'payment_failed') return res.status(400).json({ error: 'This payment was declined. Start a new order to use another card.' });
       if (typeof req.body.sourceId !== 'string' || !req.body.sourceId || req.body.sourceId.length > 1000) return res.status(400).json({ error: 'Enter your payment details.' });
