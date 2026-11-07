@@ -68,18 +68,28 @@ module.exports = function customerBenefits() {
   }
 
   async function verify(path, fields) {
-    const service = encodeURIComponent(process.env.TWILIO_VERIFY_SERVICE_SID);
+    const service = encodeURIComponent(process.env.TWILIO_VERIFY_SERVICE_SID.trim());
     const response = await fetch(`https://verify.twilio.com/v2/Services/${service}/${path}`, {
       method: 'POST',
       headers: {
-        Authorization: `Basic ${Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(`${process.env.TWILIO_ACCOUNT_SID.trim()}:${process.env.TWILIO_AUTH_TOKEN.trim()}`).toString('base64')}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams(fields),
       signal: AbortSignal.timeout(12000),
+    }).catch(() => {
+      console.error('Twilio Verify transport failure');
+      throw new Error('Verification unavailable');
     });
     const result = await response.json();
-    if (!response.ok) throw new Error('Verification unavailable');
+    if (!response.ok) {
+      // Log only numeric provider diagnostics; never credentials, recipient, or OTP.
+      console.error('Twilio Verify rejected request', {
+        status: response.status,
+        code: Number.isInteger(result.code) ? result.code : null,
+      });
+      throw new Error('Verification unavailable');
+    }
     return result;
   }
 
