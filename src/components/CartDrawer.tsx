@@ -64,6 +64,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
       const data = await res.json();
 
       if (data.url) {
+        if (data.curbsideCheckinUrl) { try { localStorage.setItem('chunki-curbside-checkin', data.curbsideCheckinUrl); } catch {} }
         window.location.href = data.url;
         return;
       }
@@ -141,7 +142,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
 
                 <p className="mt-2 text-sm leading-6 text-[#6f4b3e]">
                   Place your order through Square and pick it up fresh.
-                  Curbside pickup can use Square arrival alerts when enabled.
+                  After payment, use your check-in page to let us know when you arrive.
                 </p>
               </button>
 
@@ -155,7 +156,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
   </h3>
 
   <p className="mt-2 text-sm leading-6 text-[#6f4b3e]">
-    Park outside and use Square arrival alerts for curbside pickup.
+    Keep your check-in page open. When parked, tap “I’m here” and enter your vehicle details.
   </p>
 </button>
               <button

@@ -6,6 +6,7 @@ const links = [
   ['Privacy policy', '/privacy'],
   ['Terms', '/terms'],
   ['FAQ', '/faq'],
+  ['Curbside check-in', '/curbside'],
 ];
 export default function Footer() {
   return <footer className="border-t border-[#ffccef] bg-white px-5 py-10 pb-28 text-[#171315] md:px-12 md:pb-10">

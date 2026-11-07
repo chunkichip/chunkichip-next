@@ -40,6 +40,7 @@ const square = process.env.SQUARE_ACCESS_TOKEN ? new SquareClient({
 const money = (amount) => `$${(Number(amount || 0) / 100).toFixed(2)}`;
 app.use('/api/benefits', require('./customerBenefits')());
 app.use('/api/gift-cards', require('./giftCards')());
+app.use('/api/curbside', require('./curbside')(configuredLocations));
 
 function parseShippoPackages() {
   if (!process.env.SHIPPO_PACKAGES_JSON) return {};
@@ -445,6 +446,7 @@ app.post('/api/create-checkout', async (req, res) => {
         lineItems,
         referenceId: `${location.name} · ${label}`,
         source: { name: 'Online Order' },
+        ...(checkoutMethod === 'curbside' ? { fulfillments: [{ uid: 'curbside', type: 'PICKUP', state: 'PROPOSED', pickupDetails: { recipient: { displayName: 'Curbside customer' }, scheduleType: 'ASAP', prepTimeDuration: 'PT15M', isCurbsidePickup: true, note: 'When parked, use the Chunki Chip check-in link to tell us your vehicle.' } }] } : {}),
       },
       checkoutOptions: {
         enableLoyalty: true,
@@ -475,7 +477,18 @@ app.post('/api/create-checkout', async (req, res) => {
     });
     const url = result.paymentLink?.url;
     if (!url) throw new Error('Square did not return a checkout URL.');
-    res.json({ url });
+    let curbsideCheckinUrl;
+    if (checkoutMethod === 'curbside') {
+      const link = result.paymentLink;
+      if (!link?.orderId || !link.id) throw new Error('Square did not return the curbside order reference.');
+      const configuredReturn = process.env.CHECKOUT_REDIRECT_URL;
+      const origin = configuredReturn ? new URL(configuredReturn).origin : `${req.get('host').startsWith('localhost') ? 'http' : 'https'}://${req.get('host')}`;
+      const checkin = new URL('/curbside', origin);
+      checkin.hash = require('./curbside').createToken(link.orderId, location.squareLocationId);
+      curbsideCheckinUrl = checkin.toString();
+      await square.checkout.paymentLinks.update({ id: link.id, paymentLink: { version: link.version, checkoutOptions: { ...(link.checkoutOptions || {}), enableLoyalty: true, redirectUrl: curbsideCheckinUrl } } });
+    }
+    res.json({ url, ...(curbsideCheckinUrl ? { curbsideCheckinUrl } : {}) });
   } catch (err) {
     console.error('Square checkout error:', err);
     res.status(502).json({ error: 'Could not start checkout. Please try again.' });
