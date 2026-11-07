@@ -481,8 +481,7 @@ app.post('/api/create-checkout', async (req, res) => {
     if (checkoutMethod === 'curbside') {
       const link = result.paymentLink;
       if (!link?.orderId || !link.id) throw new Error('Square did not return the curbside order reference.');
-      const configuredReturn = process.env.CHECKOUT_REDIRECT_URL;
-      const origin = configuredReturn ? new URL(configuredReturn).origin : `${req.get('host').startsWith('localhost') ? 'http' : 'https'}://${req.get('host')}`;
+      const origin = `${req.get('host').startsWith('localhost') ? 'http' : 'https'}://${req.get('host')}`;
       const checkin = new URL('/curbside', origin);
       checkin.hash = require('./curbside').createToken(link.orderId, location.squareLocationId);
       curbsideCheckinUrl = checkin.toString();

@@ -1,5 +1,6 @@
 const { test, after } = require('node:test');
 const assert = require('node:assert/strict');
+process.env.CHECKOUT_REDIRECT_URL = 'https://old-shop.invalid/';
 process.env.SQUARE_ACCESS_TOKEN = 'test-checkout'; process.env.SQUARE_ENV = 'sandbox'; process.env.SQUARE_LOCATION_ID = 'location-1';
 const realFetch = global.fetch; let created; let updated;
 global.fetch = async (input, options = {}) => {
@@ -22,6 +23,7 @@ test('curbside checkout creates a pickup fulfillment and signed private return; 
  assert.equal(created.order.fulfillments[0].pickup_details.is_curbside_pickup, true);
  assert.equal(created.order.fulfillments[0].pickup_details.schedule_type, 'ASAP');
  assert.equal(updated.payment_link.checkout_options.redirect_url, data.curbsideCheckinUrl);
+ assert.equal(new URL(data.curbsideCheckinUrl).hostname, '127.0.0.1');
  assert.equal(updated.payment_link.checkout_options.enable_loyalty, true);
  const claims = require('../curbside').readToken(new URL(data.curbsideCheckinUrl).hash.slice(1));
  assert.equal(claims.orderId, 'order-1'); assert.equal(claims.locationId, 'location-1');

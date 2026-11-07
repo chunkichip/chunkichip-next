@@ -142,7 +142,6 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
 
                 <p className="mt-2 text-sm leading-6 text-[#6f4b3e]">
                   Place your order through Square and pick it up fresh.
-                  After payment, use your check-in page to let us know when you arrive.
                 </p>
               </button>
 
