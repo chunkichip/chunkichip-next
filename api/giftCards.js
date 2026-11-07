@@ -27,7 +27,7 @@ module.exports = function giftCards() {
   const limits = new Map();
   const env = key => (process.env[key] || '').trim();
   const location = () => env('SQUARE_LOCATION_ID_MILFORD') || env('SQUARE_LOCATION_ID');
-  const ready = () => Boolean(env('GIFT_CARD_SALES_ENABLED') === 'true' && env('SQUARE_APPLICATION_ID') && env('SQUARE_ACCESS_TOKEN') && location() && env('NEXT_PUBLIC_SUPABASE_URL') && env('SUPABASE_SERVICE_ROLE_KEY') && env('RESEND_API_KEY') && env('GIFT_CARD_EMAIL_FROM'));
+  const ready = () => Boolean(env('GIFT_CARD_SALES_ENABLED') === 'true' && env('SQUARE_APPLICATION_ID') && env('SQUARE_ACCESS_TOKEN') && location() && env('NEXT_PUBLIC_SUPABASE_URL') && (env('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_ROLE_KEY')) && env('RESEND_API_KEY') && env('GIFT_CARD_EMAIL_FROM'));
   router.use((req, res, next) => {
     res.set('Cache-Control', 'no-store');
     const origin = req.get('origin');
@@ -47,9 +47,9 @@ module.exports = function giftCards() {
     next();
   });
   async function db(query, method = 'GET', body) {
-    const key = env('SUPABASE_SERVICE_ROLE_KEY');
+    const key = env('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_ROLE_KEY');
     const response = await fetch(`${env('NEXT_PUBLIC_SUPABASE_URL')}/rest/v1/gift_card_orders?${query}`, {
-      method, headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      method, headers: { apikey: key, ...(key.startsWith('sb_secret_') ? {} : { Authorization: `Bearer ${key}` }), 'Content-Type': 'application/json', Prefer: 'return=representation' },
       ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(15000),
     });
     if (!response.ok) throw new Error('Gift order storage unavailable');
