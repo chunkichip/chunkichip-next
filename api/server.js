@@ -39,6 +39,7 @@ const square = process.env.SQUARE_ACCESS_TOKEN ? new SquareClient({
 }) : null;
 const money = (amount) => `$${(Number(amount || 0) / 100).toFixed(2)}`;
 app.use('/api/benefits', require('./customerBenefits')());
+app.use('/api/gift-cards', require('./giftCards')());
 
 function parseShippoPackages() {
   if (!process.env.SHIPPO_PACKAGES_JSON) return {};
