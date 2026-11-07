@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, LoaderCircle } from 'lucide-react';
+import CookieSpinner from '@/components/CookieSpinner';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 type ShippingItem = {
   variationId: string | null;
@@ -136,7 +137,7 @@ export default function ShippingCheckout({ items, locationId, onClose }: Props) 
           <label><span className="mb-1 block text-[11px] font-black uppercase tracking-wider">ZIP code</span><input autoComplete="postal-code" inputMode="numeric" required maxLength={10} className={inputClass} value={address.zip} onChange={(event) => updateAddress('zip', event.target.value)} /></label>
           <div><span className="mb-1 block text-[11px] font-black uppercase tracking-wider">Country</span><div className={`${inputClass} flex items-center`}>United States</div></div>
           <button type="submit" disabled={loadingRates || loadingCheckout} className="mt-2 flex min-h-14 items-center justify-center gap-2 border-2 border-black bg-[#eb2327] px-5 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-60 sm:col-span-2">
-            {loadingRates ? <><LoaderCircle className="animate-spin" size={18}/> Checking carriers…</> : <>Show shipping rates <ArrowRight size={18}/></>}
+            {loadingRates ? <><CookieSpinner size={24}/> Checking carriers…</> : <>Show shipping rates <ArrowRight size={18}/></>}
           </button>
         </form>
 
@@ -151,7 +152,7 @@ export default function ShippingCheckout({ items, locationId, onClose }: Props) 
                 </button>
               ))}
             </div>
-            {selectedRate && <button type="button" disabled={loadingCheckout} onClick={continueToSquare} className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 border-2 border-black bg-black px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-wait disabled:opacity-60">{loadingCheckout ? <><LoaderCircle className="animate-spin" size={18}/> Preparing checkout…</> : <>Continue to Square · {selectedRate.amount} shipping <ArrowRight size={18}/></>}</button>}
+            {selectedRate && <button type="button" disabled={loadingCheckout} onClick={continueToSquare} className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 border-2 border-black bg-black px-5 py-4 text-sm font-black uppercase tracking-wide text-white transition hover:bg-[#eb2327] disabled:cursor-wait disabled:opacity-60">{loadingCheckout ? <><CookieSpinner size={24}/> Preparing checkout…</> : <>Continue to Square · {selectedRate.amount} shipping <ArrowRight size={18}/></>}</button>}
           </div>
         )}
 

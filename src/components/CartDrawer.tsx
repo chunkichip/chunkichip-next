@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useCartStore } from '@/store/cart';
+import CookieSpinner from '@/components/CookieSpinner';
 import ShippingCheckout from '@/components/ShippingCheckout';
 
 type Props = {
@@ -84,11 +85,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
     <>
       {loadingCheckout && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-md">
-          <img
-            src="/loading.png"
-            alt="Loading"
-            className="h-24 w-24 animate-spin object-contain"
-          />
+          <CookieSpinner size={96}/>
 
           <h2 className="brand-heading mt-6 text-4xl text-[#eb2327]">
             Preparing Your Order
