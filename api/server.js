@@ -446,6 +446,7 @@ app.post('/api/create-checkout', async (req, res) => {
         source: { name: 'Online Order' },
       },
       checkoutOptions: {
+        enableLoyalty: true,
         redirectUrl: process.env.CHECKOUT_REDIRECT_URL || 'https://chunkichip.com/',
         askForShippingAddress: checkoutMethod === 'shipping',
         ...(verifiedShippingQuote ? {
