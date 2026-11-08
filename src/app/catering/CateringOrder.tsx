@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 type Package = { key:string; kind:'mini'|'full'; size:number; wrapped:boolean; price:number; name:string; available:boolean; dips:{name:string;price:number;available:boolean}[] };
 type Slot = {at:string;date:string;time:string};
-type Menu = {packages:Package[];slots:Slot[];timezone:string;flavors:Record<'full'|'mini',string[]>;address?:{addressLine1?:string;locality?:string}};
+type Menu = {packages:Package[];slots:Slot[];timezone:string;pickupHours:string;flavors:Record<'full'|'mini',string[]>;address?:{addressLine1?:string;locality?:string}};
 const dollars = (n:number) => `$${(n/100).toFixed(2)}`;
 const field = 'soft-inset mt-2 block min-h-12 w-full min-w-0 rounded-2xl border border-transparent bg-[#f5f6f8] px-4 py-3 font-normal focus:border-[#eb2327] focus:outline-none';
 const action = 'soft-action inline-flex min-h-12 items-center justify-center rounded-full px-7 py-4 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50';
@@ -62,7 +62,7 @@ export default function CateringOrder() {
         </div>
         <div className="soft-card min-w-0 self-start bg-white p-6 md:p-8">
           <h3 className="brand-heading text-4xl">MAKE IT A DATE.</h3>
-          <p className="mt-3 text-sm leading-6">Pickup at {menu.address?.addressLine1 || 'our Milford shop'}{menu.address?.locality?`, ${menu.address.locality}`:''}. All times are Eastern.</p>
+          <p className="mt-3 text-sm leading-6">Pickup at {menu.address?.addressLine1 || 'our Milford shop'}{menu.address?.locality?`, ${menu.address.locality}`:''}.</p><p className="mt-2 text-sm font-bold">{menu.pickupHours}</p>
           {!dates.length&&<p role="status" className="mt-4 rounded-xl bg-[#ffccef] p-4 text-sm">Online pickup times are unavailable. Call the shop to schedule or send a quote request.</p>}
           <fieldset disabled={busy || !pack?.available || !dates.length} className="mt-6 grid min-w-0 gap-4">
             <label className="font-bold">Pickup date<select required className={field} value={date} onChange={e=>{setDate(e.target.value);setPickupAt('');}}><option value="">Choose a date</option>{dates.map(d=><option key={d} value={d}>{new Date(`${d}T12:00:00`).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</option>)}</select></label>

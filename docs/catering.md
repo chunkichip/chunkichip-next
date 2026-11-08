@@ -13,7 +13,7 @@ The public `/catering` page orders one preset package separately from the regula
 
 ## Scheduling
 
-Milford only. Slots use Square location timezone and business-hours periods. At least 48 real hours of notice; 30-minute intervals; next 60 days. Missing Square hours means no online slots. This does not include a separate event capacity calendar or holiday exceptions; update Square hours and disable catalog options as needed. Delivery is quote-only.
+Milford only. Pickup hours are explicitly configured in `api/cateringSchedule.json`: Wednesday through Sunday, 11 a.m. through 5 p.m. America/New_York, including the 5 p.m. pickup slot. At least 48 real hours of notice; 30-minute intervals; next 60 days. The catering schedule is independent of the Square location business-hours field. This does not include a separate event capacity calendar or holiday exceptions; update the catering schedule and disable catalog options as needed. Delivery is quote-only.
 
 Checkout revalidates catalog and pickup slots, then creates a Square-hosted payment link with SCHEDULED pickup, customer contact, catalog variation and modifier IDs, flavor quantities, and catalog tax application. Idempotency derives from the browser attempt ID plus validated order/contact data. Paying through Square completes the order; a quote request never reserves a date.
 

@@ -36,3 +36,19 @@ test('scheduled checkout sends catalog prices, flavor notes, dip quantities and 
  const r=await fetch(base+'/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...b,flavors:{'Chunki Chip':1}})});assert.equal(r.status,400);assert.equal(calls.length,2);
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
+
+test('approved catering schedule is Wednesday through Sunday, 11am to 5pm Eastern inclusive',()=>{
+ const slots=catering.cateringPickupSlots(now);
+ assert.ok(slots.length>0);
+ const format=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'long',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+ for(const slot of slots){
+  const parts=Object.fromEntries(format.formatToParts(new Date(slot.at)).map(p=>[p.type,p.value]));
+  assert.ok(['Wednesday','Thursday','Friday','Saturday','Sunday'].includes(parts.weekday));
+  const time=`${parts.hour}:${parts.minute}`;assert.ok(time>='11:00'&&time<='17:00');
+  assert.ok(Date.parse(slot.at)>=now+48*3600000);
+ }
+ assert.ok(slots.some(s=>s.time==='11:00'));
+ assert.ok(slots.some(s=>s.time==='17:00'));
+ const spring=catering.cateringPickupSlots(Date.parse('2027-03-12T16:00:00Z'));
+ assert.ok(spring.every(s=>Date.parse(s.at)>=Date.parse('2027-03-14T16:00:00Z')));
+});

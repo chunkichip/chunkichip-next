@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+const cateringSchedule = require('./cateringSchedule.json');
 const FULL_FLAVORS = ['Chunki Chip', 'Peanut Butter Cup', 'Cookies & Cream', 'Double Chocolate', 'Snickerdoodle', 'Golden Oreo Birthday Cake'];
 const MINI_FLAVORS = ['Chunki Chip', 'M&M', 'Soft Sugar'];
 const DIP_FLAVORS = ['Vanilla Frosting', 'Chocolate Frosting', 'Marshmallow Frosting'];
@@ -51,10 +52,13 @@ function pickupSlots(location, now = Date.now()) {
     const previousDay = localParts(new Date(at-86400000), timezone).day;
     if (periods.some(p => {
       const open = clock(p.startLocalTime), close = clock(p.endLocalTime);
-      return close > open ? p.dayOfWeek === local.day && local.minutes >= open && local.minutes < close : (p.dayOfWeek === local.day && local.minutes >= open) || (p.dayOfWeek === previousDay && local.minutes < close);
+      return close > open ? p.dayOfWeek === local.day && local.minutes >= open && (location.includeClosing ? local.minutes <= close : local.minutes < close) : (p.dayOfWeek === local.day && local.minutes >= open) || (p.dayOfWeek === previousDay && local.minutes < close);
     })) slots.push({ at: new Date(at).toISOString(), date: local.date, time: local.time });
   }
   return slots;
+}
+function cateringPickupSlots(now = Date.now()) {
+  return pickupSlots({ timezone: cateringSchedule.timezone, includeClosing: true, businessHours: { periods: cateringSchedule.days.map(dayOfWeek => ({ dayOfWeek, startLocalTime: cateringSchedule.start, endLocalTime: cateringSchedule.end })) } }, now);
 }
 function validateSelection(body, menu, slots) {
   const pack = menu.find(p => p.key === body.packageKey && p.available);
@@ -99,12 +103,12 @@ module.exports = function cateringRouter({ square, configuredLocations, searchCa
   router.get('/menu', async (_req,res) => {
     try {
       const data = await catalog();
-      res.set('Cache-Control','no-store').json({ packages:data.packages.map(({ variationId,catalogVersion,...p }) => ({ ...p, dips:p.dips.map(({id,...d}) => ({...d,available:Boolean(id)})) })), slots:pickupSlots(data.details), timezone:data.details.timezone || 'America/New_York', flavors:{full:FULL_FLAVORS,mini:MINI_FLAVORS}, location:'Milford', address:data.details.address });
+      res.set('Cache-Control','no-store').json({ packages:data.packages.map(({ variationId,catalogVersion,...p }) => ({ ...p, dips:p.dips.map(({id,...d}) => ({...d,available:Boolean(id)})) })), slots:cateringPickupSlots(), timezone:cateringSchedule.timezone, pickupHours:cateringSchedule.label, flavors:{full:FULL_FLAVORS,mini:MINI_FLAVORS}, location:'Milford', address:data.details.address });
     } catch (error) { res.status(503).json({ error:error.message }); }
   });
   router.post('/checkout', limit, async (req,res) => {
     let data, selection;
-    try { data = await catalog(true); selection = validateSelection(req.body || {},data.packages,pickupSlots(data.details)); }
+    try { data = await catalog(true); selection = validateSelection(req.body || {},data.packages,cateringPickupSlots()); }
     catch (error) { return res.status(400).json({error:error.message}); }
     const {pack,counts,dips,name,email,phone} = selection;
     const notes = `CATERING · ${pack.name}. Flavors: ${counts.filter(f=>f.count).map(f=>`${f.count} ${f.name}`).join(', ')}.${dips.length ? ` Dips (8 oz each): ${dips.map(d=>`${d.count} ${d.name}`).join(', ')}.` : ' No dips.'}`;
@@ -135,10 +139,12 @@ module.exports = function cateringRouter({ square, configuredLocations, searchCa
     } catch(error) { console.error('Catering request failed',error.message); res.status(503).json({error:'Your request could not be confirmed. Please try again or call (603) 554-8571.'}); }
   });
   // Read-only catalog diagnostics, no customer data and no orders created.
-  router.checkCatalog = async () => { const d = await catalog(true); console.log('Catering catalog:',JSON.stringify({packages:d.packages.map(p=>({key:p.key,available:p.available,dips:p.dips.map(d=>({name:d.name,available:Boolean(d.id)}))})),slots:pickupSlots(d.details).length,items:(await searchCatalog(['ITEM'])).filter(i=>/cater/i.test(i.itemData?.name || '')).map(i=>({name:i.itemData.name,variations:i.itemData.variations?.map(v=>({name:v.itemVariationData?.name,price:String(v.itemVariationData?.priceMoney?.amount)}))}))})); };
+  router.checkCatalog = async () => { const d = await catalog(true); console.log('Catering catalog:',JSON.stringify({packages:d.packages.map(p=>({key:p.key,available:p.available,dips:p.dips.map(d=>({name:d.name,available:Boolean(d.id)}))})),slots:cateringPickupSlots().length,items:(await searchCatalog(['ITEM'])).filter(i=>/cater/i.test(i.itemData?.name || '')).map(i=>({name:i.itemData.name,variations:i.itemData.variations?.map(v=>({name:v.itemVariationData?.name,price:String(v.itemVariationData?.priceMoney?.amount)}))}))})); };
   return router;
 };
 module.exports.mapCatalog = mapCatalog;
 module.exports.pickupSlots = pickupSlots;
 module.exports.validateSelection = validateSelection;
 module.exports.PACKAGES = PACKAGES;
+
+module.exports.cateringPickupSlots = cateringPickupSlots;
