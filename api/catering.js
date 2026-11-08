@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const cateringSchedule = require('./cateringSchedule.json');
-const FULL_FLAVORS = ['Chunki Chip', 'Peanut Butter Cup', 'Cookies & Cream', 'Double Chocolate', 'Snickerdoodle', 'Golden Oreo Birthday Cake'];
+const FULL_FLAVORS = ["Chunki Chip","Peanut Butter Cup","Cookies & Cream","Hershey’s Brownie","M&M's","Soft Sugar"];
 const MINI_FLAVORS = ['Chunki Chip', 'M&M', 'Soft Sugar'];
 const DIP_FLAVORS = ['Vanilla Frosting', 'Chocolate Frosting', 'Marshmallow Frosting'];
 const PACKAGES = [

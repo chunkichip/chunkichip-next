@@ -58,5 +58,5 @@ test('Chiptini flavors require multiples of ten while full-size cookies remain f
  const b={...body(),pickupAt:slots[0].at};
  assert.throws(()=>validateSelection({...b,flavors:{'Chunki Chip':15,'M&M':15}},menu,slots),/groups of 10/);
  assert.equal(validateSelection({...b,flavors:{'Chunki Chip':20,'M&M':10}},menu,slots).counts[0].count,20);
- assert.equal(validateSelection({...b,packageKey:'full-24-unwrapped',flavors:{'Chunki Chip':7,'Snickerdoodle':17},dips:{}},menu,slots).counts[0].count,7);
+ assert.equal(validateSelection({...b,packageKey:'full-24-unwrapped',flavors:{'Chunki Chip':7,'Soft Sugar':17},dips:{}},menu,slots).counts[0].count,7);
 });
