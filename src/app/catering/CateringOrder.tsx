@@ -16,8 +16,8 @@ async function request(path:string, body?:unknown) {
 }
 export default function CateringOrder() {
   const [menu,setMenu] = useState<Menu|null>(null), [loadError,setLoadError] = useState(''), [reload,setReload] = useState(0);
-  const [kind,setKind] = useState<'mini'|'full'>('mini'), [packageKey,setPackageKey] = useState('mini-30');
-  const [flavors,setFlavors] = useState<Record<string,number>>({'Chunki Chip':30}), [dips,setDips] = useState<Record<string,number>>({});
+  const [kind,setKind] = useState<'mini'|'full'>('full'), [packageKey,setPackageKey] = useState('full-24-unwrapped');
+  const [flavors,setFlavors] = useState<Record<string,number>>({'Chunki Chip':24}), [dips,setDips] = useState<Record<string,number>>({});
   const [date,setDate] = useState(''), [pickupAt,setPickupAt] = useState('');
   const [busy,setBusy] = useState(false), [error,setError] = useState(''), [attemptId,setAttemptId] = useState('');
   const [quoteBusy,setQuoteBusy] = useState(false), [quoteError,setQuoteError] = useState(''), [quoteId,setQuoteId] = useState(''), [quoteSent,setQuoteSent] = useState('');
@@ -50,7 +50,7 @@ export default function CateringOrder() {
       {loadError ? <div role="alert" className="soft-card mt-6 bg-white p-7"><p>{loadError}</p><button className="mt-4 font-bold underline" onClick={()=>setReload(v=>v+1)}>Reload catering menu</button><p className="mt-3">You can also call <a href="tel:+16035548571" className="underline">(603) 554-8571</a>.</p></div> : !menu ? <p role="status" className="py-10">Loading catering packages…</p> : <form onSubmit={checkout} className="mt-7 grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
         <div className="soft-card min-w-0 bg-white p-6 md:p-9">
           <fieldset disabled={busy}><legend className="text-xl font-black">1. Pick your package</legend>
-            <div className="my-5 flex flex-wrap gap-3">{(['mini','full'] as const).map(k=><button key={k} type="button" aria-pressed={kind===k} onClick={()=>{const p=menu.packages.find(p=>p.kind===k);if(p)selectPack(p);}} className={`min-h-12 rounded-full border px-6 py-3 font-bold ${kind===k?'border-[#eb2327] bg-[#eb2327] text-white':'border-black/15'}`}>{k==='mini'?'Chiptinis':'Full-size classics'}</button>)}</div>
+            <div className="my-5 flex flex-wrap gap-3">{(['full','mini'] as const).map(k=><button key={k} type="button" aria-pressed={kind===k} onClick={()=>{const p=menu.packages.find(p=>p.kind===k);if(p)selectPack(p);}} className={`min-h-12 rounded-full border px-6 py-3 font-bold ${kind===k?'border-[#eb2327] bg-[#eb2327] text-white':'border-black/15'}`}>{k==='mini'?'Chiptinis':'Full-size classics'}</button>)}</div>
             <p className="mb-5 text-sm leading-6 text-black/65">{kind==='mini'?'Mini cookies made for sharing. Packages are cookies only. Add any 8 oz frosting dip for $4.':'Choose your mix of our six classics, wrapped individually or unwrapped for your dessert spread.'}</p>
             <div className="grid gap-3 sm:grid-cols-2">{menu.packages.filter(p=>p.kind===kind).map(p=><label key={p.key} className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 ${packageKey===p.key?'border-[#eb2327] bg-[#fff3fa]':'border-black/10'} ${!p.available?'opacity-55':''}`}><input type="radio" name="package" value={p.key} checked={packageKey===p.key} onChange={()=>selectPack(p)} disabled={!p.available} className="mt-1 h-4 w-4 accent-[#eb2327]"/><span><strong className="block">{p.size} {p.kind==='mini'?'Chiptinis':'cookies'}</strong>{p.kind==='full'&&<span className="block text-sm">{p.wrapped?'Individually wrapped':'Unwrapped'}</span>}<span className="mt-2 block font-black text-[#eb2327]">{dollars(p.price)}</span>{!p.available&&<span className="mt-1 block text-xs">Call for availability</span>}</span></label>)}</div>
           </fieldset>
