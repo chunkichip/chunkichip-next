@@ -42,6 +42,9 @@ app.use('/api/benefits', require('./customerBenefits')());
 app.use('/api/gift-cards', require('./giftCards')());
 app.use('/api/curbside', require('./curbside')(configuredLocations));
 app.use('/api/cookie-checkout', require('./cookieCheckout')());
+const catering = require('./catering')({ square, configuredLocations, searchCatalog });
+app.use('/api/catering', catering);
+if (require.main !== module && square) setTimeout(() => catering.checkCatalog().catch(error => console.warn('Catering catalog check:', error.message)), 5000).unref();
 
 function parseShippoPackages() {
   if (!process.env.SHIPPO_PACKAGES_JSON) return {};
@@ -210,7 +213,7 @@ app.get('/api/products', async (_req, res) => {
       loadManagedFlavorDescriptions(),
     ]);
     const listById = new Map(modifierLists.map((o) => [o.id, o]));
-    const visible = items.filter((item) => item.itemData && !item.itemData.isArchived && item.itemData.ecomVisibility !== 'UNAVAILABLE');
+    const visible = items.filter((item) => item.itemData && !item.itemData.isArchived && item.itemData.ecomVisibility !== 'UNAVAILABLE' && !/catering/i.test(item.itemData.name));
     const itemDescriptions = new Map(visible.map((item) => [
       normalizeCatalogName(item.itemData.name),
       item.itemData.descriptionPlaintext || item.itemData.description || '',
