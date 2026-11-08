@@ -8,7 +8,7 @@ The public `/catering` page orders one preset package separately from the regula
 - `Chiptinis Catering`: 30/$24, 60/$45, 90/$65.
 - `Catering Dips`: Vanilla Frosting, Chocolate Frosting, Marshmallow Frosting modifiers, $4 each for 8 oz. Repeated dips use Square modifier quantity. Modifier association with the item is optional for the API checkout.
 - Unambiguous name/size/price matches required. Changed prices, archived items, manually sold-out or unavailable-location variations disable that option. No client-provided prices are used.
-- Flavor allocations are included in the order line note and pickup note for the team.
+- Chiptini flavor allocations must be in multiples of ten. Full-size flavor quantities remain flexible. Flavor allocations are included in the order line note and pickup note for the team.
 - Catering items are excluded from the general menu API.
 
 ## Scheduling

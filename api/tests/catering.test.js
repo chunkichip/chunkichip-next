@@ -52,3 +52,11 @@ test('approved catering schedule is Wednesday through Sunday, 11am to 5pm Easter
  const spring=catering.cateringPickupSlots(Date.parse('2027-03-12T16:00:00Z'));
  assert.ok(spring.every(s=>Date.parse(s.at)>=Date.parse('2027-03-14T16:00:00Z')));
 });
+
+test('Chiptini flavors require multiples of ten while full-size cookies remain flexible',()=>{
+ const menu=mapCatalog(catalog(),'location'),slots=catering.cateringPickupSlots(now);
+ const b={...body(),pickupAt:slots[0].at};
+ assert.throws(()=>validateSelection({...b,flavors:{'Chunki Chip':15,'M&M':15}},menu,slots),/groups of 10/);
+ assert.equal(validateSelection({...b,flavors:{'Chunki Chip':20,'M&M':10}},menu,slots).counts[0].count,20);
+ assert.equal(validateSelection({...b,packageKey:'full-24-unwrapped',flavors:{'Chunki Chip':7,'Snickerdoodle':17},dips:{}},menu,slots).counts[0].count,7);
+});

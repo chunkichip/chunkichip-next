@@ -67,6 +67,7 @@ function validateSelection(body, menu, slots) {
   const flavors = pack.kind === 'mini' ? MINI_FLAVORS : FULL_FLAVORS;
   if (!body.flavors || typeof body.flavors !== 'object' || Array.isArray(body.flavors) || Object.keys(body.flavors).some(k => !flavors.includes(k))) throw new Error('Choose valid cookie flavors.');
   const counts = flavors.map(name => ({ name, count: Number(body.flavors[name] ?? 0) }));
+  if (pack.kind === 'mini' && counts.some(f => !Number.isInteger(f.count) || f.count % 10 !== 0)) throw new Error('Choose Chiptini flavors in groups of 10.');
   if (counts.some(f => !Number.isInteger(f.count) || f.count < 0) || counts.reduce((sum,f) => sum+f.count,0) !== pack.size) throw new Error(`Choose exactly ${pack.size} cookies.`);
   const rawDips = body.dips || {};
   if (typeof rawDips !== 'object' || Array.isArray(rawDips) || Object.keys(rawDips).some(k => !DIP_FLAVORS.includes(k))) throw new Error('Choose valid dips.');
