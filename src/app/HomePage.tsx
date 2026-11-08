@@ -6,6 +6,7 @@ import EmailSignup from '@/components/EmailSignup';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { getWeeklyFlavors, isInPersonCookieBox, isInternalPackaging, isShippingOnlyProduct } from '@/lib/catalog';
 
@@ -25,9 +26,9 @@ type Product = {
 
 const api = (path: string) => `${process.env.NEXT_PUBLIC_API_URL || ''}${path}`;
 
-export default function HomePage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function HomePage({initialProducts=[]}:{initialProducts?:Product[]}) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(initialProducts.length===0);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -55,7 +56,8 @@ export default function HomePage() {
       <section aria-label="Chunki Chip customers enjoying cookies" className="overflow-hidden bg-[#ff89c2]">
         <img
           src="/hero-customers.webp"
-          alt="Two customers smiling and enjoying Chunki Chip cookies"
+          alt="Customers enjoying Chunki Chip cookies"
+          width={1920} height={850}
           className="mx-auto block h-auto w-full max-w-[1800px] object-contain"
           fetchPriority="high"
         />
@@ -67,8 +69,8 @@ export default function HomePage() {
 
         {!loading && !error && <>
           <div id="single-cookies" className="scroll-mt-24">
-            <div className="mb-5 flex flex-col gap-2 pb-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]"><ManagedText id="253cea0d7154655d82eba1f0" fallback={"Fresh from the oven"} /></p><h3 className="brand-heading text-5xl md:text-7xl"><ManagedText id="92c27f51df20da216165f7fb" fallback={"WEEKLY FLAVORS"} /></h3></div><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="caf7883b50661113262282ae" fallback={"Tap a flavor to order"} /></span></div>
-            {cookies.length === 0 ? <p className="border-2 border-dashed border-black p-8 text-center"><ManagedText id="9108f920b83978d739b79707" fallback={"This week’s flavors are being refreshed. Check back soon."} /></p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cookies.map((product, index) => <Link href={`/product/${encodeURIComponent(product.id)}`} key={product.id} className="group soft-card soft-link-card grid bg-white transition focus-visible:outline-[#eb2327]"><div className={`soft-inset flex min-h-[250px] items-center justify-center ${index % 3 === 1 ? 'bg-[#fff7fb]' : index % 3 === 2 ? 'bg-[#fff7fb]' : 'bg-[#f8fafc]'}`}>{product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-56 w-full object-contain p-5 transition duration-300 group-hover:scale-105"/> : <span className="text-7xl">🍪</span>}</div><div className="flex flex-col justify-between p-5"><div><h4 className="brand-heading text-3xl leading-tight md:text-4xl">{product.name}</h4><p className="mt-3 text-sm leading-6 text-black/75">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p></div><span className="mt-5 flex items-center justify-between border-t border-black pt-3 text-sm font-black uppercase"><span>{product.price}</span><span className="flex items-center gap-2"><ManagedText id="f66984fcab7692a68b971de6" fallback={"Order now"} /><ArrowUpRight size={17}/></span></span></div></Link>)}</div>}
+            <div className="mb-5 flex flex-col gap-2 pb-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]"><ManagedText id="253cea0d7154655d82eba1f0" fallback={"Fresh from the oven"} /></p><h1 className="brand-heading text-5xl md:text-7xl"><ManagedText id="92c27f51df20da216165f7fb" fallback={"WEEKLY FLAVORS"} /></h1></div><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="caf7883b50661113262282ae" fallback={"Tap a flavor to order"} /></span></div>
+            {cookies.length === 0 ? <p className="border-2 border-dashed border-black p-8 text-center"><ManagedText id="9108f920b83978d739b79707" fallback={"This week’s flavors are being refreshed. Check back soon."} /></p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cookies.map((product, index) => <Link href={`/product/${encodeURIComponent(product.id)}`} key={product.id} className="group soft-card soft-link-card grid bg-white transition focus-visible:outline-[#eb2327]"><div className={`soft-inset flex min-h-[250px] items-center justify-center ${index % 3 === 1 ? 'bg-[#fff7fb]' : index % 3 === 2 ? 'bg-[#fff7fb]' : 'bg-[#f8fafc]'}`}>{product.imageUrl ? <img loading="lazy" decoding="async" src={product.imageUrl} alt={product.name} className="h-56 w-full object-contain p-5 transition duration-300 group-hover:scale-105"/> : <span className="text-7xl">🍪</span>}</div><div className="flex flex-col justify-between p-5"><div><h4 className="brand-heading text-3xl leading-tight md:text-4xl">{product.name}</h4><p className="mt-3 text-sm leading-6 text-black/75">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p></div><span className="mt-5 flex items-center justify-between border-t border-black pt-3 text-sm font-black uppercase"><span>{product.price}</span><span className="flex items-center gap-2"><ManagedText id="f66984fcab7692a68b971de6" fallback={"Order now"} /><ArrowUpRight size={17}/></span></span></div></Link>)}</div>}
             <a href="/flavor-archive" className="mt-6 inline-block text-sm font-bold underline underline-offset-4">Explore past flavors and vote for a comeback →</a>
           </div>
 
@@ -82,7 +84,7 @@ export default function HomePage() {
                 {inPersonBoxes.map((product) => (
                   <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group soft-card soft-link-card flex min-h-[360px] flex-col bg-white text-left transition focus-visible:outline-[#eb2327]">
                     <div className="soft-inset flex min-h-[225px] items-center justify-center p-4">
-                      {product.boxSize ? <img src={`/boxes/${product.boxSize}-box.png`} alt={`Open ${product.name}`} className="h-52 w-full object-contain transition duration-300 group-hover:scale-[1.03]"/> : <span className="text-7xl">🍪</span>}
+                      {product.boxSize ? <Image width={600} height={600} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 25vw" src={`/boxes/${product.boxSize}-box.png`} alt={`Open ${product.name}`} className="h-52 w-full object-contain transition duration-300 group-hover:scale-[1.03]"/> : <span className="text-7xl">🍪</span>}
                     </div>
                     <div className="flex flex-1 flex-col justify-between p-5">
                       <div><span className="text-xs font-black uppercase tracking-[.18em] text-[#eb2327]">{product.boxSize}<ManagedText id="0a60ff7eb1cccc7aaeb83a7c" fallback={"cookies"} /></span><h4 className="brand-heading mt-3 text-4xl">{product.name}</h4></div>
@@ -106,7 +108,7 @@ export default function HomePage() {
                   return (
                     <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group soft-card soft-link-card grid grid-cols-[38%_1fr] bg-white transition">
                       <div className={`soft-inset flex min-h-[175px] items-center justify-center ${index % 3 === 1 ? 'bg-[#fff7fb]' : index % 3 === 2 ? 'bg-[#fff7fb]' : 'bg-[#f8fafc]'}`}>
-                        {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-36 w-full object-contain p-2"/> : <span className="text-6xl">🍪</span>}
+                        {product.imageUrl ? <img loading="lazy" decoding="async" src={product.imageUrl} alt={product.name} className="h-36 w-full object-contain p-2"/> : <span className="text-6xl">🍪</span>}
                       </div>
                       <div className="flex min-w-0 flex-col justify-between p-4">
                         <div><span className="text-[10px] font-black uppercase tracking-[.15em] text-[#eb2327]"><ManagedText id="29a24597a2f7573af0e50fdf" fallback={"Shipping only"} /></span><h4 className="brand-heading mt-2 text-2xl leading-tight">{product.name}</h4><p className="mt-2 line-clamp-3 text-xs leading-relaxed text-black/70">{product.description}</p></div>

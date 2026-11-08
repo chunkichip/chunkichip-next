@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 
 import ManagedText from '@/components/ManagedText';
 import Link from 'next/link';
@@ -11,6 +12,7 @@ const otherFlavors = [
   'Blueberry Cheesecake', 'Brown Sugar Pop-Tart', 'Oatmeal Chocolate Chip', 'Snickers',
 ];
 
+export const metadata:Metadata = {title:'Cookie Flavor Archive | Chunki Chip',description:'Explore past Chunki Chip cookie flavors, save your favorites, and vote for the cookies you want back in Milford, NH.',alternates:{canonical:'/flavor-archive'}};
 export const dynamic = 'force-dynamic';
 export default async function FlavorArchivePage() {
   let flavors: {name:string;description:string;image:string;isolated?:boolean}[] = photographedFlavors;

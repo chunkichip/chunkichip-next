@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 metadataBase: new URL('https://chunkichip.com'),
-  title: 'Chunki Chip — Thick Chunki Cookies',
+  title: 'Chunki Chip Cookies | Milford, NH',
 
   description:
     'Fresh baked stuffed cookies, weekly drops, custom cookie boxes, and giant flavors built for cravings.',
@@ -36,7 +36,7 @@ metadataBase: new URL('https://chunkichip.com'),
 
     images: [
       {
-        url: '/logo.png',
+        url: '/hero-customers.webp',
         alt: 'Chunki Chip Cookies',
       },
     ],
@@ -54,7 +54,7 @@ metadataBase: new URL('https://chunkichip.com'),
     description:
       'Fresh baked stuffed cookies and weekly flavor drops.',
 
-    images: ['/logo.png'],
+    images: ['/hero-customers.webp'],
   },
 
   icons: {

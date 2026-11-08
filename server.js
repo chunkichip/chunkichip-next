@@ -10,6 +10,10 @@ const handle = nextApp.getRequestHandler();
 
 nextApp.prepare().then(() => {
   const app = express();
+  app.use((req,res,next) => {
+    if (req.hostname.endsWith('.onrender.com')) res.set('X-Robots-Tag','noindex');
+    next();
+  });
   app.use(api);
   app.use((req, res) => handle(req, res));
   app.listen(port, '0.0.0.0', () => console.log(`Chunki Chip listening on ${port}`));
