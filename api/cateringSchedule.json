@@ -3,5 +3,6 @@
   "days": ["WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"],
   "start": "11:00:00",
   "end": "17:00:00",
+  "closedDates": ["2026-11-26", "2026-11-27", "2026-12-25", "2026-12-26"],
   "label": "Wednesday through Sunday, 11 a.m. to 5 p.m. Eastern."
 }

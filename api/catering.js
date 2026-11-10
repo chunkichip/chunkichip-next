@@ -44,11 +44,13 @@ function localParts(date, timezone) {
 const clock = time => { const [h,m] = String(time).split(':').map(Number); return h*60+m; };
 function pickupSlots(location, now = Date.now()) {
   const periods = location.businessHours?.periods || [];
+  const closedDates = new Set(location.closedDates || []);
   const timezone = location.timezone || 'America/New_York';
   const slots = [];
   const start = Math.ceil((now + 48*3600000)/1800000)*1800000;
   for (let at = start; at < now + 60*86400000; at += 1800000) {
     const local = localParts(new Date(at), timezone);
+    if (closedDates.has(local.date)) continue;
     const previousDay = localParts(new Date(at-86400000), timezone).day;
     if (periods.some(p => {
       const open = clock(p.startLocalTime), close = clock(p.endLocalTime);
@@ -58,7 +60,18 @@ function pickupSlots(location, now = Date.now()) {
   return slots;
 }
 function cateringPickupSlots(now = Date.now()) {
-  return pickupSlots({ timezone: cateringSchedule.timezone, includeClosing: true, businessHours: { periods: cateringSchedule.days.map(dayOfWeek => ({ dayOfWeek, startLocalTime: cateringSchedule.start, endLocalTime: cateringSchedule.end })) } }, now);
+  return pickupSlots({
+    timezone: cateringSchedule.timezone,
+    closedDates: cateringSchedule.closedDates,
+    includeClosing: true,
+    businessHours: {
+      periods: cateringSchedule.days.map(dayOfWeek => ({
+        dayOfWeek,
+        startLocalTime: cateringSchedule.start,
+        endLocalTime: cateringSchedule.end,
+      })),
+    },
+  }, now);
 }
 function validateSelection(body, menu, slots) {
   const pack = menu.find(p => p.key === body.packageKey && p.available);
