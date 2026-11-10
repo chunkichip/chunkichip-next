@@ -102,7 +102,19 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
                 <div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]"><ManagedText id="4ccde6a4147831bbb410ad27" fallback={"Nationwide shipping only"} /></p><h3 className="brand-heading mt-2 text-4xl md:text-5xl"><ManagedText id="10e93d28138192bb0d1e62ff" fallback={"SHIP A BOX"} /></h3></div>
                 <span className="text-xs font-black uppercase tracking-widest"><ManagedText id="98ffde69a7bf4bd617bf1637" fallback={"Packed for the trip"} /></span>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+                <figure className="soft-card overflow-hidden bg-white">
+                  <Image
+                    src="/open-shipping-box.webp"
+                    alt="A customer holding an open pink Chunki Chip shipping box filled with individually wrapped cookies"
+                    width={1536}
+                    height={861}
+                    sizes="(max-width: 1023px) 100vw, (max-width: 1400px) 42vw, 540px"
+                    className="h-auto w-full"
+                  />
+                  <figcaption className="px-5 py-4 text-sm font-bold">A look inside your shipping box</figcaption>
+                </figure>
+                <div className="grid gap-4 sm:grid-cols-2">
                 {shippingBoxes.map((product, index) => {
                   const hasBuilder = product.isBox && Boolean(product.modifierSets?.some((set) => set.modifiers.length));
                   return (
@@ -117,6 +129,7 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
                     </Link>
                   );
                 })}
+                </div>
               </div>
             </div>
           )}
