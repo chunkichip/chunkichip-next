@@ -53,14 +53,17 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
 
   return (
     <main className="soft-page min-h-screen overflow-hidden text-[#171315]">
-      <section aria-label="Chunki Chip customers enjoying cookies" className="overflow-hidden bg-[#ff89c2]">
-        <img
-          src="/hero-customers.webp"
-          alt="Customers enjoying Chunki Chip cookies"
-          width={1920} height={850}
-          className="mx-auto block h-auto w-full max-w-[1800px] object-contain"
-          fetchPriority="high"
-        />
+      <section aria-label="Veterans Day free cookie" className="overflow-hidden bg-white">
+        <picture>
+          <source media="(min-width: 768px)" srcSet="/hero-veterans-desktop.webp" width={2048} height={768} />
+          <img
+            src="/hero-veterans-mobile.webp"
+            alt="Today, the cookie’s on us. Free cookie for all veterans and active-duty service members on Veterans Day, November 11. Our small way of saying thank you for your service."
+            width={940} height={788}
+            className="mx-auto block h-auto w-full max-w-[2048px] object-contain"
+            fetchPriority="high"
+          />
+        </picture>
       </section>
 
       <section id="menu" className="mx-auto max-w-[1400px] px-5 py-14 md:px-12 md:py-20">
