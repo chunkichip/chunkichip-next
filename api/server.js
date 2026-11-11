@@ -42,6 +42,8 @@ app.use('/api/benefits', require('./customerBenefits')());
 app.use('/api/gift-cards', require('./giftCards')());
 app.use('/api/curbside', require('./curbside')(configuredLocations));
 app.use('/api/cookie-checkout', require('./cookieCheckout')());
+const pickup = require('./pickup')({ square, configuredLocations });
+app.use('/api/pickup-options', pickup);
 const catering = require('./catering')({ square, configuredLocations, searchCatalog });
 app.use('/api/catering', catering);
 if (require.main !== module && square) setTimeout(() => catering.checkCatalog().catch(error => console.warn('Catering catalog check:', error.message)), 5000).unref();
