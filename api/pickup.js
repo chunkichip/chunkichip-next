@@ -2,7 +2,8 @@ const express = require('express');
 const { closedDates } = require('./cateringSchedule.json');
 const PREP_MINUTES = 15;
 const ADVANCE_DAYS = 14;
-const STEP = 15 * 60000;
+const CLOSE_CUTOFF_MINUTES = 10;
+const STEP = 5 * 60000;
 const weekdays = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
 const clock = value => { const [h,m] = String(value || '').split(':').map(Number); return h * 60 + m; };
 
@@ -22,9 +23,10 @@ function pickupSlots(location, now = Date.now()) {
     const open = (location.businessHours?.periods || []).some(period => {
       const start = clock(period.startLocalTime), end = clock(period.endLocalTime);
       if (!Number.isFinite(start) || !Number.isFinite(end) || start === end) return false;
-      return end > start
-        ? period.dayOfWeek === day && minutes >= start && minutes < end
-        : (period.dayOfWeek === day && minutes >= start) || (period.dayOfWeek === previousDay && !closures.has(previousDate) && minutes < end);
+      const closeAt = (end > start ? end : end + 1440) - CLOSE_CUTOFF_MINUTES;
+      const sameDay = period.dayOfWeek === day && minutes >= start && minutes <= closeAt;
+      const overnight = end < start && period.dayOfWeek === previousDay && !closures.has(previousDate) && minutes + 1440 <= closeAt;
+      return sameDay || overnight;
     });
     if (open) slots.push({ at: new Date(at).toISOString(), date, time: `${parts.hour}:${parts.minute}` });
   }
@@ -44,7 +46,7 @@ module.exports = function pickupRouter({ square, configuredLocations }) {
       cache.set(location.squareLocationId, cached);
     }
     const timezone = cached.location.timezone || 'America/New_York';
-    return { locationId: location.id, locationName: location.name, timezone, advanceDays: ADVANCE_DAYS, prepMinutes: PREP_MINUTES, slots: pickupSlots(cached.location) };
+    return { locationId: location.id, locationName: location.name, timezone, advanceDays: ADVANCE_DAYS, prepMinutes: PREP_MINUTES, closeCutoffMinutes: CLOSE_CUTOFF_MINUTES, slots: pickupSlots(cached.location) };
   }
   router.get('/', async (req, res) => {
     res.set('Cache-Control','no-store');
