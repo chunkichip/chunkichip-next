@@ -57,9 +57,6 @@ metadataBase: new URL('https://chunkichip.com'),
     images: ['/hero-customers.webp'],
   },
 
-  icons: {
-    icon: '/icon.svg',
-  },
 
 };
 
