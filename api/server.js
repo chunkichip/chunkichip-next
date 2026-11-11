@@ -419,7 +419,7 @@ app.post('/api/shipping-rates', async (req, res) => {
 
 app.post('/api/create-checkout', async (req, res) => {
   if (!requireSquare(res)) return;
-  const { items, checkoutMethod, locationId, deliveryType, shippingQuoteToken, address: rawAddress } = req.body || {};
+  const { items, checkoutMethod, locationId, pickupAt, deliveryType, shippingQuoteToken, address: rawAddress } = req.body || {};
   if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ error: 'Your bag is empty or contains too many items.' });
   if (!['pickup', 'curbside', 'shipping'].includes(checkoutMethod)) return res.status(400).json({ error: 'Choose a valid fulfillment method.' });
   const locations = configuredLocations();
@@ -432,6 +432,11 @@ app.post('/api/create-checkout', async (req, res) => {
   }
   let verifiedShippingQuote = null;
   let shippingAddress = null;
+  let pickupSelection = null;
+  if (checkoutMethod !== 'shipping') {
+    try { pickupSelection = await pickup.selection(location, pickupAt); }
+    catch (error) { return res.status(error.status || 503).json({ error: error.status === 400 ? error.message : 'Pickup times could not be verified. Please retry or call the shop.' }); }
+  }
   if (checkoutMethod === 'shipping') {
     if (!process.env.SHIPPO_API_TOKEN) return res.status(503).json({ error: 'Shippo live rates are not configured on this server yet.' });
     verifiedShippingQuote = verifyShippingQuote(shippingQuoteToken);
@@ -453,6 +458,11 @@ app.post('/api/create-checkout', async (req, res) => {
     const label = checkoutMethod === 'shipping'
       ? deliveryType === 'direct' ? 'Delivery' : 'Nationwide Shipping'
       : checkoutMethod === 'curbside' ? 'Curbside Pickup' : 'Carry Out';
+    const pickupDetails = pickupSelection ? {
+      scheduleType: pickupSelection.scheduleType, pickupAt: pickupSelection.pickupAt, prepTimeDuration: pickupSelection.prepTimeDuration,
+      note: `Pickup: ${pickupSelection.label}.${checkoutMethod === 'curbside' ? ' When parked, use the Chunki Chip check-in link to tell us your vehicle.' : ''}`,
+      ...(checkoutMethod === 'curbside' ? { isCurbsidePickup: true } : {}),
+    } : null;
     if (req.body.giftCardCheckout === true) {
       if (!require('./cookieCheckout').configured()) return res.status(503).json({ error: 'Gift card checkout is temporarily unavailable. Please use regular checkout.' });
       if (items.some(item => typeof item.variationId !== 'string' || !item.variationId)) return res.status(400).json({ error: 'These items need to be refreshed before gift card checkout. Please reload the menu.' });
@@ -460,7 +470,7 @@ app.post('/api/create-checkout', async (req, res) => {
       const created = await square.orders.create({ idempotencyKey: crypto.randomUUID(), order: {
         locationId: location.squareLocationId, lineItems, referenceId: `${location.name} · ${label}`, source: { name: 'Online Order' },
         pricingOptions: { autoApplyTaxes: true, autoApplyDiscounts: true },
-        fulfillments: [{ uid: checkoutMethod === 'curbside' ? 'curbside' : 'fulfillment', type: checkoutMethod === 'shipping' ? 'SHIPMENT' : 'PICKUP', state: 'PROPOSED', ...(checkoutMethod === 'shipping' ? { shipmentDetails: { recipient } } : { pickupDetails: { recipient, scheduleType: 'ASAP', prepTimeDuration: 'PT15M', ...(checkoutMethod === 'curbside' ? { isCurbsidePickup: true } : {}) } }) }],
+        fulfillments: [{ uid: checkoutMethod === 'curbside' ? 'curbside' : 'fulfillment', type: checkoutMethod === 'shipping' ? 'SHIPMENT' : 'PICKUP', state: 'PROPOSED', ...(checkoutMethod === 'shipping' ? { shipmentDetails: { recipient } } : { pickupDetails: { recipient, ...pickupDetails } }) }],
         ...(verifiedShippingQuote ? { serviceCharges: [{ uid: 'shipping', name: `${verifiedShippingQuote.carrier} · ${verifiedShippingQuote.service}`, amountMoney: { amount: BigInt(verifiedShippingQuote.amountCents), currency: 'USD' }, calculationPhase: 'TOTAL_PHASE', taxable: false, scope: 'ORDER' }] } : {}),
       } });
       if (created.order?.lineItems?.some(item => item.itemType === 'GIFT_CARD')) throw new Error('Gift cards cannot be purchased with gift card checkout.');
@@ -474,7 +484,7 @@ app.post('/api/create-checkout', async (req, res) => {
         lineItems,
         referenceId: `${location.name} · ${label}`,
         source: { name: 'Online Order' },
-        ...(checkoutMethod === 'curbside' ? { fulfillments: [{ uid: 'curbside', type: 'PICKUP', state: 'PROPOSED', pickupDetails: { recipient: { displayName: 'Curbside customer' }, scheduleType: 'ASAP', prepTimeDuration: 'PT15M', isCurbsidePickup: true, note: 'When parked, use the Chunki Chip check-in link to tell us your vehicle.' } }] } : {}),
+        ...(pickupDetails ? { fulfillments: [{ uid: checkoutMethod === 'curbside' ? 'curbside' : 'pickup', type: 'PICKUP', state: 'PROPOSED', pickupDetails: { recipient: { displayName: checkoutMethod === 'curbside' ? 'Curbside customer' : 'Pickup customer' }, ...pickupDetails } }] } : {}),
       },
       checkoutOptions: {
         enableLoyalty: true,
@@ -501,7 +511,7 @@ app.post('/api/create-checkout', async (req, res) => {
         },
       } : {}),
       description: `Chunki Chip ${location.name} order — ${label}`,
-      paymentNote: `Location: ${location.name}. Fulfillment method: ${label}${verifiedShippingQuote ? `. Shippo rate: ${verifiedShippingQuote.carrier} ${verifiedShippingQuote.service} (${money(verifiedShippingQuote.amountCents)})` : ''}`,
+      paymentNote: `Location: ${location.name}. Fulfillment method: ${label}${pickupSelection ? `. Pickup: ${pickupSelection.label}` : ''}${verifiedShippingQuote ? `. Shippo rate: ${verifiedShippingQuote.carrier} ${verifiedShippingQuote.service} (${money(verifiedShippingQuote.amountCents)})` : ''}`,
     });
     const url = result.paymentLink?.url;
     if (!url) throw new Error('Square did not return a checkout URL.');

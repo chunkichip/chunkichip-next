@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useCartStore } from '@/store/cart';
-import CookieSpinner from '@/components/CookieSpinner';
+import PickupCheckout from '@/components/PickupCheckout';
 import ShippingCheckout from '@/components/ShippingCheckout';
 
 type Props = {
@@ -11,17 +11,12 @@ type Props = {
   onBuildAnotherBox: () => void;
 };
 
-type CheckoutMethod =
-  | 'pickup'
-  | 'curbside'
-  | 'shipping';
-
 const DOORDASH_URL =
   'https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/';
 
 export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) {
   const [giftCardCheckout, setGiftCardCheckout] = useState(false);
-  const [loadingCheckout, setLoadingCheckout] = useState(false);
+  const [pickupMethod, setPickupMethod] = useState<'pickup' | 'curbside' | null>(null);
   const [methodModalOpen, setMethodModalOpen] = useState(false);
   const [shippingFlowOpen, setShippingFlowOpen] = useState(false);
 
@@ -36,47 +31,16 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
   const hasOnlyShippingProducts = items.length > 0 && items.every((item) => item.shippingOnly);
 
   useEffect(() => {
-    document.body.style.overflow = open || methodModalOpen || shippingFlowOpen ? 'hidden' : 'auto';
+    document.body.style.overflow = open || methodModalOpen || shippingFlowOpen || Boolean(pickupMethod) ? 'hidden' : 'auto';
 
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [open, methodModalOpen, shippingFlowOpen]);
+  }, [open, methodModalOpen, shippingFlowOpen, pickupMethod]);
 
-  async function handleCheckout(checkoutMethod: CheckoutMethod) {
-    try {
-      setLoadingCheckout(true);
-      setMethodModalOpen(false);
-
-      const res = await fetch(
-        '/api/create-checkout',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            items,
-            checkoutMethod,
-            giftCardCheckout,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (data.url) {
-        if (data.curbsideCheckinUrl) { try { localStorage.setItem('chunki-curbside-checkin', data.curbsideCheckinUrl); } catch {} }
-        window.location.href = data.url;
-        return;
-      }
-
-      alert(data.error || 'Checkout failed');
-      setLoadingCheckout(false);
-    } catch {
-      alert('Checkout failed');
-      setLoadingCheckout(false);
-    }
+  function beginPickupCheckout(method: 'pickup' | 'curbside') {
+    setMethodModalOpen(false);
+    setPickupMethod(method);
   }
 
   function beginShippingCheckout() {
@@ -86,23 +50,9 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
 
   return (
     <>
-      {loadingCheckout && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-md">
-          <CookieSpinner size={96}/>
-
-          <h2 className="brand-heading mt-6 text-4xl text-[#eb2327]">
-            Preparing Your Order
-          </h2>
-
-          <p className="mt-3 text-sm font-medium tracking-wide text-[#6f4b3e]">
-            Redirecting to secure checkout...
-          </p>
-        </div>
-      )}
-
       {methodModalOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-[2.5rem] bg-white p-6 shadow-2xl md:p-8">
+          <div className="max-h-[90svh] w-full max-w-xl overflow-y-auto rounded-[2.5rem] bg-white p-6 shadow-2xl md:p-8">
             <div className="flex items-start justify-between gap-6">
               <div>
                 <p className="text-sm font-black uppercase tracking-[0.25em] text-[#eb2327]">
@@ -135,7 +85,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
                 </p>
               )}
               <button
-                onClick={() => handleCheckout('pickup')}
+                onClick={() => beginPickupCheckout('pickup')}
                 disabled={hasShippingOnlyProducts}
                 className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-40"
               >
@@ -144,12 +94,12 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#6f4b3e]">
-                  Place your order through Square and pick it up fresh.
+                  Choose your pickup date and time, then pay securely through Square.
                 </p>
               </button>
 
 	<button
-  onClick={() => handleCheckout('curbside')}
+  onClick={() => beginPickupCheckout('curbside')}
   disabled={hasShippingOnlyProducts}
   className="rounded-[2rem] border border-[#ffe3f3] bg-[#fff7fb] p-5 text-left transition hover:-translate-y-1 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-40"
 >
@@ -191,6 +141,8 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
           </div>
         </div>
       )}
+
+      {pickupMethod && <PickupCheckout items={items} method={pickupMethod} giftCardCheckout={giftCardCheckout} onClose={() => setPickupMethod(null)} />}
 
       {shippingFlowOpen && <ShippingCheckout items={items} giftCardCheckoutDefault={giftCardCheckout} onClose={() => setShippingFlowOpen(false)} />}
 
@@ -343,7 +295,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
 
                   <button
                     onClick={() => setMethodModalOpen(true)}
-                    disabled={loadingCheckout}
+                    disabled={Boolean(pickupMethod) || shippingFlowOpen}
                     className="flex h-[54px] w-full items-center justify-center rounded-full bg-black text-base font-semibold text-white shadow-xl transition hover:scale-[1.02] disabled:opacity-50"
                   >
                     Checkout
@@ -352,7 +304,7 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
                   <button
                     type="button"
                     onClick={onBuildAnotherBox}
-                    disabled={loadingCheckout}
+                    disabled={Boolean(pickupMethod) || shippingFlowOpen}
                     className="mt-3 flex min-h-[50px] w-full items-center justify-center rounded-full border border-[#eb2327] px-5 py-3 font-semibold text-[#eb2327] disabled:opacity-50"
                   >
                     Build another box
