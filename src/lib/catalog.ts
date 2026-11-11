@@ -12,6 +12,7 @@ export type CatalogFlavor = {
   priceAmount?: number;
   price?: string;
   soldOut?: boolean;
+  thisWeekOnly?: boolean;
 };
 
 export type CatalogFlavorProduct = FulfillmentProduct & {

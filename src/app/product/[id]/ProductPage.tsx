@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
 import { useCartUI } from '@/components/CartUIContext';
 import { getWeeklyFlavors, isInPersonCookieBox, isShippingOnlyProduct } from '@/lib/catalog';
+import ThisWeekOnlyBadge from '@/components/ThisWeekOnlyBadge';
 import CookieSpinner from '@/components/CookieSpinner';
 import ShippingCheckout from '@/components/ShippingCheckout';
 
@@ -40,6 +41,7 @@ type Product = {
   isBox: boolean;
   boxSize: string | null;
   shippingOnly?: boolean;
+  thisWeekOnly?: boolean;
   modifierSets?: ModifierSet[];
 };
 
@@ -142,6 +144,7 @@ export default function ProductPage({ params, initialProduct = null, initialProd
         const flavor = getWeeklyFlavors(catalog).find((item) => item.id === id);
         setProduct(catalog.find((item) => item.id === id) || (flavor ? {
           id: flavor.id,
+          thisWeekOnly: flavor.thisWeekOnly,
           name: flavor.name,
           description: flavor.description || '',
           imageUrl: flavor.imageUrl || null,
@@ -347,7 +350,7 @@ export default function ProductPage({ params, initialProduct = null, initialProd
           <Link href={product.shippingOnly ? "/#shipping-boxes" : "/#single-cookies"} className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em]"><ArrowLeft size={16}/> {product.shippingOnly ? "Back to shipping boxes" : "Back to weekly flavors"}</Link>
           <div className="soft-card mt-8 grid bg-white md:grid-cols-2">
             <div className="soft-inset flex min-h-[360px] items-center justify-center bg-white p-7 md:min-h-[560px]">{product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="max-h-[500px] w-full object-contain"/> : <span className="text-8xl" aria-hidden="true">🍪</span>}</div>
-            <div className="flex flex-col justify-center p-6 md:p-12"><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">{product.shippingOnly ? "Nationwide shipping" : "This week’s flavor"}</p><h1 className="brand-heading mt-4 text-6xl md:text-8xl">{product.name}</h1><p className="mt-5 text-lg leading-7">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p><p className="mt-6 text-xs font-black uppercase tracking-[.16em]">{product.shippingOnly ? `${product.price} · Nationwide shipping` : `Starting at ${numberedBoxes[0]?.price || product.price} · Choose pickup or delivery`}</p><button onClick={() => { if (product.shippingOnly) { addCurrentProductToCart(); return; } setOrderError(''); setSelectedSizeId(''); setSelectedMethod(null); setSelectedLocationId(''); setFulfillmentChoice(null); setOrderStep('fulfillment'); }} className="soft-action mt-7 inline-flex min-h-14 items-center justify-center gap-3 px-7 py-4 text-sm font-black uppercase tracking-wide text-white transition">{product.shippingOnly ? (added ? "View cart" : "Add shipping box") : "Order now"} <ArrowRight size={18}/></button></div>
+            <div className="flex flex-col justify-center p-6 md:p-12"><p className="text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">{product.shippingOnly ? "Nationwide shipping" : "This week’s flavor"}</p><div className="mt-4">{product.thisWeekOnly && <ThisWeekOnlyBadge />}</div><h1 className="brand-heading text-6xl md:text-8xl">{product.name}</h1><p className="mt-5 text-lg leading-7">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p><p className="mt-6 text-xs font-black uppercase tracking-[.16em]">{product.shippingOnly ? `${product.price} · Nationwide shipping` : `Starting at ${numberedBoxes[0]?.price || product.price} · Choose pickup or delivery`}</p><button onClick={() => { if (product.shippingOnly) { addCurrentProductToCart(); return; } setOrderError(''); setSelectedSizeId(''); setSelectedMethod(null); setSelectedLocationId(''); setFulfillmentChoice(null); setOrderStep('fulfillment'); }} className="soft-action mt-7 inline-flex min-h-14 items-center justify-center gap-3 px-7 py-4 text-sm font-black uppercase tracking-wide text-white transition">{product.shippingOnly ? (added ? "View cart" : "Add shipping box") : "Order now"} <ArrowRight size={18}/></button></div>
           </div>
         </div>
 

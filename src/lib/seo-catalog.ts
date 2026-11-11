@@ -4,8 +4,8 @@ import { getWeeklyFlavors, isInternalPackaging } from './catalog';
 
 export type SeoProduct = {
   id:string; name:string; description:string; imageUrl:string|null; variationId:string|null;
-  priceAmount:number; price:string; isBox:boolean; boxSize:string|null; shippingOnly?:boolean;
-  modifierSets?:{id:string;name:string;minSelected:number;maxSelected:number;modifiers:{id:string;name:string;description?:string;imageUrl?:string|null;priceAmount:number;price:string;soldOut?:boolean}[]}[];
+  priceAmount:number; price:string; isBox:boolean; boxSize:string|null; shippingOnly?:boolean; thisWeekOnly?:boolean;
+  modifierSets?:{id:string;name:string;minSelected:number;maxSelected:number;modifiers:{id:string;name:string;description?:string;imageUrl?:string|null;priceAmount:number;price:string;soldOut?:boolean;thisWeekOnly?:boolean}[]}[];
 };
 export const getPublicCatalog = cache(async ():Promise<SeoProduct[]|null> => {
   const origin = process.env.NEXT_PUBLIC_API_URL || process.env.RENDER_EXTERNAL_URL || `http://127.0.0.1:${process.env.PORT || 3000}`;
