@@ -1,0 +1,81 @@
+.preview{--red:#eb2327;--pink:#ffccef;background:#fff9fc;color:#171315;overflow:clip}
+.preview h1,.preview h2,.preview h3,.backType,.marqueeTrack,.noPhoto{font-family:Anton,Impact,sans-serif;font-weight:400}
+.preview a,.preview button{-webkit-tap-highlight-color:transparent}
+.preview a:focus-visible,.preview button:focus-visible,.flavorRail:focus-visible{outline:3px solid #171315;outline-offset:5px}
+.previewBar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:24px 5% 16px;background:white;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.previewBar a,.previewBar button{display:inline-flex;align-items:center;gap:6px}
+.previewBar button{border:1px solid #e8d8e2;padding:8px 12px;border-radius:30px;cursor:pointer}
+.previewBar button:disabled{cursor:default;opacity:.6}
+.hero{background:var(--pink);position:relative}
+.heroInner{min-height:680px;min-height:min(760px,calc(100svh - 140px));display:grid;grid-template-columns:1fr 1fr;align-items:center;max-width:1800px;margin:auto;position:relative}
+.heroCopy{position:relative;z-index:2;padding:65px 0 60px 9%}
+.eyebrow{text-transform:uppercase;font-size:11px;font-weight:900;letter-spacing:.2em;line-height:1.7}
+.heroCopy h1{font-size:clamp(75px,8.4vw,158px);line-height:1.02;letter-spacing:-.035em;margin:20px 0 22px;white-space:nowrap}
+.heroCopy h1 span{color:var(--red)}
+.heroDescription{font-size:17px;line-height:1.65;margin-bottom:25px}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:30px;border-radius:50px;min-height:54px;padding:14px 27px;background:var(--red);color:white;font-size:14px;font-weight:800;transition:background .2s,transform .2s}
+.button:hover{background:#c6161c;transform:translateY(-3px)}
+.scrollCue{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;margin-top:42px;width:fit-content}
+.cookieStage{position:relative;align-self:stretch;min-width:0}
+.cookieStage img{position:absolute;object-fit:contain;filter:drop-shadow(0 22px 14px #8b323b35);height:auto}
+.backType{position:absolute;top:10%;left:8%;font-size:clamp(80px,8vw,150px);line-height:1.05;color:#eb23271f;transform:rotate(-9deg)}
+.cookieMain{width:79%;left:7%;top:23%;z-index:2}
+.cookieLeft{width:49%;left:-7%;top:8%;transform:rotate(-18deg)}
+.cookieRight{width:50%;right:-9%;bottom:7%;z-index:3;transform:rotate(16deg)}
+.photoNote{position:absolute;bottom:3%;left:20%;font-size:10px;text-transform:uppercase;font-weight:700;letter-spacing:.1em}
+.marquee{background:var(--red);color:var(--pink);padding:18px 0;overflow:hidden}
+.marqueeTrack{display:flex;width:max-content;animation:chunkiMarquee 32s linear infinite;font-size:clamp(25px,3vw,48px);line-height:1.3;letter-spacing:.02em}
+.marqueeTrack>span{flex-shrink:0;white-space:nowrap}.marqueeTrack b{font-family:Arial,sans-serif;margin:0 22px}
+@keyframes chunkiMarquee{to{transform:translateX(-50%)}}
+.flavors{padding:100px 0 50px;scroll-margin-top:115px}
+.sectionHeading{display:flex;justify-content:space-between;align-items:end;gap:25px;padding:0 5%;margin-bottom:40px}
+.sectionHeading .eyebrow{color:var(--red);margin-bottom:18px}
+.sectionHeading h2{font-size:clamp(48px,6.5vw,100px);line-height:1.06;letter-spacing:-.025em}
+.sectionHeading h2 span{color:var(--red)}
+.sectionHeading>div:last-child p{font-size:14px;line-height:1.8;margin-bottom:20px}
+.sectionHeading a{display:flex;gap:15px;align-items:center;font-size:13px;font-weight:800;text-decoration:underline;text-underline-offset:5px}
+.flavorRail{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-left:5vw;padding:10px 5% 22px;scrollbar-width:thin;scrollbar-color:var(--red) var(--pink)}
+.flavorCard{flex:0 0 clamp(270px,29vw,440px);scroll-snap-align:start;min-width:0}
+.flavorImage{position:relative;background:var(--pink);aspect-ratio:1;overflow:hidden;border-radius:5px}
+.flavorCard:nth-child(3n+2) .flavorImage{background:#f3e7eb}.flavorCard:nth-child(3n) .flavorImage{background:#eb2327}
+.flavorImage img{width:100%;height:100%;object-fit:contain;padding:30px;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.flavorCard:hover img{transform:rotate(-7deg) scale(1.08)}
+.flavorNumber{position:absolute;z-index:1;top:15px;left:18px;font-size:12px;font-weight:900}
+.cardArrow{position:absolute;bottom:18px;right:18px;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:white;color:var(--red)}
+.flavorCopy{padding:22px 3px}.flavorCopy h3{font-size:29px;line-height:1.2}.flavorCopy p{font-size:13px;line-height:1.7;margin-top:12px;max-width:340px}
+.railHint{font-size:11px;font-weight:700;letter-spacing:.04em;padding:10px 5%;display:flex;gap:15px}
+.emptyMenu{padding:20px 5%}.noPhoto{display:grid;height:100%;place-items:center;font-size:48px;color:var(--red)}
+.shipping{display:grid;grid-template-columns:1.15fr 1fr;gap:6%;align-items:center;padding:80px 5%;background:var(--pink)}
+.shippingPhoto{overflow:hidden;transform:rotate(-3deg);border:8px solid white;box-shadow:0 18px 30px #65262f20}
+.shippingPhoto img{display:block;width:100%;height:auto}
+.shippingCopy h2{font-size:clamp(55px,6.7vw,108px);line-height:1.03;letter-spacing:-.025em;margin:20px 0}
+.shippingCopy h2 span{color:var(--red)}
+.shippingCopy>p:not(.eyebrow){font-size:14px;line-height:1.8;max-width:370px;margin-bottom:25px}
+.finalCta{text-align:center;padding:100px 20px 110px;background:var(--red);color:white}
+.finalCta h2{font-size:clamp(68px,12vw,180px);line-height:1.05;letter-spacing:-.03em;margin:22px 0 32px}
+.finalCta .button{background:var(--pink);color:#171315}
+.backLink{display:block;font-size:12px;margin-top:28px;text-decoration:underline;text-underline-offset:5px}
+.preview[data-still=true] .marqueeTrack{animation-play-state:paused}
+.preview[data-still=true] img,.preview[data-still=true] .button{transition:none!important}
+.preview[data-still=true] .flavorCard:hover img{transform:none}
+@media(min-width:1600px){.heroInner{min-height:800px}}
+@media(max-width:767px){
+ .previewBar{font-size:9px;gap:8px;padding:22px 5% 12px;letter-spacing:0}.previewBar button{padding:8px}.previewBar button svg{display:none}
+ .heroInner{display:flex;flex-direction:column;min-height:0}
+ .heroCopy{width:100%;padding:38px 6% 0}.eyebrow{font-size:10px}
+ .heroCopy h1{font-size:clamp(66px,14vw,106px);margin:14px 0;line-height:1.02}
+ .heroDescription{font-size:14px;line-height:1.6;margin-bottom:18px}
+ .button{min-height:49px;padding:13px 23px;font-size:13px}
+ .scrollCue{margin-top:22px;font-size:9px}
+ .cookieStage{width:100%;height:310px;flex:none;align-self:auto;margin-top:12px}
+ .cookieMain{width:58%;max-width:300px;left:21%;top:11%}
+ .cookieLeft{width:36%;left:-2%;top:3%}.cookieRight{width:36%;right:-3%;bottom:4%}
+ .backType{font-size:66px;left:15%;top:8%}.photoNote{bottom:3%;left:23%;font-size:8px}
+ .marquee{padding:14px 0}.marqueeTrack{font-size:29px}
+ .flavors{padding:55px 0 30px}.sectionHeading{display:block;margin-bottom:25px}
+ .sectionHeading h2{font-size:52px}.sectionHeading>div:last-child{margin-top:20px}.sectionHeading>div:last-child p{display:none}
+ .flavorRail{gap:15px}.flavorCard{flex-basis:79vw}.flavorCopy h3{font-size:28px}
+ .shipping{grid-template-columns:1fr;padding:55px 7%;gap:40px}.shippingCopy h2{font-size:68px}.shippingPhoto{border-width:5px}
+ .finalCta{padding:65px 20px 95px}.finalCta h2{font-size:79px}
+}
+@media(prefers-reduced-motion:reduce){.marqueeTrack{animation:none}.preview img,.preview a{transition:none!important}}
