@@ -109,7 +109,7 @@ module.exports = function cookieCheckout() {
   const list = await payments(row);
   const reserved = list.filter(item => ['APPROVED','COMPLETED'].includes(item.status)).reduce((sum, item) => sum + item.amount, 0);
   const pickupAt = row.method === 'shipping' ? undefined : (await square(`/orders/${encodeURIComponent(row.square_order_id)}`)).order?.fulfillments?.find(f => f.type === 'PICKUP')?.pickup_details?.pickup_at;
-  return { id: row.id, locationId: row.location_id, status: row.status, amount: row.amount, reserved, remaining: Math.max(0, row.amount - reserved), giftApplied: list.some(item => item.kind === 'gift' && ['APPROVED','COMPLETED'].includes(item.status)), needsRecovery: Boolean(row.operation), contact: row.contact, method: row.method, location: row.location_name, receiptUrl: row.receipt_url, expiresAt: row.expires_at, pickupAt, ...(row.method === 'curbside' && row.status === 'paid' ? { curbsideToken: require('./curbside').createToken(row.square_order_id, row.location_id) } : {}) };
+  return { id: row.id, locationId: row.location_id, status: row.status, amount: row.amount, reserved, remaining: Math.max(0, row.amount - reserved), giftApplied: list.some(item => item.kind === 'gift' && ['APPROVED','COMPLETED'].includes(item.status)), needsRecovery: Boolean(row.operation), contact: row.contact, method: row.method, location: row.location_name, receiptUrl: row.receipt_url, expiresAt: row.expires_at, pickupAt, ...(row.method === 'curbside' && row.status === 'paid' ? { curbsideToken: require('./curbside').createToken(row.square_order_id, row.location_id, pickupAt) } : {}) };
  }
  router.get('/config', async (_req, res) => {
   let available = configured(); if (available) { try { await db('select=id&limit=0'); } catch { available = false; } }

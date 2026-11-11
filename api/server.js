@@ -521,7 +521,7 @@ app.post('/api/create-checkout', async (req, res) => {
       if (!link?.orderId || !link.id) throw new Error('Square did not return the curbside order reference.');
       const origin = `${req.get('host').startsWith('localhost') ? 'http' : 'https'}://${req.get('host')}`;
       const checkin = new URL('/curbside', origin);
-      checkin.hash = require('./curbside').createToken(link.orderId, location.squareLocationId);
+      checkin.hash = require('./curbside').createToken(link.orderId, location.squareLocationId, pickupSelection.pickupAt);
       curbsideCheckinUrl = checkin.toString();
       await square.checkout.paymentLinks.update({ id: link.id, paymentLink: { version: link.version, checkoutOptions: { ...(link.checkoutOptions || {}), enableLoyalty: true, redirectUrl: curbsideCheckinUrl } } });
     }

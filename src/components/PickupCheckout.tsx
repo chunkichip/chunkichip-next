@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import CookieSpinner from './CookieSpinner';
 
-type Menu = { locationId:string; locationName:string; timezone:string; advanceDays:number; locations:{id:string;name:string}[]; slots:{at:string;date:string;time:string}[] };
+type Menu = { locationId:string; locationName:string; timezone:string; hoursLabel?:string; closeCutoffMinutes:number; advanceDays:number; locations:{id:string;name:string}[]; slots:{at:string;date:string;time:string}[] };
 type Props = { items: unknown[]; method:'pickup'|'curbside'; giftCardCheckout:boolean; onClose:()=>void };
 const field = 'mt-2 min-h-12 w-full rounded-2xl border border-black/20 bg-white px-4 py-3 text-base font-normal';
 
@@ -52,7 +52,8 @@ export default function PickupCheckout({items,method,giftCardCheckout,onClose}:P
           <fieldset disabled={busy} className="mt-6"><legend className="font-bold">When would you like your cookies?</legend><div className="mt-3 grid gap-3 sm:grid-cols-2">{(['earliest','later'] as const).map(value=><label key={value} className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-4 text-sm font-bold ${mode===value?'border-[#eb2327] bg-[#fff7fb]':'border-black/15'}`}><input type="radio" name="pickup-mode" value={value} checked={mode===value} onChange={()=>{setMode(value);setError('');}} className="accent-[#eb2327]"/>{value==='earliest'?'Earliest available':'Schedule for later'}</label>)}</div></fieldset>
           {mode==='later' && <div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="font-bold">Pickup date<select required className={field} value={date} disabled={busy} onChange={e=>chooseDate(e.target.value)}>{dates.map(day=><option key={day} value={day}>{formatDate(day)}</option>)}</select></label><label className="font-bold">Pickup time<select required className={field} value={at} disabled={busy} onChange={e=>{setAt(e.target.value);setError('');}}>{menu.slots.filter(slot=>slot.date===date).map(slot=><option key={slot.at} value={slot.at}>{new Intl.DateTimeFormat('en-US',{timeZone:menu.timezone,hour:'numeric',minute:'2-digit'}).format(new Date(slot.at))}</option>)}</select></label></div>}
           {selectedAt && <div className="mt-6 rounded-2xl bg-[#ffccef] p-5" role="status"><p className="text-xs font-black uppercase tracking-widest">Your pickup time</p><p className="mt-2 text-lg font-bold">{formatAt(selectedAt)}</p><p className="mt-2 text-sm">{menu.locationName} · {method==='curbside'?'Curbside pickup':'In-store pickup'}</p></div>}
-          <p className="mt-4 text-xs leading-6 text-black/65">Times are local to the shop. Schedule up to {menu.advanceDays} days ahead, during available shop hours.</p>
+          <p className="mt-4 text-xs leading-6 text-black/65">Times are local to the shop. Schedule up to {menu.advanceDays} days ahead. Last pickup is {menu.closeCutoffMinutes} minutes before closing.</p>
+          {menu.hoursLabel && <p className="mt-2 text-xs leading-6 text-black/65">{menu.hoursLabel}</p>}
           {method==='curbside' && <p className="mt-3 text-sm leading-6">After payment, save your check-in page. Tap “I’m here” only when you arrive.</p>}
         </> : <p className="mt-6 leading-7">No online pickup times are available. Please call the shop for help.</p>}
       </>}

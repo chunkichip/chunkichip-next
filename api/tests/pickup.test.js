@@ -1,6 +1,7 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {pickupSlots} = require('../pickup');
+const schedule = require('../pickupSchedule.json').milford;
 const allDays = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
 const shop = {status:'ACTIVE',timezone:'America/New_York',businessHours:{periods:allDays.filter(d=>d!=='MONDAY').map(dayOfWeek=>({dayOfWeek,startLocalTime:'11:00:00',endLocalTime:'17:00:00'}))}};
 test('pickup times enforce shop hours, 15-minute lead, 14-day horizon, and closures',()=>{
@@ -43,4 +44,22 @@ test('midnight closing allows the final pickup at 11:50pm on the preceding day',
  assert.ok(slots.some(s=>s.date==='2026-12-02'&&s.time==='23:50'));
  assert.ok(!slots.some(s=>s.date==='2026-12-02'&&s.time==='23:55'));
  assert.ok(!slots.some(s=>s.date==='2026-12-03'&&s.time==='00:00'));
+});
+test('approved Milford hours close Monday/Tuesday and end pickup ten minutes before close',()=>{
+ const slots=pickupSlots({status:'ACTIVE',...schedule},Date.parse('2026-11-10T12:00:00Z'));
+ const format=new Intl.DateTimeFormat('en-US',{timeZone:schedule.timezone,weekday:'long'});
+ const groups = new Map();
+ for(const slot of slots){
+  const day=format.format(new Date(slot.at));
+  assert.ok(!['Monday','Tuesday'].includes(day));
+  const closing=['Wednesday','Sunday'].includes(day)?'16:50':'18:50';
+  assert.ok(slot.time>='11:00' && slot.time<=closing);
+  if(!groups.has(slot.date))groups.set(slot.date,[]);
+  groups.get(slot.date).push(slot.time);
+ }
+ for(const [date,times] of groups){
+  const day=format.format(new Date(date+'T17:00:00Z'));
+  assert.equal(times[0],'11:00');
+  assert.equal(times.at(-1),['Wednesday','Sunday'].includes(day)?'16:50':'18:50');
+ }
 });

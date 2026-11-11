@@ -1,5 +1,6 @@
 const express = require('express');
 const { closedDates } = require('./cateringSchedule.json');
+const schedules = require('./pickupSchedule.json');
 const PREP_MINUTES = 15;
 const ADVANCE_DAYS = 14;
 const CLOSE_CUTOFF_MINUTES = 10;
@@ -45,8 +46,11 @@ module.exports = function pickupRouter({ square, configuredLocations }) {
       cached = { location: result.location, until: Date.now() + 60000 };
       cache.set(location.squareLocationId, cached);
     }
-    const timezone = cached.location.timezone || 'America/New_York';
-    return { locationId: location.id, locationName: location.name, timezone, advanceDays: ADVANCE_DAYS, prepMinutes: PREP_MINUTES, closeCutoffMinutes: CLOSE_CUTOFF_MINUTES, slots: pickupSlots(cached.location) };
+    // Square Online's fulfillment hours are separate from the Locations API.
+    // Use the shop-approved schedule where configured; Square still controls active status.
+    const effective = { ...cached.location, ...(schedules[location.id] || {}) };
+    const timezone = effective.timezone || 'America/New_York';
+    return { locationId: location.id, locationName: location.name, timezone, hoursLabel: effective.hoursLabel, advanceDays: ADVANCE_DAYS, prepMinutes: PREP_MINUTES, closeCutoffMinutes: CLOSE_CUTOFF_MINUTES, slots: pickupSlots(effective) };
   }
   router.get('/', async (req, res) => {
     res.set('Cache-Control','no-store');

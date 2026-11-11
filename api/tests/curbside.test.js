@@ -65,3 +65,5 @@ test('invalid links, oversized details and cross-origin posts are blocked', asyn
 test('concurrent version conflict rechecks arrival before sending another update', async () => {
  reset(); conflict = true; assert.equal((await request('/arrive', details)).data.arrived, true); assert.equal(updates, 1);
 });
+
+test('scheduled curbside links remain valid through a pickup booked two weeks ahead',()=>{const now=Date.now();const pickupAt=new Date(now+14*86400000-60000).toISOString();const token=factory.createToken('future-order','location-1',pickupAt);const claims=factory.readToken(token);assert.ok(claims.expires>Date.parse(pickupAt));assert.ok(claims.expires<=now+15*86400000);});

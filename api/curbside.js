@@ -4,8 +4,11 @@ const express = require('express');
 function signature(payload) {
   return crypto.createHmac('sha256', process.env.CURBSIDE_CHECKIN_SECRET || process.env.SQUARE_ACCESS_TOKEN).update(`curbside-v1:${payload}`).digest();
 }
-function createToken(orderId, locationId) {
-  const payload = Buffer.from(JSON.stringify({ orderId, locationId, expires: Date.now() + 7 * 86400000 })).toString('base64url');
+function createToken(orderId, locationId, pickupAt) {
+  const now = Date.now();
+  const scheduled = Date.parse(pickupAt);
+  const expires = Number.isFinite(scheduled) ? Math.max(now + 7 * 86400000, Math.min(scheduled + 86400000, now + 15 * 86400000)) : now + 7 * 86400000;
+  const payload = Buffer.from(JSON.stringify({ orderId, locationId, expires })).toString('base64url');
   return `${payload}.${signature(payload).toString('base64url')}`;
 }
 function readToken(token) {

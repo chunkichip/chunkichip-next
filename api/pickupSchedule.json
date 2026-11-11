@@ -1,0 +1,15 @@
+{
+  "milford": {
+    "timezone": "America/New_York",
+    "hoursLabel": "Wednesday & Sunday: 11 AM–5 PM. Thursday–Saturday: 11 AM–7 PM. Closed Monday & Tuesday.",
+    "businessHours": {
+      "periods": [
+        { "dayOfWeek": "WEDNESDAY", "startLocalTime": "11:00:00", "endLocalTime": "17:00:00" },
+        { "dayOfWeek": "THURSDAY", "startLocalTime": "11:00:00", "endLocalTime": "19:00:00" },
+        { "dayOfWeek": "FRIDAY", "startLocalTime": "11:00:00", "endLocalTime": "19:00:00" },
+        { "dayOfWeek": "SATURDAY", "startLocalTime": "11:00:00", "endLocalTime": "19:00:00" },
+        { "dayOfWeek": "SUNDAY", "startLocalTime": "11:00:00", "endLocalTime": "17:00:00" }
+      ]
+    }
+  }
+}
