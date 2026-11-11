@@ -18,9 +18,10 @@ const titles = { catering_requests: 'Catering requests', site_content: 'Page con
 export default function Dashboard() {
   const [admin, setAdmin] = useState(false);
   const [weeklyMode, setWeeklyMode] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'reset' | 'update-password'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [section, setSection] = useState<Section>('site_content');
   const [rows, setRows] = useState<Row[]>([]);
   const [editing, setEditing] = useState<Row | null>(null);
@@ -29,8 +30,24 @@ export default function Dashboard() {
   const [filter, setFilter] = useState('');
   useEffect(() => {
     if (!client) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') === '1' || new URLSearchParams(window.location.hash.slice(1)).get('type') === 'recovery') {
+      setAuthMode('update-password');
+    }
+    const authError = new URLSearchParams(window.location.hash.slice(1)).get('error_description');
+    if (authError) {
+      setAuthMode('reset');
+      setMessage('Your reset link has expired or was already used. Request a new link below.');
+    }
     client.auth.getUser().then(({ data }) => setAdmin(data.user?.app_metadata?.site_admin === true));
-    const { data } = client.auth.onAuthStateChange((_event, session) => setAdmin(session?.user.app_metadata?.site_admin === true));
+    const { data } = client.auth.onAuthStateChange((event, session) => {
+      setAdmin(session?.user.app_metadata?.site_admin === true);
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthMode('update-password');
+        setPassword('');
+        setConfirmPassword('');
+      }
+    });
     return () => data.subscription.unsubscribe();
   }, []);
   useEffect(() => {
@@ -49,9 +66,26 @@ export default function Dashboard() {
       setMessage('Use your owner email and a password of at least 12 characters.');
       return;
     }
+    if (authMode === 'update-password' && (password.length < 12 || password !== confirmPassword)) {
+      setMessage('Use at least 12 characters and enter the same password in both fields.');
+      return;
+    }
     setBusy(true); setMessage('');
     try {
-      if (authMode === 'signup') {
+      if (authMode === 'reset') {
+        const { error } = await client.auth.resetPasswordForEmail(ownerEmail, {
+          redirectTo: `${window.location.origin}/admin?reset=1`,
+        });
+        setMessage(error ? error.message : 'Check your inbox and spam folder for a password reset link. Open it to choose a new password.');
+      } else if (authMode === 'update-password') {
+        const { error } = await client.auth.updateUser({ password });
+        if (error) { setMessage(error.message); return; }
+        setPassword('');
+        setConfirmPassword('');
+        setAuthMode('signin');
+        window.history.replaceState(null, '', '/admin');
+        setMessage('Your password has been updated.');
+      } else if (authMode === 'signup') {
         const { data, error } = await client.auth.signUp({ email: ownerEmail, password });
         if (error) { setMessage(`Account creation failed: ${error.message}`); return; }
         setPassword('');
@@ -61,7 +95,7 @@ export default function Dashboard() {
       } else {
         const { data, error } = await client.auth.signInWithPassword({ email: ownerEmail, password });
         setMessage(error
-          ? (error.code === 'invalid_credentials' ? 'Unable to sign in with those details. If you have not created your account yet, choose Create owner account below.' : error.message)
+          ? (error.code === 'invalid_credentials' ? 'Unable to sign in with those details. Check your email and password, or choose Forgot password below.' : error.message)
           : (data.user?.app_metadata?.site_admin ? '' : 'Signed in. Owner permissions must be activated before you can edit the site.'));
         if (!error) setPassword('');
       }
@@ -96,13 +130,15 @@ export default function Dashboard() {
   return <main className="min-h-screen bg-[#fff7fb] px-5 py-12 text-black"><div className="mx-auto max-w-5xl">
     <h1 className="brand-heading text-5xl">SITE MANAGER</h1>
     <p role="status" className="my-4 whitespace-pre-line">{!client ? 'Site manager is awaiting its Supabase connection settings.' : message}</p>
-    {!admin ? <form onSubmit={authenticate} className="grid max-w-md gap-4 rounded-2xl bg-white p-6">
-      <h2 className="text-xl font-bold">{authMode === 'signup' ? 'Create owner account' : 'Owner sign in'}</h2>
+    {(!admin || authMode === 'update-password') ? <form onSubmit={authenticate} className="grid max-w-md gap-4 rounded-2xl bg-white p-6">
+      <h2 className="text-xl font-bold">{authMode === 'signup' ? 'Create owner account' : authMode === 'reset' ? 'Reset your password' : authMode === 'update-password' ? 'Choose a new password' : 'Owner sign in'}</h2>
       {authMode === 'signup' && <p>Use felishamarkham@gmail.com and choose a new password with at least 12 characters.</p>}
-      <label>Email<input required type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} className="block w-full border p-3"/></label>
-      <label>Password<input required minLength={authMode === 'signup' ? 12 : undefined} type="password" autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'} value={password} onChange={e => setPassword(e.target.value)} className="block w-full border p-3"/></label>
-      <button type="submit" disabled={busy || !client} className="bg-[#eb2327] p-3 font-bold text-white">{busy ? (authMode === 'signup' ? 'Creating account…' : 'Signing in…') : (authMode === 'signup' ? 'Create account' : 'Sign in')}</button>
-      <button type="button" disabled={busy || !client} onClick={() => { setAuthMode(authMode === 'signup' ? 'signin' : 'signup'); setMessage(''); }}>{authMode === 'signup' ? 'Already have an account? Sign in' : 'First time? Create owner account'}</button>
+      {authMode !== 'update-password' && <label>Email<input required type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} className="block w-full border p-3"/></label>}
+      {authMode !== 'reset' && <label>{authMode === 'update-password' ? 'New password (at least 12 characters)' : 'Password'}<input required minLength={authMode === 'signin' ? undefined : 12} type="password" autoComplete={authMode === 'signin' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} className="block w-full border p-3"/></label>}
+      {authMode === 'update-password' && <label>Confirm new password<input required minLength={12} type="password" autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="block w-full border p-3"/></label>}
+      <button type="submit" disabled={busy || !client} className="bg-[#eb2327] p-3 font-bold text-white">{busy ? 'Please wait…' : authMode === 'signup' ? 'Create account' : authMode === 'reset' ? 'Email reset link' : authMode === 'update-password' ? 'Save new password' : 'Sign in'}</button>
+      {authMode === 'signin' && <button type="button" disabled={busy || !client} onClick={() => { setAuthMode('reset'); setPassword(''); setMessage(''); }} className="font-bold underline">Forgot password?</button>}
+      <button type="button" disabled={busy || !client} onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); setPassword(''); setConfirmPassword(''); setMessage(''); }}>{authMode === 'signin' ? 'First time? Create owner account' : 'Back to sign in'}</button>
     </form> : <>
     <div className="my-6 flex flex-wrap gap-3"><button onClick={() => { setWeeklyMode(true); setEditing(null); setMessage(''); }} className={`rounded-full border px-4 py-3 ${weeklyMode ? 'bg-black text-white' : 'bg-white'}`}>Weekly flavors</button>{(Object.keys(sections) as Section[]).map(key => <button key={key} onClick={() => { setWeeklyMode(false); setSection(key); setEditing(null); setFilter(""); }} className={`rounded-full border px-4 py-3 ${!weeklyMode && section === key ? 'bg-black text-white' : 'bg-white'}`}>{titles[key]}</button>)}<button onClick={() => client?.auth.signOut()}>Sign out</button></div>
     {weeklyMode ? <WeeklyFlavorEditor /> : <>
