@@ -83,7 +83,7 @@ export default function FeatureSequence({ flavors, still }: { flavors: CatalogFl
           {scenes.map((item, i) => <button key={item.id} type="button" aria-label={`Show ${item.title.replace(/\n/g, ' ')}`} aria-current={i === index ? 'step' : undefined} onClick={() => goToScene(i)}><span /></button>)}
         </nav>
         <div className={styles.bottomline}>
-          <a href="#motion-flavors">Skip to all flavors <ArrowUpRight size={14} /></a>
+          <a href="#motion-flavors">See all flavors <ArrowUpRight size={14} /></a>
           <span>KEEP SCROLLING <ArrowDown size={15} /></span>
         </div>
       </div>

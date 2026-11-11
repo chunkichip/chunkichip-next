@@ -42,6 +42,7 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
             <p className={styles.heroDescription}>Big cookies. Weekly flavor drops.<br />Your next favorite is in the box.</p>
             <Link href="/#boxes" className={styles.button}>Build your box <ArrowUpRight size={20} /></Link>
             <a href="#featured-stories" className={styles.scrollCue}>Scroll for the good stuff <ArrowDown size={17} /></a>
+            <a href="#motion-flavors" className={styles.allFlavors}>See all flavors <ArrowDown size={16} /></a>
           </div>
           <div className={styles.cookieStage} aria-label="A selection of Chunki Chip cookies">
             <span className={styles.backType} aria-hidden="true">COOKIE<br />OBSESSED.</span>
@@ -70,7 +71,7 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
           {flavors.map((flavor, index) => <li key={flavor.id} className={styles.flavorItem}>
             <article className={styles.flavorCard} aria-labelledby={`display-${flavor.id}`}>
             <div className={styles.flavorImage}>
-              <span className={styles.flavorNumber}>{String(index + 1).padStart(2, '0')}</span>
+              <span className={styles.flavorNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
               {flavor.imageUrl ? <img src={flavor.imageUrl} alt={flavor.name} width={500} height={500} loading="lazy" /> : <span className={styles.noPhoto}>CHUNKI.</span>}
             </div>
             <div className={styles.flavorCopy}>
