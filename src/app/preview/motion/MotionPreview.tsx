@@ -18,7 +18,9 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
   const rightX = useTransform(scrollYProgress, [0, 1], ['0%', '35%']);
   const cookieY = useTransform(scrollYProgress, [0, 1], ['0%', '28%']);
   const rotation = useTransform(scrollYProgress, [0, 1], [-12, 22]);
-  const reveal = still ? {} : { initial: { opacity: 0, y: 45 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.15 }, transition: { duration: 0.65 } };
+  const reveal = still
+    ? { initial: false as const, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } }
+    : { initial: { opacity: 0, y: 45 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.15 }, transition: { duration: 0.65 } };
 
   return (
     <main className={styles.preview} data-still={still}>
