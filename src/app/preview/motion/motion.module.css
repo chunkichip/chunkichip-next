@@ -41,12 +41,14 @@
 .flavorImage img{width:100%;height:100%;object-fit:contain;padding:12px;filter:drop-shadow(0 15px 12px #17131512);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 .flavorCard:hover img,.flavorCard:focus-within img{transform:translateY(-9px) rotate(-3deg)}
 .flavorNumber{position:absolute;z-index:1;top:0;left:0;font-size:10px;font-weight:800;color:#777;letter-spacing:.12em}
-.flavorCopy{padding:18px 3px 0}.flavorCopy h3{font-size:30px;line-height:1.15}.flavorCopy p{font-size:13px;line-height:1.8;margin-top:13px;max-width:400px}
+.flavorCopy{padding:18px 3px 0}.flavorCopy h3{font-size:36px;line-height:1.08;letter-spacing:-.015em;text-transform:uppercase;text-wrap:balance}.flavorCopy p{font-size:13px;line-height:1.8;margin-top:15px;max-width:400px}
 .flavorLabels{display:flex;align-items:start;flex-wrap:wrap;gap:8px;min-height:34px}
 .flavorLabels>span{margin-bottom:8px}
 .soldOut{display:inline-block;border:1px solid #171315;padding:5px 9px;font-size:10px;line-height:1.4;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
 .flavorOrder,.unavailable{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:22px;border-top:1px solid #17131525;padding:15px 0;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em}
 .flavorOrder:hover{color:var(--red)}.unavailable{color:#757575}
+.flavorOrder svg{box-sizing:content-box;flex-shrink:0;width:17px;height:17px;padding:9px;border-radius:50%;background:var(--red);color:white;transition:transform .25s}
+.flavorOrder:hover svg,.flavorOrder:focus-visible svg{transform:rotate(45deg)}
 .emptyMenu{padding:20px 5%}.noPhoto{display:grid;height:100%;place-items:center;font-size:48px;color:var(--red)}
 .shipping{display:grid;grid-template-columns:1.15fr 1fr;gap:6%;align-items:center;padding:80px 5%;background:var(--pink)}
 .shippingPhoto{overflow:hidden;transform:rotate(-3deg);border:8px solid white;box-shadow:0 18px 30px #65262f20}
@@ -77,7 +79,7 @@
  .marquee{padding:14px 0}.marqueeTrack{font-size:29px}
  .flavors{padding:55px 0 65px}.sectionHeading{display:block;margin-bottom:30px}
  .sectionHeading h2{font-size:52px}.sectionHeading>div:last-child{margin-top:20px}.sectionHeading>div:last-child p{display:none}
- .flavorDisplay{grid-template-columns:1fr;gap:42px;padding:0 8%;max-width:550px}.flavorItem:nth-child(3n+2){padding-top:0}.flavorImage{max-width:350px;margin:0 auto}.flavorCopy h3{font-size:32px}.flavorCopy p{font-size:14px}.flavorLabels{min-height:0}.flavorOrder,.unavailable{min-height:48px}
+ .flavorDisplay{grid-template-columns:1fr;gap:42px;padding:0 8%;max-width:550px}.flavorItem:nth-child(3n+2){padding-top:0}.flavorImage{max-width:350px;margin:0 auto}.flavorCopy h3{font-size:38px}.flavorCopy p{font-size:14px}.flavorLabels{min-height:0}.flavorOrder,.unavailable{min-height:48px}
  .shipping{grid-template-columns:1fr;padding:55px 7%;gap:40px}.shippingCopy h2{font-size:68px}.shippingPhoto{border-width:5px}
  .finalCta{padding:65px 20px 95px}.finalCta h2{font-size:79px}
 }
