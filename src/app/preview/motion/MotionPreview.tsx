@@ -7,6 +7,7 @@ import { ArrowDown, ArrowUpRight, Pause, Play } from 'lucide-react';
 import type { CatalogFlavor } from '@/lib/catalog';
 import ThisWeekOnlyBadge from '@/components/ThisWeekOnlyBadge';
 import styles from './motion.module.css';
+import FeatureSequence from './FeatureSequence';
 
 export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] }) {
   const prefersReducedMotion = useReducedMotion();
@@ -40,7 +41,7 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
             <h1 id="motion-title">OH, THAT’S<br /><span>CHUNKI.</span></h1>
             <p className={styles.heroDescription}>Big cookies. Weekly flavor drops.<br />Your next favorite is in the box.</p>
             <Link href="/#boxes" className={styles.button}>Build your box <ArrowUpRight size={20} /></Link>
-            <a href="#motion-flavors" className={styles.scrollCue}>Scroll for the good stuff <ArrowDown size={17} /></a>
+            <a href="#featured-stories" className={styles.scrollCue}>Scroll for the good stuff <ArrowDown size={17} /></a>
           </div>
           <div className={styles.cookieStage} aria-label="A selection of Chunki Chip cookies">
             <span className={styles.backType} aria-hidden="true">COOKIE<br />OBSESSED.</span>
@@ -57,6 +58,8 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
           {[0, 1].map(i => <span key={i}>OH, THAT’S CHUNKI. <b>✳</b> BAKED IN MILFORD. <b>✳</b> PICK YOUR FAVORITES. <b>✳</b> </span>)}
         </div>
       </div>
+
+      <FeatureSequence flavors={flavors} still={still} />
 
       <section id="motion-flavors" className={styles.flavors}>
         <motion.div className={styles.sectionHeading} {...reveal}>
