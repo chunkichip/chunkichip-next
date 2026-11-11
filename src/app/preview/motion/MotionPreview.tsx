@@ -59,24 +59,29 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
         </div>
       </div>
 
-      <FeatureSequence flavors={flavors} still={still} />
+      <FeatureSequence flavors={flavors.filter(flavor => !flavor.soldOut)} still={still} />
 
       <section id="motion-flavors" className={styles.flavors}>
         <motion.div className={styles.sectionHeading} {...reveal}>
           <div><p className={styles.eyebrow}>The current lineup</p><h2>MEET YOUR<br /><span>WEEKLY FIX.</span></h2></div>
           <div><p>Fresh flavors. Familiar favorites.<br />Which ones are making your box?</p><Link href="/#menu">Explore the menu <ArrowUpRight size={18} /></Link></div>
         </motion.div>
-        {flavors.length ? <div className={styles.flavorRail} aria-label="This week’s cookie flavors" tabIndex={0}>
-          {flavors.map((flavor, index) => <Link href={`/product/${encodeURIComponent(flavor.id)}`} key={flavor.id} className={styles.flavorCard}>
+        {flavors.length ? <ul className={styles.flavorDisplay} aria-label="This week’s cookie flavors">
+          {flavors.map((flavor, index) => <li key={flavor.id} className={styles.flavorItem}>
+            <article className={styles.flavorCard} aria-labelledby={`display-${flavor.id}`}>
             <div className={styles.flavorImage}>
               <span className={styles.flavorNumber}>{String(index + 1).padStart(2, '0')}</span>
               {flavor.imageUrl ? <img src={flavor.imageUrl} alt={flavor.name} width={500} height={500} loading="lazy" /> : <span className={styles.noPhoto}>CHUNKI.</span>}
-              <span className={styles.cardArrow}><ArrowUpRight size={24} /></span>
             </div>
-            <div className={styles.flavorCopy}>{flavor.thisWeekOnly && <ThisWeekOnlyBadge />}<h3>{flavor.name}</h3><p>{flavor.description}</p></div>
-          </Link>)}
-        </div> : <p className={styles.emptyMenu}>This week’s menu is being refreshed. <Link href="/#menu">Check the live menu →</Link></p>}
-        <p className={styles.railHint}>Swipe or scroll sideways to find your favorite <span aria-hidden="true">→</span></p>
+            <div className={styles.flavorCopy}>
+              <div className={styles.flavorLabels}>{flavor.thisWeekOnly && <ThisWeekOnlyBadge />}{flavor.soldOut && <span className={styles.soldOut}>Sold out</span>}</div>
+              <h3 id={`display-${flavor.id}`}>{flavor.name}</h3>
+              <p>{flavor.description || 'A fresh-baked Chunki Chip favorite.'}</p>
+              {flavor.soldOut ? <span className={styles.unavailable}>Currently unavailable</span> : <Link className={styles.flavorOrder} href={`/product/${encodeURIComponent(flavor.id)}`} aria-label={`Order ${flavor.name}`}>Order this cookie <ArrowUpRight size={18} /></Link>}
+            </div>
+            </article>
+          </li>)}
+        </ul> : <p className={styles.emptyMenu}>This week’s menu is being refreshed. <Link href="/#menu">Check the live menu →</Link></p>}
       </section>
 
       <section className={styles.shipping}>
