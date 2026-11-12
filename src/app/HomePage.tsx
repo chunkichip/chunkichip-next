@@ -4,6 +4,7 @@ import ThisWeekOnlyBadge from '@/components/ThisWeekOnlyBadge';
 import CookieSpinner from '@/components/CookieSpinner';
 import ManagedText from '@/components/ManagedText';
 import EmailSignup from '@/components/EmailSignup';
+import FlavorHero from '@/components/FlavorHero';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -54,18 +55,7 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
 
   return (
     <main className="soft-page min-h-screen overflow-hidden text-[#171315]">
-      <section aria-label="Veterans Day free cookie" className="overflow-hidden bg-white">
-        <picture>
-          <source media="(min-width: 768px)" srcSet="/hero-veterans-desktop.webp" width={2048} height={768} />
-          <img
-            src="/hero-veterans-mobile.webp"
-            alt="Today, the cookie’s on us. Free cookie for all veterans and active-duty service members on Veterans Day, November 11. Our small way of saying thank you for your service."
-            width={940} height={788}
-            className="mx-auto block h-auto w-full max-w-[2048px] object-contain"
-            fetchPriority="high"
-          />
-        </picture>
-      </section>
+      <FlavorHero flavors={cookies}/>
 
       <section id="menu" className="mx-auto max-w-[1400px] px-5 py-14 md:px-12 md:py-20">
         {error && <div role="alert" className="mt-8 border-2 border-[#eb2327] bg-white p-5 font-semibold">{error}<p className="mt-1 text-sm font-normal"><ManagedText id="8024259a33ae162674f8cede" fallback={"Please call the shop or try again later."} /></p></div>}
@@ -73,7 +63,7 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
 
         {!loading && !error && <>
           <div id="single-cookies" className="scroll-mt-24">
-            <div className="mb-5 flex flex-col gap-2 pb-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]"><ManagedText id="253cea0d7154655d82eba1f0" fallback={"Fresh from the oven"} /></p><h1 className="brand-heading text-5xl md:text-7xl"><ManagedText id="92c27f51df20da216165f7fb" fallback={"WEEKLY FLAVORS"} /></h1></div><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="caf7883b50661113262282ae" fallback={"Tap a flavor to order"} /></span></div>
+            <div className="mb-5 flex flex-col gap-2 pb-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[.2em] text-[#eb2327]"><ManagedText id="253cea0d7154655d82eba1f0" fallback={"Fresh from the oven"} /></p><h2 className="brand-heading text-5xl md:text-7xl"><ManagedText id="92c27f51df20da216165f7fb" fallback={"WEEKLY FLAVORS"} /></h2></div><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="caf7883b50661113262282ae" fallback={"Tap a flavor to order"} /></span></div>
             {cookies.length === 0 ? <p className="border-2 border-dashed border-black p-8 text-center"><ManagedText id="9108f920b83978d739b79707" fallback={"This week’s flavors are being refreshed. Check back soon."} /></p> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cookies.map((product, index) => <Link href={`/product/${encodeURIComponent(product.id)}`} key={product.id} className="group soft-card soft-link-card grid bg-white transition focus-visible:outline-[#eb2327]"><div className={`soft-inset flex min-h-[250px] items-center justify-center ${index % 3 === 1 ? 'bg-[#fff7fb]' : index % 3 === 2 ? 'bg-[#fff7fb]' : 'bg-[#f8fafc]'}`}>{product.imageUrl ? <img loading="lazy" decoding="async" src={product.imageUrl} alt={product.name} className="h-56 w-full object-contain p-5 transition duration-300 group-hover:scale-105"/> : <span className="text-7xl">🍪</span>}</div><div className="flex flex-col justify-between p-5"><div>{product.thisWeekOnly && <ThisWeekOnlyBadge />}<h4 className="brand-heading text-3xl leading-tight md:text-4xl">{product.name}</h4><p className="mt-3 text-sm leading-6 text-black/75">{product.description || 'A fresh-baked Chunki Chip favorite.'}</p></div><span className="mt-5 flex items-center justify-between border-t border-black pt-3 text-sm font-black uppercase"><span>{product.price}</span><span className="flex items-center gap-2"><ManagedText id="f66984fcab7692a68b971de6" fallback={"Order now"} /><ArrowUpRight size={17}/></span></span></div></Link>)}</div>}
             <a href="/flavor-archive" className="mt-6 inline-block text-sm font-bold underline underline-offset-4">Explore past flavors and vote for a comeback →</a>
           </div>
