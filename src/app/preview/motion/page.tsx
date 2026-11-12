@@ -19,5 +19,5 @@ export default async function Page() {
       ...set, modifiers: set.modifiers.map(modifier => ({ ...modifier, soldOut: false })),
     })),
   }))).map(flavor => ({ ...flavor, soldOut: Boolean(modifiers.get(flavor.id)?.soldOut) }));
-  return <MotionPreview flavors={flavors} />;
+  return <MotionPreview flavors={flavors} products={products} />;
 }

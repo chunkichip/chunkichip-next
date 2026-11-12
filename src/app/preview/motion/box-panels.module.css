@@ -1,0 +1,27 @@
+.sections{background:#fff0fa;padding:10px 5% 70px;display:grid;gap:38px}
+.panel{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:center;gap:4%;max-width:1330px;width:100%;margin:auto;padding:28px;border-radius:40px;background:#f5f5f5;border:2px solid #fff;box-shadow:12px 12px 28px #b796a63b,-9px -9px 22px #ffffffd9,inset 3px 3px 5px #fff,inset -4px -4px 8px #d6d6d6;scroll-margin-top:110px}
+.well{min-width:0;border-radius:28px;background:#f5f5f5;box-shadow:inset 8px 8px 16px #d3d3d3,inset -8px -8px 16px #fff;padding:12px;overflow:hidden}
+.boxArt{position:relative;aspect-ratio:1;width:100%;max-width:580px;margin:auto}
+.box{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 10px #17131525)}
+.sampleCookie{position:absolute;aspect-ratio:1;object-fit:contain;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 2px #17131540)}
+.caption{text-align:center;font-size:10px;line-height:1.6;color:#595959;margin:-5px 0 7px}
+.photoWell{padding:12px}.photoWell>img{width:100%;height:auto;display:block;border-radius:18px;aspect-ratio:1.13;object-fit:cover;object-position:52% center}
+.copy{padding:12px 12px 12px 0;min-width:0}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#eb2327;line-height:1.6}
+.copy h2{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:clamp(42px,4.6vw,74px);line-height:1.06;letter-spacing:-.02em;text-wrap:balance;margin:15px 0 18px}
+.copy>p:not(.eyebrow):not(.note){font-size:16px;line-height:1.7;margin-bottom:24px}
+.choices{display:flex;gap:13px;margin:25px 0}.choices button{display:flex;align-items:center;justify-content:center;min-width:0;flex:1;min-height:62px;padding:10px 8px;border-radius:17px;background:#f5f5f5;font:400 30px/1.1 Anton,Impact,sans-serif;box-shadow:5px 5px 10px #d3d3d3,-5px -5px 10px #fff;border:2px solid transparent;cursor:pointer;transition:background .15s,box-shadow .15s,color .15s}
+.choices button[aria-pressed=true]{background:#eb2327;color:white;box-shadow:inset 3px 3px 6px #b41b1e,inset -2px -2px 4px #ff5357}
+.choices button:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}.choices button:focus-visible,.action:focus-visible{outline:3px solid #171315;outline-offset:5px}
+.shippingChoices button{font-family:Arial,sans-serif;font-size:14px;font-weight:900;text-transform:uppercase;min-height:58px}
+.shippingChoices button[aria-pressed=true]{color:#171315;border-color:#eb2327;background:#f5f5f5;box-shadow:inset 3px 3px 7px #d3d3d3,inset -3px -3px 7px #fff}
+.selection{display:flex;justify-content:space-between;gap:15px;padding:0 0 18px;border-bottom:1px solid #ccc;margin-bottom:23px;font-weight:900;font-size:17px;text-transform:uppercase;line-height:1.5}.selection span:last-child{white-space:nowrap}
+.action{display:flex;align-items:center;justify-content:center;gap:14px;min-height:56px;border-radius:40px;background:#eb2327;color:white;padding:15px 18px;font-size:14px;font-weight:900;text-transform:uppercase;box-shadow:5px 5px 10px #d1d1d1,-4px -4px 10px #fff;transition:background .2s}
+.action:hover{background:#c6161c}.action svg{flex-shrink:0}.note{font-size:11px;line-height:1.6;color:#595959;margin-top:17px}
+@media(max-width:767px){
+.sections{padding:8px 3% 45px;gap:28px}.panel{grid-template-columns:1fr;gap:22px;padding:15px 14px 22px;border-radius:30px;scroll-margin-top:90px;box-shadow:7px 7px 18px #b796a640,-5px -5px 15px #ffffffd9,inset 3px 3px 5px #fff,inset -3px -3px 6px #d6d6d6}
+.well{border-radius:22px;padding:7px}.boxArt{max-width:430px}.caption{font-size:9px;margin-bottom:6px}.photoWell{padding:8px}.photoWell>img{border-radius:16px;aspect-ratio:1.35}
+.copy{padding:0 4px}.eyebrow{font-size:10px;letter-spacing:.1em}.copy h2{font-size:clamp(37px,10vw,60px);margin:10px 0 13px}.copy>p:not(.eyebrow):not(.note){font-size:14px;margin-bottom:18px}
+.choices{gap:10px;margin:20px 0}.choices button{min-height:52px;border-radius:13px;font-size:27px;padding:8px 4px}.shippingChoices button{font-size:12px;min-height:52px}
+.selection{font-size:14px;margin-bottom:19px;padding-bottom:14px}.action{font-size:12px;min-height:52px;padding:14px 12px;gap:10px}.note{font-size:10px;margin-top:14px}
+}
+@media(prefers-reduced-motion:reduce){.choices button,.action{transition:none}}

@@ -8,8 +8,10 @@ import type { CatalogFlavor } from '@/lib/catalog';
 import ThisWeekOnlyBadge from '@/components/ThisWeekOnlyBadge';
 import styles from './motion.module.css';
 import FeatureSequence from './FeatureSequence';
+import BoxPanels from './BoxPanels';
+import type { SeoProduct } from '@/lib/seo-catalog';
 
-export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] }) {
+export default function MotionPreview({ flavors, products }: { flavors: CatalogFlavor[]; products: SeoProduct[] }) {
   const prefersReducedMotion = useReducedMotion();
   const [paused, setPaused] = useState(false);
   const still = Boolean(prefersReducedMotion || paused);
@@ -86,10 +88,7 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
         </ul><div className={styles.trayFooter}><Link href="/#boxes" className={styles.button}>Build your box <ArrowUpRight size={20} /></Link></div></div> : <p className={styles.emptyMenu}>This week’s menu is being refreshed. <Link href="/#menu">Check the live menu →</Link></p>}
       </section>
 
-      <section className={styles.shipping}>
-        <motion.div className={styles.shippingPhoto} {...reveal}><img src="/open-shipping-box.webp" alt="An open pink Chunki Chip shipping box filled with individually wrapped cookies" width={1536} height={861} loading="lazy" /></motion.div>
-        <motion.div className={styles.shippingCopy} {...reveal}><p className={styles.eyebrow}>Cookie mail hits different</p><h2>BIG BOX.<br />BIGGER<br /><span>REACTION.</span></h2><p>Send a little Chunki to someone’s doorstep. Your favorites, individually wrapped and packed for the trip.</p><Link href="/#shipping-boxes" className={styles.button}>Ship a box <ArrowUpRight size={20} /></Link></motion.div>
-      </section>
+      <BoxPanels products={products} flavors={flavors} />
 
       <motion.section className={styles.finalCta} {...reveal}><p className={styles.eyebrow}>You’ve scrolled. Now pick.</p><h2>LET’S FILL<br />THAT BOX.</h2><Link href="/#boxes" className={styles.button}>Order cookies <ArrowUpRight size={22} /></Link><Link className={styles.backLink} href="/">Back to current homepage</Link></motion.section>
     </main>
