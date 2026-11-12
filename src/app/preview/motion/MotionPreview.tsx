@@ -69,6 +69,7 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
         </motion.div>
         {flavors.length ? <ul className={styles.flavorDisplay} aria-label="This week’s cookie flavors">
           {flavors.map((flavor, index) => <li key={flavor.id} className={styles.flavorItem}>
+            <div className={styles.flavorRail} aria-hidden="true"><span>THE COOKIE EDIT</span><span>{String(index + 1).padStart(2, '0')} / {String(flavors.length).padStart(2, '0')}</span></div>
             <article className={styles.flavorCard} aria-labelledby={`display-${flavor.id}`}>
             <div className={styles.flavorImage}>
               <span className={styles.flavorNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>

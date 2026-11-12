@@ -36,6 +36,7 @@
 .sectionHeading>div:last-child p{font-size:14px;line-height:1.8;margin-bottom:20px}
 .sectionHeading a{display:flex;gap:15px;align-items:center;font-size:13px;font-weight:800;text-decoration:underline;text-underline-offset:5px}
 .flavorDisplay{padding:45px 5% 0;max-width:1600px;margin:0 auto;list-style:none}
+.flavorRail{display:none}
 .flavorItem{min-width:0;border-top:1px solid #17131530}
 .flavorCard{min-width:0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:7%;align-items:center;padding:40px 0 65px;min-height:530px}
 .flavorItem:nth-child(even) .flavorCard{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
@@ -84,11 +85,28 @@
  .marquee{padding:14px 0}.marqueeTrack{font-size:29px}
  .flavors{padding:55px 0 30px}.sectionHeading{display:block;margin-bottom:45px}
  .sectionHeading h2{font-size:52px}.sectionHeading>div:last-child{margin-top:20px}.sectionHeading>div:last-child p{display:none}
- .flavorDisplay{padding:20px 7% 0;max-width:600px}.flavorCard,.flavorItem:nth-child(even) .flavorCard{display:flex;flex-direction:column;gap:0;min-height:0;padding:0 0 65px}
- .flavorImage,.flavorItem:nth-child(even) .flavorImage{order:0;width:116%;max-width:510px;align-self:flex-start;margin:-30px -8% -25px}
+ .flavors{background:#fff9fc;padding-bottom:0}
+ .sectionHeading{padding:0 7%;margin-bottom:32px}.sectionHeading h2{font-size:clamp(48px,13vw,74px)}
+ .flavorDisplay{padding:0;max-width:600px}
+ .flavorItem{border:0;position:relative;padding:0 7%;isolation:isolate}
+ .flavorRail{display:flex;justify-content:space-between;gap:16px;position:relative;z-index:3;border-top:2px solid var(--red);padding-top:12px;color:var(--red);font-size:9px;line-height:1.5;font-weight:900;letter-spacing:.18em}
+ .flavorCard,.flavorItem:nth-child(even) .flavorCard{display:flex;flex-direction:column;gap:0;min-height:0;padding:0 0 44px}
+ .flavorImage,.flavorItem:nth-child(even) .flavorImage{order:0;width:116%;max-width:560px;align-self:flex-start;margin:-10px -8% -32px;aspect-ratio:1.12;}
  .flavorItem:nth-child(even) .flavorImage{align-self:flex-end}
- .flavorImage img{padding:20px 12px}.flavorNumber{font-size:clamp(140px,47vw,240px);right:5%;top:15px}.flavorItem:nth-child(even) .flavorNumber{left:5%}
- .flavorCopy,.flavorItem:nth-child(even) .flavorCopy{order:1;width:100%;padding:0}.flavorCopy h3{font-size:clamp(44px,12vw,68px);text-align:left;line-height:1.03}.flavorCopy p{font-size:14px;margin-top:18px}.flavorLabels{min-height:0}.flavorOrder,.unavailable{min-height:48px;margin-top:24px}
+ .flavorImage:after{content:"";position:absolute;z-index:0;left:7%;right:7%;top:49%;height:1px;background:var(--red);opacity:.3}
+ .flavorImage img{width:91%;height:100%;padding:9px 0;transform:translateX(6%) rotate(-7deg);filter:drop-shadow(0 16px 12px #1713151a)}
+ .flavorItem:nth-child(even) .flavorImage img{transform:translateX(-6%) rotate(7deg)}
+ .flavorNumber{font-size:clamp(160px,60vw,330px);right:auto;left:5%;top:4%;line-height:1;color:transparent;-webkit-text-stroke:1px #eb232770;letter-spacing:-.06em}
+ .flavorItem:nth-child(even) .flavorNumber{left:auto;right:5%}
+ .flavorCopy,.flavorItem:nth-child(even) .flavorCopy{order:1;width:100%;padding:0}
+ .flavorCopy h3{font-size:clamp(46px,13vw,78px);text-align:left;line-height:1.04;letter-spacing:-.025em;text-wrap:balance;max-width:100%}
+ .flavorItem:nth-child(even) .flavorCopy h3{color:var(--red)}
+ .flavorCopy p{font-size:14px;line-height:1.7;margin-top:14px;max-width:100%}
+ .flavorLabels{min-height:0;gap:7px;position:relative;z-index:2}.flavorLabels>span{margin-bottom:12px}
+ .flavorOrder,.unavailable{min-height:52px;margin-top:18px;border-top:0;border-bottom:1px solid #eb232740;padding:10px 0;font-size:11px}
+ .flavorOrder svg{width:19px;height:19px;padding:10px}
+ .flavorCard:hover img,.flavorCard:focus-within img{transform:translateX(6%) rotate(-7deg)}
+ .flavorItem:nth-child(even) .flavorCard:hover img,.flavorItem:nth-child(even) .flavorCard:focus-within img{transform:translateX(-6%) rotate(7deg)}
  .shipping{grid-template-columns:1fr;padding:55px 7%;gap:40px}.shippingCopy h2{font-size:68px}.shippingPhoto{border-width:5px}
  .finalCta{padding:65px 20px 95px}.finalCta h2{font-size:79px}
 }
