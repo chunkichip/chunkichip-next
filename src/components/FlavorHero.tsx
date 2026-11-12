@@ -7,7 +7,7 @@ import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Pause, Play } from 
 import type { CatalogFlavor } from '@/lib/catalog';
 import styles from './flavor-hero.module.css';
 
-const SLIDE_DURATION = 7000;
+const SLIDE_DURATION = 3000;
 
 export default function FlavorHero({ flavors }: { flavors: CatalogFlavor[] }) {
   const slides = flavors.filter(flavor => flavor.imageUrl);
