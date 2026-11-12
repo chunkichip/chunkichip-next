@@ -64,15 +64,15 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
 
       <section id="motion-flavors" className={styles.flavors}>
         <motion.div className={styles.sectionHeading} {...reveal}>
-          <div><p className={styles.eyebrow}>The current lineup</p><h2>MEET YOUR<br /><span>WEEKLY FIX.</span></h2></div>
+          <div><p className={styles.eyebrow}>The current lineup</p><h2>THIS WEEK’S<br /><span>FLAVORS.</span></h2></div>
           <div><p>Fresh flavors. Familiar favorites.<br />Which ones are making your box?</p><Link href="/#menu">Explore the menu <ArrowUpRight size={18} /></Link></div>
         </motion.div>
         {flavors.length ? <ul className={styles.flavorDisplay} aria-label="This week’s cookie flavors">
-          {flavors.map((flavor, index) => <li key={flavor.id} className={styles.flavorItem}>
-            <div className={styles.flavorRail} aria-hidden="true"><span>THE COOKIE EDIT</span><span>{String(index + 1).padStart(2, '0')} / {String(flavors.length).padStart(2, '0')}</span></div>
+          {flavors.map(flavor => <li key={flavor.id} className={styles.flavorItem}>
+
             <article className={styles.flavorCard} aria-labelledby={`display-${flavor.id}`}>
             <div className={styles.flavorImage}>
-              <span className={styles.flavorNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+
               {flavor.imageUrl ? <img src={flavor.imageUrl} alt={flavor.name} width={500} height={500} loading="lazy" /> : <span className={styles.noPhoto}>CHUNKI.</span>}
             </div>
             <div className={styles.flavorCopy}>
