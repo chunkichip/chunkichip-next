@@ -67,7 +67,7 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
           <div><p className={styles.eyebrow}>The current lineup</p><h2>THIS WEEK’S<br /><span>FLAVORS.</span></h2></div>
           <div><p>Fresh flavors. Familiar favorites.<br />Which ones are making your box?</p><Link href="/#menu">Explore the menu <ArrowUpRight size={18} /></Link></div>
         </motion.div>
-        {flavors.length ? <ul className={styles.flavorDisplay} aria-label="This week’s cookie flavors">
+        {flavors.length ? <div className={styles.bakeryTray}><ul className={styles.flavorDisplay} aria-label="This week’s cookie flavors">
           {flavors.map(flavor => <li key={flavor.id} className={styles.flavorItem}>
 
             <article className={styles.flavorCard} aria-labelledby={`display-${flavor.id}`}>
@@ -83,7 +83,7 @@ export default function MotionPreview({ flavors }: { flavors: CatalogFlavor[] })
             </div>
             </article>
           </li>)}
-        </ul> : <p className={styles.emptyMenu}>This week’s menu is being refreshed. <Link href="/#menu">Check the live menu →</Link></p>}
+        </ul><div className={styles.trayFooter}><Link href="/#boxes" className={styles.button}>Build your box <ArrowUpRight size={20} /></Link></div></div> : <p className={styles.emptyMenu}>This week’s menu is being refreshed. <Link href="/#menu">Check the live menu →</Link></p>}
       </section>
 
       <section className={styles.shipping}>
