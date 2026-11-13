@@ -7,3 +7,12 @@
  .hidePrint,.toolbar,.printButton,.form,.success{display:none!important}
  .tableScroll{overflow:visible;border-radius:0}.planner table{min-width:0;font-size:9px}.planner th,.planner td{padding:7px 4px}.planner tbody th{min-width:0}.planner small{font-size:8px}.planner h2{font-size:27px}.group{break-inside:avoid}.notice,.error,.explanation{font-size:10px}.heading{display:block}
 }
+
+/* Stock entry stays in view even when a long inventory table is scrolled. */
+.stockDialog{width:min(600px,calc(100vw - 28px));max-height:calc(100dvh - 32px);margin:auto;padding:0;border:0;border-radius:20px;background:white;color:#171315;box-shadow:0 24px 80px #0005;overflow-y:auto;overscroll-behavior:contain}
+.stockDialog::backdrop{background:#17131599}
+.stockDialog .form{margin:0;max-width:none;border:0;padding:26px}
+.stockDialog .form input,.stockDialog .form select{font-size:16px}
+.planner td .openingCount{min-height:42px;min-width:85px;background:#fff0fa;color:#b51d22;border:1px solid #eb2327;font-size:12px;padding:9px 10px;white-space:nowrap}
+@media(max-width:600px){.stockDialog .form{padding:22px 18px}.stockDialog .form button{min-height:44px}}
+@media print{.stockDialog{display:none!important}.planner td .openingCount{border:0;background:none;color:black;padding:0;min-height:0;min-width:0;font-size:9px}}
