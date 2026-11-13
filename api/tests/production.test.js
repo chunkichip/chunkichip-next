@@ -28,3 +28,33 @@ test('private API denies anonymous and non-owner requests before reading Square'
 test('refresh twice replaces the same Square order, not two sales',async t=>{const h=await harness(t);await h.request('/sync',{location:'milford'});await h.request('/sync',{location:'milford'});assert.equal(h.tables.orders.length,1);assert.equal(h.tables.orders[0].counts[2].quantity,2);assert.equal(h.tables.flavors.length,3);});
 test('stock request retry is idempotent and invalid input is rejected',async t=>{const h=await harness(t);const f=flavor('Chunki Chip');h.tables.flavors.push(f);const body={id:'00000000-0000-4000-8000-000000000001',date:'2026-11-11',location:'milford',flavorId:f.id,kind:'bake',quantity:15};assert.equal((await h.request('/events',body)).status,200);assert.equal((await h.request('/events',body)).status,200);assert.equal(h.tables.events.length,1);assert.equal((await h.request('/events',{...body,quantity:20})).status,409);assert.equal((await h.request('/events',{...body,quantity:1.5})).status,400);});
 test('review overrides stay separate from Square snapshots and require current version',async t=>{const h=await harness(t);await h.request('/sync',{location:'milford'});const f=h.tables.flavors[0];const body={orderId:'squareOrder60',version:1,counts:[{id:f.id,quantity:4}],note:'Verified against ticket'};assert.equal((await h.request('/resolve',body)).status,200);assert.equal(h.tables.orders[0].counts.length,3);assert.equal(h.tables.reviews[0].counts[0].quantity,4);assert.equal((await h.request('/resolve',{...body,version:0})).status,409);});
+
+test('current lineup uses enabled local box lists and keeps sold-out cookies for baking',()=>{
+ const {currentFlavors}=require('../productionEngine');
+ const item=(id,ref,extra={})=>({id,itemData:{name:'4 Cookie Box',modifierListInfo:[ref],...extra}});
+ const mod=(name,extra={})=>({modifierData:{name,...extra}});
+ const items=[item('current',{modifierListId:'now'}),item('removed',{modifierListId:'old',enabled:false}),item('archived',{modifierListId:'old'},{isArchived:true}),{...item('other-shop',{modifierListId:'old'}),presentAtAllLocations:false,presentAtLocationIds:['other']}];
+ const lists=[{id:'now',modifierListData:{modifiers:[mod('Chunki Chip',{locationOverrides:[{locationId:'shop',soldOut:true}]}),mod('Archived',{isArchived:true}),{...mod('Other shop'),absentAtLocationIds:['shop']}]}},{id:'old',modifierListData:{modifiers:[mod('Halloween Cookie')]}}];
+ assert.deepEqual(currentFlavors(items,lists,'shop').map(f=>f.name),['Chunki Chip']);
+});
+test('history cannot expand today’s lineup but still forecasts active cookies',()=>{
+ const {planFlavors}=require('../productionEngine');const current=flavor('Chunki Chip'),old=flavor('Halloween Cookie');
+ const orders=['2026-10-21','2026-10-28','2026-11-04'].map(day=>({business_date:day,paid:true,state:'COMPLETED',counts:[{...current,quantity:20},{...old,quantity:10}],issues:[]}));
+ const flavors=planFlavors([current,old],[current],orders,[],'2026-11-11');
+ assert.deepEqual(flavors.map(f=>f.id),[current.id]);
+ const plan=buildPlan({flavors,orders,events:[],date:'2026-11-11',today:'2026-11-11',historyFrom:'2026-09-01'});
+ assert.equal(plan.rows[0].baseline,20);assert.equal(orders[0].counts.length,2);
+});
+test('selected-day orders and stock keep off-menu cookies visible without leaking other dates',()=>{
+ const {planFlavors}=require('../productionEngine');const ordered=flavor('Special order'),stock=flavor('Leftover'),old=flavor('Old');
+ const orders=[{business_date:'2026-11-11',paid:true,state:'COMPLETED',counts:[ordered]},{business_date:'2026-11-10',paid:true,state:'COMPLETED',counts:[old]}];
+ const events=[{business_date:'2026-11-11',flavor_id:stock.id}];
+ assert.deepEqual(new Set(planFlavors([ordered,stock,old],[],orders,events,'2026-11-11').map(f=>f.id)),new Set([ordered.id,stock.id]));
+});
+test('API hides historical flavors while preserving review choices and manual daily additions',async t=>{
+ const h=await harness(t);await h.request('/sync',{location:'milford',history:true});
+ let plan=await h.request('?date=2026-11-12');assert.equal(plan.status,200);assert.equal(plan.data.rows.length,0);assert.equal(plan.data.allFlavors.length,3);
+ assert.equal((await h.request('/flavors',{name:'Custom cookie',kind:'full',location:'milford',date:'2026-11-12'})).status,200);
+ plan=await h.request('?date=2026-11-12');assert.deepEqual(plan.data.rows.map(f=>f.name),['Custom cookie']);
+ assert.equal(h.tables.orders.length,1);assert.equal(h.tables.events[0].quantity,0);
+});

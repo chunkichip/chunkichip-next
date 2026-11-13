@@ -8,6 +8,30 @@ function boxSize(name) {
  const match=String(name).match(/^(\d+)\s+cookie\s+box$/i) || String(name).match(/^build your own\s+(\d+)\s+box$/i);
  return match ? positive(match[1]) : null;
 }
+// Menu membership is independent of the historical sales dictionary. Sold-out
+// modifiers still belong to the menu and must remain available for bake planning.
+function currentFlavors(items, lists, locationId) {
+ const present=o=>!o.isDeleted && (o.presentAtAllLocations!==false || (o.presentAtLocationIds || []).includes(locationId)) && !(o.absentAtLocationIds || []).includes(locationId);
+ const byId=new Map(lists.filter(present).map(l=>[l.id,l]));
+ const active=new Map();
+ for(const item of items) {
+  if(!present(item) || !item.itemData || item.itemData.isArchived || item.itemData.ecomVisibility==='UNAVAILABLE' || !boxSize(item.itemData.name))continue;
+  for(const ref of item.itemData.modifierListInfo || []) {
+   if(ref.enabled===false)continue;
+   for(const m of byId.get(ref.modifierListId)?.modifierListData?.modifiers || []) {
+    if(!present(m) || !m.modifierData?.name || m.modifierData.isArchived)continue;
+    const f=flavor(m.modifierData.name);active.set(f.id,f);
+   }
+  }
+ }
+ return [...active.values()];
+}
+function planFlavors(known, active, orders, events, date) {
+ const ids=new Set(active.map(f=>f.id));
+ for(const o of orders)if(o.business_date===date && o.paid && o.state!=='CANCELED')for(const f of o.counts || [])ids.add(f.id);
+ for(const e of events)if(e.business_date===date)ids.add(e.flavor_id);
+ return [...new Map([...known,...active].map(f=>[f.id,f])).values()].filter(f=>ids.has(f.id)).sort((a,b)=>a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name));
+}
 function analyzeOrder(order, known=[]) {
  const due=order.fulfillments?.find(f=>f.state!=='CANCELED' && f.type==='PICKUP')?.pickup_details?.pickup_at;
  const at=due || order.closed_at || order.created_at;
@@ -75,4 +99,4 @@ function buildPlan({flavors,orders,events,date,today,historyFrom}) {
  });
  return {date,rows,issues,orderCount:due.length};
 }
-module.exports={dateKey,flavor,normalize,positive,boxSize,analyzeOrder,buildPlan,shiftDay};
+module.exports={currentFlavors,planFlavors,dateKey,flavor,normalize,positive,boxSize,analyzeOrder,buildPlan,shiftDay};

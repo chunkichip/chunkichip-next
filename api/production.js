@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const {dateKey,flavor,positive,boxSize,analyzeOrder,buildPlan,shiftDay} = require('./productionEngine');
+const {dateKey,flavor,positive,boxSize,analyzeOrder,buildPlan,shiftDay,currentFlavors,planFlavors} = require('./productionEngine');
 const env=key=>(process.env[key] || '').trim();
 const validDay=value=>typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0,10)===value;
 async function db(table,query='',method='GET',body) {
@@ -45,10 +45,12 @@ module.exports=function production({configuredLocations,searchCatalog,verifyUser
    const date=req.query.date || dateKey(Date.now());
    if(!location || !validDay(date))return res.status(400).json({error:'Choose a valid location and date.'});
    const today=dateKey(Date.now()),from=shiftDay(date,-56),lid=encodeURIComponent(location.squareLocationId);
-   const [flavors,orders,events,runs,reviews]=await Promise.all([store('flavors','select=*&order=kind,name'),readAll('orders',`select=*&location_id=eq.${lid}&business_date=gte.${from}&business_date=lte.${date}&order=id`),readAll('events',`select=*&location_id=eq.${lid}&business_date=eq.${date}&order=created_at,id`),store('syncs',`select=*&location_id=eq.${lid}&order=finished_at.desc&limit=1`),readAll('reviews',`select=*&location_id=eq.${lid}&business_date=gte.${from}&business_date=lte.${date}&order=id`)]);
+   const [flavors,orders,events,runs,reviews,items,lists]=await Promise.all([store('flavors','select=*&order=kind,name'),readAll('orders',`select=*&location_id=eq.${lid}&business_date=gte.${from}&business_date=lte.${date}&order=id`),readAll('events',`select=*&location_id=eq.${lid}&business_date=eq.${date}&order=created_at,id`),store('syncs',`select=*&location_id=eq.${lid}&order=finished_at.desc&limit=1`),readAll('reviews',`select=*&location_id=eq.${lid}&business_date=gte.${from}&business_date=lte.${date}&order=id`),searchCatalog(['ITEM']),searchCatalog(['MODIFIER_LIST'])]);
    for(const order of orders){const review=reviews.find(r=>r.order_id===order.id && r.order_version===order.version);if(review){order.counts=review.counts;order.issues=[];}}
    const historyFrom=runs[0]?.history_from || null;
-   res.json({...buildPlan({flavors,orders,events,date,today,historyFrom}),locations:locations.map(({id,name})=>({id,name})),location:location.id,lastSync:runs[0] || null,recentOrders:orders.filter(o=>o.business_date===date).sort((a,b)=>b.issues.length-a.issues.length).slice(0,100).map(o=>({id:o.id,version:o.version,ticket:o.ticket,paid:o.paid,state:o.state,counts:o.counts,issues:o.issues})),events});
+   const active=currentFlavors(items,lists,location.squareLocationId);
+   const visible=planFlavors(flavors,active,orders,events,date);
+   res.json({...buildPlan({flavors:visible,orders,events,date,today,historyFrom}),allFlavors:planFlavors(flavors,[...flavors,...active],[],[],date),locations:locations.map(({id,name})=>({id,name})),location:location.id,lastSync:runs[0] || null,recentOrders:orders.filter(o=>o.business_date===date).sort((a,b)=>b.issues.length-a.issues.length).slice(0,100).map(o=>({id:o.id,version:o.version,ticket:o.ticket,paid:o.paid,state:o.state,counts:o.counts,issues:o.issues})),events});
   }catch(error){res.status(503).json({error:error.message});}
  });
  router.post('/events',async(req,res)=>{
@@ -79,7 +81,13 @@ module.exports=function production({configuredLocations,searchCatalog,verifyUser
  router.post('/flavors',async(req,res)=>{
   const name=String(req.body?.name || '').trim(),kind=req.body?.kind;
   if(name.length<2 || name.length>100 || !/[a-z0-9]/i.test(name) || !['full','mini'].includes(kind))return res.status(400).json({error:'Enter a flavor name and cookie size.'});
-  try {await store('flavors','','POST',flavor(name,kind));res.json({saved:true});}catch(error){res.status(503).json({error:error.message});}
+  try {
+   const location=configuredLocations().find(l=>l.id===req.body?.location),date=req.body?.date;
+   if(!location || !validDay(date))return res.status(400).json({error:'Choose a valid location and date.'});
+   const f=flavor(name,kind);await store('flavors','','POST',f);
+   await store('events','','POST',{id:crypto.randomUUID(),location_id:location.squareLocationId,business_date:date,flavor_id:f.id,kind:'adjustment',quantity:0,note:'Flavor added to this day’s plan.',created_by:req.productionUser});
+   res.json({saved:true});
+  }catch(error){res.status(503).json({error:error.message});}
  });
  router.post('/sync',async(req,res)=>{
   const location=configuredLocations().find(l=>l.id===req.body?.location);
@@ -90,8 +98,8 @@ module.exports=function production({configuredLocations,searchCatalog,verifyUser
    const days=req.body?.history===true?56:3;
    const until=new Date().toISOString(),since=new Date(Date.now()-days*86400000).toISOString();
    const [items,lists,existing,previous]=await Promise.all([searchCatalog(['ITEM']),searchCatalog(['MODIFIER_LIST']),store('flavors','select=*'),store('syncs',`location_id=eq.${encodeURIComponent(location.squareLocationId)}&order=finished_at.desc&limit=1`)]);
-   const known=new Map(existing.map(f=>[f.id,f]));const listMap=new Map(lists.map(l=>[l.id,l]));
-   for(const item of items.filter(i=>i.itemData && !i.itemData.isArchived && boxSize(i.itemData.name)))for(const ref of item.itemData.modifierListInfo || [])if(ref.enabled!==false)for(const m of listMap.get(ref.modifierListId)?.modifierListData?.modifiers || [])if(m.modifierData?.name && !m.modifierData.isArchived){const f=flavor(m.modifierData.name);known.set(f.id,f);}
+   const known=new Map(existing.map(f=>[f.id,f]));
+   for(const f of currentFlavors(items,lists,location.squareLocationId))known.set(f.id,f);
    let cursor,processed=0;const summaries=[];
    for(let page=0;page<40;page++){
     const data=await squareRequest('/orders/search',{location_ids:[location.squareLocationId],limit:500,return_entries:false,...(cursor?{cursor}:{}),query:{filter:{date_time_filter:{updated_at:{start_at:since,end_at:until}}},sort:{sort_field:'UPDATED_AT',sort_order:'ASC'}}});

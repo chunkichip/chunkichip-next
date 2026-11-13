@@ -11,6 +11,8 @@ Open /admin, sign in with an existing site owner, and select **Inventory & bake 
 5. Import eight weeks for initial forecasting. Use a manual whole-day target until there are at least three usable matching-weekday observations.
 6. Print the plan through the browser. Square Stand USB printing is not integrated.
 
+The bake-plan lineup comes from enabled, non-archived Square box modifiers for the selected shop, including sold-out flavors that need baking. Historical imports never activate old flavors. Cookies with paid orders or stock entries for the selected date remain visible for reconciliation. Adding a flavor adds it to that date’s plan with a zero-quantity adjustment. All historical flavors remain available when reviewing an order.
+
 ## Count model
 
 - Catalog modifier quantity multiplied by box line-item quantity.
