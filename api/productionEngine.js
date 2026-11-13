@@ -67,10 +67,46 @@ function analyzeOrder(order, known=[]) {
  return result;
 }
 function shiftDay(day, offset) {const d=new Date(`${day}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);}
-function buildPlan({flavors,orders,events,date,today,historyFrom}) {
+function buildPlan({flavors,orders,events,date,today,historyFrom,activeFlavorIds=flavors.map(f=>f.id)}) {
  const due=orders.filter(o=>o.business_date===date && o.paid && o.state!=='CANCELED');
  const sum=(list,id)=>list.reduce((n,o)=>n+(o.counts || []).filter(f=>f.id===id).reduce((a,f)=>a+f.quantity,0),0);
  const issues=due.flatMap(o=>(o.issues || []).map(issue=>({...issue,ticket:o.ticket})));
+ // Use only completed, reconciled days. Today’s partial sales are not a full-day
+ // demand observation, and advance orders are added separately below.
+ const history=orders.filter(o=>o.business_date<date && o.business_date<today && historyFrom && o.business_date>=historyFrom && o.paid && o.state!=='CANCELED');
+ const badDays=new Set(history.filter(o=>o.issues?.length).map(o=>o.business_date));
+ const retail=history.filter(o=>!o.advance_order && !badDays.has(o.business_date));
+ const byDay=new Map();
+ for(const o of retail){if(!byDay.has(o.business_date))byDay.set(o.business_date,[]);byDay.get(o.business_date).push(o);}
+ const matchingDays=Array.from({length:8},(_,n)=>shiftDay(date,-7*(n+1)));
+ const samplesById=new Map(flavors.map(f=>[f.id,matchingDays.map(day=>({date:day,quantity:sum(byDay.get(day) || [],f.id)})).filter(s=>s.quantity>0)]));
+ const direct=new Map(flavors.map(f=>{const samples=samplesById.get(f.id);return [f.id,samples.length>=3?Math.ceil(samples.reduce((n,s)=>n+s.quantity,0)/samples.length):null];}));
+ const activeIds=new Set(activeFlavorIds);
+ const weekday=new Date(`${date}T12:00:00Z`).getUTCDay();
+ const weekStart=shiftDay(date,-((weekday+6)%7));
+ const estimates=new Map();
+ for(const kind of ['full','mini']) {
+  const menu=flavors.filter(f=>f.kind===kind && activeIds.has(f.id));
+  const newcomers=menu.filter(f=>direct.get(f.id)===null);
+  if(!newcomers.length)continue;
+  const totals=matchingDays.map(day=>({date:day,quantity:(byDay.get(day) || []).reduce((n,o)=>n+(o.counts || []).filter(f=>f.kind===kind).reduce((a,f)=>a+f.quantity,0),0)})).filter(s=>s.quantity>0);
+  if(!totals.length)continue;
+  const totalDemand=totals.reduce((n,s)=>n+s.quantity,0)/totals.length;
+  const establishedIds=new Set(menu.filter(f=>direct.get(f.id)!==null).map(f=>f.id));
+  const rotatingDemand=totals.reduce((n,s)=>n+(byDay.get(s.date) || []).reduce((a,o)=>a+(o.counts || []).filter(f=>f.kind===kind && !establishedIds.has(f.id)).reduce((b,f)=>b+f.quantity,0),0),0)/totals.length;
+  // The demand left after established menu flavors includes past rotating
+  // cookies. Share that pool equally until the new flavors have observed sales.
+  const priorShare=rotatingDemand>0?rotatingDemand/totalDemand/newcomers.length:1/menu.length;
+  for(const f of newcomers) {
+   const firstDay=[...byDay.keys()].filter(day=>day>=weekStart && sum(byDay.get(day),f.id)>0).sort()[0];
+   const observed=firstDay?retail.filter(o=>o.business_date>=firstDay):[];
+   const weekQuantity=sum(observed,f.id);
+   const weekTotal=observed.reduce((n,o)=>n+(o.counts || []).filter(c=>c.kind===kind).reduce((a,c)=>a+c.quantity,0),0);
+   // A 100-cookie prior prevents one small early order dominating the estimate.
+   const share=weekTotal>0?(100*priorShare+weekQuantity)/(100+weekTotal):priorShare;
+   estimates.set(f.id,{baseline:Math.ceil(totalDemand*share),source:weekTotal>0?'weekly_mix':'new_flavor',totalDemand:Math.ceil(totalDemand),totalSamples:totals.length,weekQuantity,weekTotal});
+  }
+ }
  const rows=flavors.map(f=>{
   const movements=events.filter(e=>e.flavor_id===f.id && e.business_date===date).sort((a,b)=>a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id));
   const latest=kind=>movements.filter(e=>e.kind===kind).at(-1);
@@ -78,24 +114,16 @@ function buildPlan({flavors,orders,events,date,today,historyFrom}) {
   const net=movements.filter(e=>!['opening','target','manual_sale'].includes(e.kind)).reduce((n,e)=>n+(['waste','manual_sale'].includes(e.kind)?-e.quantity:e.quantity),0);
   const sold=sum(due,f.id)+movements.filter(e=>e.kind==='manual_sale').reduce((n,e)=>n+e.quantity,0);
   const reserved=sum(due.filter(o=>o.advance_order),f.id);
-  const samples=[];
-  for(let n=1;n<=8;n++) {
-   const day=shiftDay(date,-7*n);
-   if(day>=today || !historyFrom || day<historyFrom) continue;
-   const list=orders.filter(o=>o.business_date===day && o.paid && o.state!=='CANCELED');
-   if(list.some(o=>o.issues?.length)) continue;
-   const quantity=sum(list.filter(o=>!o.advance_order),f.id);
-   // Without historical menu availability, an absent flavor is unknown, not zero demand.
-   if(quantity>0) samples.push({date:day,quantity});
-  }
-  const baseline=samples.length>=3 ? Math.ceil(samples.reduce((n,s)=>n+s.quantity,0)/samples.length) : null;
+  const samples=samplesById.get(f.id);
+  const estimate=estimates.get(f.id);
+  const baseline=direct.get(f.id) ?? estimate?.baseline ?? null;
+  const forecastSource=direct.get(f.id)!==null?'same_flavor':estimate?.source || null;
   const manual=latest('target')?.quantity ?? null;
   const target=manual!==null ? Math.max(manual,reserved) : baseline!==null ? baseline+reserved : null;
   const stock=opening===null ? null : opening+net;
-  const importedSold=sum(due,f.id);
   const remaining=stock===null ? null : stock-sold;
   const needed=stock===null || target===null || issues.length ? null : Math.max(0,Math.max(target,sold)-stock);
-  return {...f,opening,net,sold,reserved,remaining,baseline,target,manualTarget:manual,samples,needed,trays:needed===null || f.kind!=='full' ? null : Math.ceil(needed/15)};
+  return {...f,opening,net,sold,reserved,remaining,baseline,forecastSource,forecastDetails:estimate || null,target,manualTarget:manual,samples,needed,trays:needed===null || f.kind!=='full' ? null : Math.ceil(needed/15)};
  });
  return {date,rows,issues,orderCount:due.length};
 }

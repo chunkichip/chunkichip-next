@@ -58,3 +58,46 @@ test('API hides historical flavors while preserving review choices and manual da
  plan=await h.request('?date=2026-11-12');assert.deepEqual(plan.data.rows.map(f=>f.name),['Custom cookie']);
  assert.equal(h.tables.orders.length,1);assert.equal(h.tables.events[0].quantity,0);
 });
+
+function rotatingFixture(){
+ const classic=flavor('Chunki Chip'),old=flavor('Past special'),a=flavor('Brand new A'),b=flavor('Brand new B');
+ const order=(id,day,counts,extra={})=>({id,business_date:day,paid:true,state:'COMPLETED',advance_order:false,counts:counts.map(([f,quantity])=>({...f,quantity})),issues:[],...extra});
+ const orders=['2026-10-23','2026-10-30','2026-11-06'].map((day,i)=>order(String(i),day,[[classic,60],[old,40]]));
+ const args={flavors:[classic,a,b],orders,events:[],date:'2026-11-13',today:'2026-11-13',historyFrom:'2026-09-18'};
+ return {classic,old,a,b,order,args};
+}
+test('new specials inherit the historical rotating demand pool without showing old flavors',()=>{
+ const {classic,a,b,args}=rotatingFixture();const rows=buildPlan(args).rows;
+ assert.equal(rows.find(f=>f.id===classic.id).baseline,60);
+ for(const id of [a.id,b.id]){const row=rows.find(f=>f.id===id);assert.equal(row.baseline,20);assert.equal(row.forecastSource,'new_flavor');assert.equal(row.samples.length,0);assert.equal(row.needed,null);}
+ assert.equal(rows.length,3);
+});
+test('completed sales this week refine new specials while partial today and advance orders are excluded',()=>{
+ const {classic,a,b,order,args}=rotatingFixture();
+ args.orders.push(order('thu','2026-11-12',[[classic,50],[a,40],[b,10]]),order('today','2026-11-13',[[a,900]]),order('catering','2026-11-12',[[b,500]],{advance_order:true}));
+ const rows=buildPlan(args).rows;
+ assert.equal(rows.find(f=>f.id===a.id).baseline,30);assert.equal(rows.find(f=>f.id===b.id).baseline,15);
+ assert.equal(rows.find(f=>f.id===a.id).forecastSource,'weekly_mix');assert.equal(rows.find(f=>f.id===a.id).forecastDetails.weekTotal,100);
+});
+test('new special suggestions add due advance orders and subtract opening stock and net bakes once',()=>{
+ const {a,order,args}=rotatingFixture();args.orders.push(order('preorder','2026-11-13',[[a,5]],{advance_order:true}));
+ args.events=['opening','bake','waste'].map((kind,i)=>({id:String(i),flavor_id:a.id,business_date:args.date,created_at:`2026-11-13T09:00:0${i}Z`,kind,quantity:[10,4,1][i]}));
+ const row=buildPlan(args).rows.find(f=>f.id===a.id);assert.equal(row.target,25);assert.equal(row.needed,12);assert.equal(row.remaining,8);
+ args.events.push({id:'3',flavor_id:a.id,business_date:args.date,created_at:'2026-11-13T09:00:03Z',kind:'target',quantity:30});
+ assert.equal(buildPlan(args).rows.find(f=>f.id===a.id).target,30);
+});
+test('fallback skips unresolved history, keeps size groups separate, and never guesses without history',()=>{
+ const {a,order,args}=rotatingFixture();const mini=flavor('Mini','mini');
+ args.orders.push(order('mini','2026-11-06',[[mini,1000]]),order('bad','2026-10-16',[[a,900]],{issues:[{message:'Unallocated box'}]}));
+ let row=buildPlan(args).rows.find(f=>f.id===a.id);assert.equal(row.baseline,20);assert.equal(row.forecastDetails.totalSamples,3);
+ assert.equal(buildPlan({...args,historyFrom:null}).rows.find(f=>f.id===a.id).baseline,null);
+ row=buildPlan({...args,activeFlavorIds:[args.flavors[0].id]}).rows.find(f=>f.id===a.id);assert.equal(row.baseline,null);
+});
+test('flavors are not penalized for days before their first observed sales this week',()=>{
+ const {classic,a,b,order,args}=rotatingFixture();args.orders.push(order('mon','2026-11-09',[[classic,900]]),order('thu','2026-11-12',[[classic,50],[a,40],[b,10]]));
+ const row=buildPlan(args).rows.find(f=>f.id===a.id);assert.equal(row.baseline,30);assert.equal(row.forecastDetails.weekTotal,100);
+});
+test('a brand-new special still gets a starting share when history contains only classics',()=>{
+ const {a,classic,args}=rotatingFixture();args.orders=args.orders.map(o=>({...o,counts:[{...classic,quantity:90}]}));
+ const row=buildPlan(args).rows.find(f=>f.id===a.id);assert.equal(row.baseline,30);assert.equal(row.forecastSource,'new_flavor');
+});

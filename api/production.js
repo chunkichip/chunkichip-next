@@ -50,7 +50,7 @@ module.exports=function production({configuredLocations,searchCatalog,verifyUser
    const historyFrom=runs[0]?.history_from || null;
    const active=currentFlavors(items,lists,location.squareLocationId);
    const visible=planFlavors(flavors,active,orders,events,date);
-   res.json({...buildPlan({flavors:visible,orders,events,date,today,historyFrom}),allFlavors:planFlavors(flavors,[...flavors,...active],[],[],date),locations:locations.map(({id,name})=>({id,name})),location:location.id,lastSync:runs[0] || null,recentOrders:orders.filter(o=>o.business_date===date).sort((a,b)=>b.issues.length-a.issues.length).slice(0,100).map(o=>({id:o.id,version:o.version,ticket:o.ticket,paid:o.paid,state:o.state,counts:o.counts,issues:o.issues})),events});
+   res.json({...buildPlan({flavors:visible,orders,events,date,today,historyFrom,activeFlavorIds:active.map(f=>f.id)}),allFlavors:planFlavors(flavors,[...flavors,...active],[],[],date),locations:locations.map(({id,name})=>({id,name})),location:location.id,lastSync:runs[0] || null,recentOrders:orders.filter(o=>o.business_date===date).sort((a,b)=>b.issues.length-a.issues.length).slice(0,100).map(o=>({id:o.id,version:o.version,ticket:o.ticket,paid:o.paid,state:o.state,counts:o.counts,issues:o.issues})),events});
   }catch(error){res.status(503).json({error:error.message});}
  });
  router.post('/events',async(req,res)=>{
