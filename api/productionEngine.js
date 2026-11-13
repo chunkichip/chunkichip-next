@@ -123,7 +123,7 @@ function buildPlan({flavors,orders,events,date,today,historyFrom,activeFlavorIds
   const stock=opening===null ? null : opening+net;
   const remaining=stock===null ? null : stock-sold;
   const needed=stock===null || target===null || issues.length ? null : Math.max(0,Math.max(target,sold)-stock);
-  return {...f,opening,net,sold,reserved,remaining,baseline,forecastSource,forecastDetails:estimate || null,target,manualTarget:manual,samples,needed,trays:needed===null || f.kind!=='full' ? null : Math.ceil(needed/15)};
+  return {...f,opening,net,sold,reserved,remaining,baseline,forecastSource,forecastDetails:estimate || null,target,manualTarget:manual,samples,needed,trays:needed===null || f.kind!=='full' ? null : Math.ceil(needed/10)};
  });
  return {date,rows,issues,orderCount:due.length};
 }

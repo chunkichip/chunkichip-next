@@ -28,7 +28,7 @@ The bake-plan lineup comes from enabled, non-archived Square box modifiers for t
 - Once a new flavor has observed sales during the selected date’s Monday-start week, its share is blended with completed, reconciled same-week sales from its first observed day onward. A 100-cookie prior at the starting share limits early noise: share = (100 × starting share + flavor sales) / (100 + same-size sales). Baseline = round up(total weekday demand × share). Today’s partial sales, future days and advance orders are excluded. Full-size and mini demand never mix. Off-menu flavors retained only for reconciliation do not receive this fallback.
 - Forecast labels distinguish exact-flavor history, a new-flavor estimate, and an estimate using this week’s mix. These are provisional observed-sales estimates. Stockouts, promotions and events can affect demand; the planner has no historical availability or lost-sales data. Estimates for individual flavors are not constrained to sum to an exact shop-wide target.
 - Target = baseline + known advance-order cookies, or owner target (at least known advance orders). To bake = max(0, max(target, ordered) - opening - net production). No bake suggestion is shown without an opening count and target, or while this day's imports need review.
-- Full-size tray guidance uses 15 cookies per tray. It rounds up for planning; it does not change inventory or record a bake.
+- Full-size tray guidance uses 10 cookies per tray. It rounds up for planning; it does not change inventory or record a bake.
 
 ## Import behavior and limits
 
