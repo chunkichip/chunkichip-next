@@ -5,6 +5,7 @@ import CookieSpinner from '@/components/CookieSpinner';
 import ManagedText from '@/components/ManagedText';
 import EmailSignup from '@/components/EmailSignup';
 import FlavorHero from '@/components/FlavorHero';
+import { DOORDASH_URL } from '@/lib/fulfillment';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -130,7 +131,7 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
         </>}
 
         <div className="mt-14 grid gap-4 md:grid-cols-3">
-          <a href="https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/" className="soft-card soft-link-card bg-white p-6 text-[#171315]"><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="cb836b4142385ea2a4e9b37f" fallback={"Local delivery"} /></span><h3 className="brand-heading mt-4 text-4xl"><ManagedText id="38988d673f3eb19aae2bf64c" fallback={"DOORDASH"} /></h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4"><ManagedText id="dc7fd8a7fa95bc28664ecfcd" fallback={"Order nearby ↗"} /></span></a>
+          <a href={DOORDASH_URL} target="_blank" rel="noopener noreferrer" className="soft-card soft-link-card bg-white p-6 text-[#171315]"><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="cb836b4142385ea2a4e9b37f" fallback={"Local delivery"} /></span><h3 className="brand-heading mt-4 text-4xl"><ManagedText id="38988d673f3eb19aae2bf64c" fallback={"DOORDASH"} /></h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4"><ManagedText id="dc7fd8a7fa95bc28664ecfcd" fallback={"Deliver with DoorDash ↗"} /></span></a>
           <a href="#shipping-boxes" className="soft-card soft-link-card bg-white p-6"><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="50748828737ef84ee2d13eda" fallback={"Send Chunki nationwide"} /></span><h3 className="brand-heading mt-4 text-4xl"><ManagedText id="911ab123f14b11910c02bb4c" fallback={"SHIPPING BOXES"} /></h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4"><ManagedText id="af47eec9789f205077fb8c8c" fallback={"Choose a box ↗"} /></span></a>
           <a href="#locations" className="soft-card soft-link-card bg-white p-6"><span className="text-xs font-black uppercase tracking-widest"><ManagedText id="c1be65c52ec0d8243d9be214" fallback={"Find a cookie"} /></span><h3 className="brand-heading mt-4 text-4xl"><ManagedText id="4f800e08a7920bb64f820b8c" fallback={"COME BY"} /></h3><span className="mt-4 inline-block text-sm font-bold underline underline-offset-4"><ManagedText id="a20b47ec085868092ff866a1" fallback={"Hours & locations ↗"} /></span></a>
         </div>

@@ -4,15 +4,13 @@ import { useEffect, useState } from 'react';
 import { useCartStore } from '@/store/cart';
 import PickupCheckout from '@/components/PickupCheckout';
 import ShippingCheckout from '@/components/ShippingCheckout';
+import { DOORDASH_URL } from '@/lib/fulfillment';
 
 type Props = {
   open: boolean;
   setOpen: (open: boolean) => void;
   onBuildAnotherBox: () => void;
 };
-
-const DOORDASH_URL =
-  'https://www.doordash.com/store/chunki-chip-milford-39514093/107306346/';
 
 export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) {
   const [giftCardCheckout, setGiftCardCheckout] = useState(false);
@@ -128,13 +126,13 @@ export default function CartDrawer({ open, setOpen, onBuildAnotherBox }: Props) 
               <a
                 href={DOORDASH_URL}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="rounded-[2rem] border border-[#ffe3f3] bg-black p-5 text-left text-white transition hover:-translate-y-1 hover:shadow-xl"
               >
-                <h3 className="text-xl font-black">DoorDash Delivery</h3>
+                <h3 className="text-xl font-black">Deliver with DoorDash ↗</h3>
 
                 <p className="mt-2 text-sm leading-6 text-white/75">
-                  Order local delivery through DoorDash.
+                  Opens DoorDash in a new tab. Choose your cookies and check delivery availability there. Your website bag stays here.
                 </p>
               </a>
             </div>
