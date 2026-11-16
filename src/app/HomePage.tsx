@@ -9,7 +9,7 @@ import { DOORDASH_URL } from '@/lib/fulfillment';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import PreparedImage from '@/components/PreparedImage';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { getWeeklyFlavors, isInPersonCookieBox, isInternalPackaging, isShippingOnlyProduct } from '@/lib/catalog';
 
@@ -79,7 +79,7 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
                 {inPersonBoxes.map((product) => (
                   <Link key={product.id} href={`/product/${encodeURIComponent(product.id)}`} className="group soft-card soft-link-card flex min-h-[360px] flex-col bg-white text-left transition focus-visible:outline-[#eb2327]">
                     <div className="soft-inset flex min-h-[225px] items-center justify-center p-4">
-                      {product.boxSize ? <Image width={600} height={600} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 25vw" src={`/boxes/${product.boxSize}-box.png`} alt={`Open ${product.name}`} className="h-52 w-full object-contain transition duration-300 group-hover:scale-[1.03]"/> : <span className="text-7xl">🍪</span>}
+                      {product.boxSize ? <PreparedImage width={600} height={600} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 25vw" src={`/boxes/${product.boxSize}-box.png`} alt={`Open ${product.name}`} className="h-52 w-full object-contain transition duration-300 group-hover:scale-[1.03]"/> : <span className="text-7xl">🍪</span>}
                     </div>
                     <div className="flex flex-1 flex-col justify-between p-5">
                       <div><span className="text-xs font-black uppercase tracking-[.18em] text-[#eb2327]">{product.boxSize}<ManagedText id="0a60ff7eb1cccc7aaeb83a7c" fallback={"cookies"} /></span><h4 className="brand-heading mt-3 text-4xl">{product.name}</h4></div>
@@ -99,7 +99,7 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
               </div>
               <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
                 <figure className="soft-card overflow-hidden bg-white">
-                  <Image
+                  <PreparedImage
                     src="/open-shipping-box.webp"
                     alt="A customer holding an open pink Chunki Chip shipping box filled with individually wrapped cookies"
                     width={1536}

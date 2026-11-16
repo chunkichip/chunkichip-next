@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import PreparedImage from '@/components/PreparedImage';
 import { ArrowLeft, ArrowRight, Minus, Plus } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/cart';
@@ -299,7 +299,7 @@ export default function ProductPage({ params, initialProduct = null, initialProd
     return (
       <div className="relative mx-auto aspect-square w-[68vw] max-w-full lg:w-full lg:max-w-[620px]">
         {hasBrandedArt ? (
-          <Image width={1240} height={1240} sizes="(max-width: 1023px) 68vw, 620px"
+          <PreparedImage width={1240} height={1240} sizes="(max-width: 1023px) 68vw, 620px"
             src={`/boxes/${product.boxSize}-box.png`}
             alt="Open Chunki Chip box"
             className="block h-full w-full object-contain drop-shadow-2xl"

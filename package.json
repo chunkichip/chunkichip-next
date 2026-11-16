@@ -6,7 +6,8 @@
     "dev": "concurrently \"next dev\" \"nodemon api/server.js\"",
     "build": "next build",
     "start": "node server.js",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prebuild": "node scripts/prepare-images.mjs"
   },
   "dependencies": {
     "@fontsource/anton": "^5.2.7",
@@ -23,7 +24,8 @@
     "react-facebook-pixel": "^1.0.4",
     "square": "^44.0.1",
     "uuid": "^14.0.0",
-    "zustand": "^5.0.13"
+    "zustand": "^5.0.13",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
