@@ -38,7 +38,9 @@ const square = process.env.SQUARE_ACCESS_TOKEN ? new SquareClient({
   environment: process.env.SQUARE_ENV === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
 }) : null;
 const money = (amount) => `$${(Number(amount || 0) / 100).toFixed(2)}`;
-app.use('/api/production', require('./production')({ configuredLocations, searchCatalog }));
+// Inventory lives on the independent operations service. Do not process stock
+// changes or Square sales imports on the customer-facing server.
+app.use('/api/production', (_req,res) => res.status(410).set('Cache-Control','no-store').json({error:'Inventory and bake planning have moved to the operations app.',operationsUrl:'https://chunki-chip-operations.onrender.com/admin'}));
 app.use('/api/press-inquiries', require('./pressInquiries')());
 app.use('/api/benefits', require('./customerBenefits')());
 app.use('/api/gift-cards', require('./giftCards')());
