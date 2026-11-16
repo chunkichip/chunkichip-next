@@ -16,10 +16,10 @@ const sections = {
 type Section = keyof typeof sections;
 const titles = { catering_requests: 'Catering requests', site_content: 'Page content', archive_entries: 'Flavor archive', job_openings: 'Job postings', job_applications: 'Applications' };
 
-export default function Dashboard() {
+export default function Dashboard({ operations = false }: { operations?: boolean }) {
   const [admin, setAdmin] = useState(false);
   const [weeklyMode, setWeeklyMode] = useState(false);
-  const [productionMode, setProductionMode] = useState(false);
+  const [productionMode, setProductionMode] = useState(operations);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'reset' | 'update-password'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,13 +53,13 @@ export default function Dashboard() {
     return () => data.subscription.unsubscribe();
   }, []);
   useEffect(() => {
-    if (!admin || !client) return;
+    if (!admin || !client || productionMode || weeklyMode) return;
     let active = true;
     client.from(section).select('*').order(section === 'catering_requests' ? 'created_at' : 'id', { ascending: section !== 'catering_requests' }).then(({ data, error }) => {
       if (active) { setRows(data || []); if (error) setMessage(error.message); }
     });
     return () => { active = false; };
-  }, [admin, section]);
+  }, [admin, section, productionMode, weeklyMode]);
   async function authenticate(e: React.FormEvent) {
     e.preventDefault();
     if (!client || busy) return;
@@ -130,7 +130,7 @@ export default function Dashboard() {
     setEditing({ ...editing, [section === 'site_content' ? 'value' : 'image']: client.storage.from('site-images').getPublicUrl(path).data.publicUrl });
   }
   return <main className="min-h-screen bg-[#fff7fb] px-5 py-12 text-black"><div className="mx-auto max-w-5xl">
-    <h1 className="brand-heading text-5xl">SITE MANAGER</h1>
+    <p className="mb-3 text-sm font-bold uppercase tracking-widest">Chunki Chip · {operations ? 'Operations' : 'Website'}</p><h1 className="brand-heading text-5xl">{operations ? 'THE DAILY DOUGH' : 'SITE MANAGER'}</h1>{operations && <p className="mt-4 max-w-2xl">Inventory, production and website management in one place. Choose a shop and production date to plan the day.</p>}
     <p role="status" className="my-4 whitespace-pre-line">{!client ? 'Site manager is awaiting its Supabase connection settings.' : message}</p>
     {(!admin || authMode === 'update-password') ? <form onSubmit={authenticate} className="grid max-w-md gap-4 rounded-2xl bg-white p-6">
       <h2 className="text-xl font-bold">{authMode === 'signup' ? 'Create owner account' : authMode === 'reset' ? 'Reset your password' : authMode === 'update-password' ? 'Choose a new password' : 'Owner sign in'}</h2>
@@ -142,7 +142,7 @@ export default function Dashboard() {
       {authMode === 'signin' && <button type="button" disabled={busy || !client} onClick={() => { setAuthMode('reset'); setPassword(''); setMessage(''); }} className="font-bold underline">Forgot password?</button>}
       <button type="button" disabled={busy || !client} onClick={() => { setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); setPassword(''); setConfirmPassword(''); setMessage(''); }}>{authMode === 'signin' ? 'First time? Create owner account' : 'Back to sign in'}</button>
     </form> : <>
-    <div className="my-6 flex flex-wrap gap-3"><button onClick={() => { setProductionMode(true); setWeeklyMode(false); setEditing(null); }} className={`rounded-full border px-4 py-3 ${productionMode ? 'bg-black text-white' : 'bg-white'}`}>Inventory & bake plan</button><button onClick={() => { setProductionMode(false); setWeeklyMode(true); setEditing(null); setMessage(''); }} className={`rounded-full border px-4 py-3 ${weeklyMode ? 'bg-black text-white' : 'bg-white'}`}>Weekly flavors</button>{(Object.keys(sections) as Section[]).map(key => <button key={key} onClick={() => { setProductionMode(false); setWeeklyMode(false); setSection(key); setEditing(null); setFilter(""); }} className={`rounded-full border px-4 py-3 ${!weeklyMode && section === key ? 'bg-black text-white' : 'bg-white'}`}>{titles[key]}</button>)}<button onClick={() => client?.auth.signOut()}>Sign out</button></div>
+    <div className="my-6 flex flex-wrap gap-3"><button onClick={() => { setProductionMode(true); setWeeklyMode(false); setEditing(null); }} className={`rounded-full border px-4 py-3 ${productionMode ? 'bg-black text-white' : 'bg-white'}`}>Inventory & bake plan</button><button onClick={() => { setProductionMode(false); setWeeklyMode(true); setEditing(null); setMessage(''); }} className={`rounded-full border px-4 py-3 ${weeklyMode ? 'bg-black text-white' : 'bg-white'}`}>Weekly flavors</button>{(Object.keys(sections) as Section[]).map(key => <button key={key} onClick={() => { setProductionMode(false); setWeeklyMode(false); setSection(key); setEditing(null); setFilter(""); }} className={`rounded-full border px-4 py-3 ${!productionMode && !weeklyMode && section === key ? 'bg-black text-white' : 'bg-white'}`}>{titles[key]}</button>)}<button onClick={() => client?.auth.signOut()}>Sign out</button></div>
     {productionMode ? <ProductionPlanner /> : weeklyMode ? <WeeklyFlavorEditor /> : <>
     <p className="mb-4">Edit page wording, manage archived flavors, post jobs, and review applications. Menu products and prices are managed in Square.</p>
     {!editing ? <><label>Find an entry<input className="my-3 block w-full border bg-white p-3" value={filter} onChange={e => setFilter(e.target.value)}/></label>{['archive_entries','job_openings'].includes(section) && <button className="mb-5 bg-[#eb2327] px-5 py-3 font-bold text-white" onClick={() => setEditing(section === 'archive_entries' ? {name:'',description:'',image:'',visible:true,display_order:0} : {title:'',location:'Milford, NH',employment_type:'',description:'',is_active:true,display_order:0})}>Add {section === 'archive_entries' ? 'flavor' : 'job'}</button>}<div className="grid gap-3">{rows.filter(row => JSON.stringify(row).toLowerCase().includes(filter.toLowerCase())).sort((a,b) => String(a.page || a.name || a.title || a.created_at).localeCompare(String(b.page || b.name || b.title || b.created_at))).map(row => <button key={String(row.id)} onClick={() => setEditing(row)} className="rounded-xl bg-white p-5 text-left"><strong>{String(row.page || row.name || row.title || row.applicant_name)}</strong><p className="mt-1 text-sm">{String(row.label || row.description || row.role || row.event_date || '').slice(0,140)}</p></button>)}</div></> : <form onSubmit={save} className="grid gap-4 rounded-2xl bg-white p-6"><h2 className="text-xl font-bold">{titles[section]}</h2>{sections[section].map(field => <label key={field} className="font-bold">{field.replaceAll('_',' ')}{typeof editing[field] === 'boolean' ? <input type="checkbox" className="ml-4" checked={Boolean(editing[field])} onChange={e => setEditing({...editing,[field]:e.target.checked})}/> : <textarea readOnly={(section === 'catering_requests' && field !== 'status') || section === 'job_applications' || (section === 'site_content' && field !== 'value')} rows={['description','value','experience','details'].includes(field) ? 5 : 1} required={['name','title'].includes(field)} value={String(editing[field] ?? '')} onChange={e => setEditing({...editing,[field]:field === 'display_order' ? Number(e.target.value) : e.target.value})} className="mt-2 block w-full border p-3 font-normal"/>}</label>)}{(section === 'archive_entries' || (section === 'site_content' && String(editing.id).startsWith('image-'))) && <label>Upload photo<input type="file" accept="image/png,image/jpeg,image/webp" disabled={busy} onChange={e => {if(e.target.files?.[0]) void upload(e.target.files[0]);}} className="block py-3"/></label>}<div className="flex gap-4">{section !== 'job_applications' && <button disabled={busy} className="bg-[#eb2327] px-6 py-3 font-bold text-white">{busy ? 'Saving…' : 'Save changes'}</button>}<button type="button" disabled={busy} onClick={() => setEditing(null)}>Back</button></div></form>}

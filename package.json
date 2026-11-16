@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "node server.js",
     "lint": "eslint",
-    "prebuild": "node scripts/prepare-images.mjs"
+    "prebuild": "node scripts/prepare-images.mjs",
+    "build:operations": "NEXT_PUBLIC_OPERATIONS_APP=true next build",
+    "start:operations": "node operations-server.js"
   },
   "dependencies": {
     "@fontsource/anton": "^5.2.7",

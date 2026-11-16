@@ -71,9 +71,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-<ContentProvider><SiteShell>{children}</SiteShell></ContentProvider>
-<MetaPixel />
-<GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} />
+{process.env.NEXT_PUBLIC_OPERATIONS_APP === 'true' ? children : <><ContentProvider><SiteShell>{children}</SiteShell></ContentProvider><MetaPixel /><GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID!} /></>}
 </body>
     </html>
   );
