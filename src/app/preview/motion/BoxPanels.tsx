@@ -7,7 +7,7 @@ import { isInPersonCookieBox, isShippingOnlyProduct, type CatalogFlavor } from '
 import type { SeoProduct } from '@/lib/seo-catalog';
 import styles from './box-panels.module.css';
 
-const sizes = ['1','2','4','6','12'];
+const sizes = ['12','6','4','2','1'];
 const slots: Record<string, [number, number][]> = {
   '1': [[51.85,57.25]],
   '2': [[40.9,54.25],[59.55,54.25]],
@@ -27,7 +27,7 @@ export default function BoxPanels({products,flavors}:{products:SeoProduct[];flav
 
   function choices(boxes:SeoProduct[], selected:SeoProduct|undefined, select:(size:string)=>void, ship=false) {
     return <div role="group" aria-label={ship?'Shipping box size':'Pickup box size'} className={`${styles.choices} ${ship?styles.shippingChoices:''}`}>
-      {(ship?['6','12']:sizes).map(size=>{
+      {(ship?['12','6']:sizes).map(size=>{
         const box=boxes.find(p=>p.boxSize===size);
         return <button key={size} type="button" aria-pressed={selected?.boxSize===size} aria-label={`${size} cookie box${box?'':', unavailable'}`} disabled={!box} onClick={()=>select(size)}>{ship?`${size} cookie box`:size}</button>;
       })}

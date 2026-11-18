@@ -47,11 +47,12 @@ export default function HomePage({initialProducts=[]}:{initialProducts?:Product[
 
   const inPersonBoxes = products
     .filter(isInPersonCookieBox)
-    .sort((a, b) => Number(a.name.match(/^\d+/)?.[0] || 0) - Number(b.name.match(/^\d+/)?.[0] || 0));
-  const shippingBoxes = products.filter((product) => isShippingOnlyProduct(product) && !isInternalPackaging(product));
+    .sort((a, b) => Number(b.name.match(/^\d+/)?.[0] || 0) - Number(a.name.match(/^\d+/)?.[0] || 0));
+  const shippingBoxes = products.filter((product) => isShippingOnlyProduct(product) && !isInternalPackaging(product))
+    .sort((a, b) => Number(b.boxSize || 0) - Number(a.boxSize || 0));
   const cookies = getWeeklyFlavors(products).map((flavor) => ({
     ...flavor,
-    price: inPersonBoxes[0]?.price || flavor.price || '',
+    price: inPersonBoxes[inPersonBoxes.length - 1]?.price || flavor.price || '',
   }));
 
   return (
