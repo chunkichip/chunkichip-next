@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Chunki Chip</string>
+    <string name="title_activity_main">Chunki Chip</string>
+    <string name="package_name">com.chunkichip.app</string>
+    <string name="custom_url_scheme">com.chunkichip.app</string>
+</resources>
