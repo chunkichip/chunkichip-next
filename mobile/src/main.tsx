@@ -101,7 +101,11 @@ function App() {
     try {
       const url = storefrontUrl(path);
       if (Capacitor.isNativePlatform()) await Browser.open({ url, toolbarColor: '#ffccef', presentationStyle: 'fullscreen' });
-      else window.location.assign(url);
+      else {
+        // Hosted previews can be embedded in a frame. Open the storefront
+        // separately so checkout navigation does not replace that frame.
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
     } catch { setNotice('We couldn’t open the shop. Please try again.'); }
     finally { setOpening(false); }
   }
