@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
-    "test": "node --experimental-strip-types --test src/catalog.test.ts",
+    "test": "node --experimental-strip-types --test src/catalog.test.ts src/ordering.test.ts",
     "sync": "npm run build && cap sync",
     "open:ios": "cap open ios",
     "open:android": "cap open android"

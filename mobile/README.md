@@ -8,10 +8,12 @@ Customer app for iOS and Android, built with React and Capacitor. The native app
 - Current weekly menu and box sizes, largest first.
 - Device-persistent favorites and a labeled cached menu when offline.
 - Manual refresh and refresh on returning to the app. No background polling or new hosted service.
-- Existing ordering, shipping, catering, and rewards open in a secure native browser sheet (Safari View Controller / Android Custom Tabs). Closing the sheet returns to the app. Browser preview follows those links normally.
+- In-app pickup box builder (1, 2, 4, 6, 12), device-persistent bag, box editing and quantities, live pickup/curbside scheduling, and availability/price revalidation before payment.
+- Payment uses the existing storefront checkout API and opens in the secure native browser sheet; the customer must open the prepared payment link. The bag stays saved until the customer clears it after purchase; automatic payment confirmation is not implemented.
+- Shipping, catering, and rewards open in a secure native browser sheet (Safari View Controller / Android Custom Tabs). Closing the sheet returns to the app. Browser preview follows those links normally.
 - Branded icons and launch screens; iOS UserDefaults privacy reason for device-local favorites/menu storage.
 
-This is an alpha, not a submitted or approved store app. Checkout and rewards are website flows in this version, not embedded native forms. There are no push notifications, customer account synchronization, order history, or deep-link callbacks yet.
+This is an alpha, not a submitted or approved store app. Pickup box building, cart, and scheduling are bundled in-app. Payment and rewards use secure browser sheets. There are no push notifications, customer account synchronization, order history, or payment deep-link callbacks yet. Shipping boxes use the website flow; pickup bags do not transfer into that flow.
 
 ## Build
 

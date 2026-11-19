@@ -4,6 +4,8 @@ import type { CatalogFlavorProduct } from '../../src/lib/catalog.ts';
 
 export type Product = CatalogFlavorProduct & {
   price?: string;
+  priceAmount?: number;
+  variationId?: string | null;
   boxSize?: string | null;
 };
 
