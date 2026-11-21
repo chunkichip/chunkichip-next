@@ -4,7 +4,7 @@ import {useRef, useState} from 'react';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 
 const photos = [
-  {src: '/thanksgiving-platter.webp', alt: 'Thanksgiving cookie platter with a red ribbon and holiday sticker'},
+  {src: '/thanksgiving-platter-main.webp', alt: 'Thanksgiving cookie platter with a red ribbon and holiday sticker'},
   {src: '/thanksgiving-platter-uncovered.webp', alt: 'Uncovered Chunki Chip cookie platter viewed from the side'},
   {src: '/thanksgiving-platter-closed.webp', alt: 'Chunki Chip cookie platter with its clear lid closed'},
   {src: '/thanksgiving-platter-open.webp', alt: 'Chunki Chip cookie platter with the clear lid lifted'},
@@ -32,10 +32,10 @@ export default function PlatterGallery() {
             show(active + (event.key === 'ArrowRight' ? 1 : -1));
           }
         }}>
-        {photos.map((photo, index) => <div key={photo.src} className="aspect-[4/5] w-full shrink-0 snap-center">
+        {photos.map((photo, index) => <div key={photo.src} className="aspect-square w-full shrink-0 snap-center">
           {/* Static assets avoid runtime image processing on the storefront. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photo.src} alt={photo.alt} width={1080} height={1350} loading={index === 0 ? 'eager' : 'lazy'} draggable={false} className="h-full w-full object-contain"/>
+          <img src={photo.src} alt={photo.alt} width={1080} height={1080} loading={index === 0 ? 'eager' : 'lazy'} draggable={false} className="h-full w-full object-contain"/>
         </div>)}
       </div>
       <button type="button" onClick={() => show(active - 1)} aria-label="Previous platter photo" className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/95 p-3 shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#eb2327]"><ChevronLeft size={22} aria-hidden="true"/></button>
