@@ -423,9 +423,11 @@ app.post('/api/shipping-rates', async (req, res) => {
 
 app.post('/api/create-checkout', async (req, res) => {
   if (!requireSquare(res)) return;
-  const { items, checkoutMethod, locationId, pickupAt, deliveryType, shippingQuoteToken, address: rawAddress } = req.body || {};
+  const { items, checkoutMethod, locationId, pickupAt, pickupName: rawPickupName, deliveryType, shippingQuoteToken, address: rawAddress } = req.body || {};
   if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ error: 'Your bag is empty or contains too many items.' });
   if (!['pickup', 'curbside', 'shipping'].includes(checkoutMethod)) return res.status(400).json({ error: 'Choose a valid fulfillment method.' });
+  const pickupName = typeof rawPickupName === 'string' ? rawPickupName.trim().replace(/\s+/g, ' ') : '';
+  if (checkoutMethod !== 'shipping' && (!pickupName || pickupName.length > 100 || !/\p{L}/u.test(pickupName) || /[\u0000-\u001f\u007f]/.test(pickupName))) return res.status(400).json({ error: 'Enter the name for your pickup order.' });
   const locations = configuredLocations();
   const location = locationId
     ? locations.find((candidate) => candidate.id === locationId)
@@ -470,9 +472,9 @@ app.post('/api/create-checkout', async (req, res) => {
     if (req.body.giftCardCheckout === true) {
       if (!require('./cookieCheckout').configured()) return res.status(503).json({ error: 'Gift card checkout is temporarily unavailable. Please use regular checkout.' });
       if (items.some(item => typeof item.variationId !== 'string' || !item.variationId)) return res.status(400).json({ error: 'These items need to be refreshed before gift card checkout. Please reload the menu.' });
-      const recipient = shippingAddress ? { displayName: shippingAddress.name || 'Shipping customer', phoneNumber: shippingAddress.phone || undefined, address: { addressLine1: shippingAddress.street1, addressLine2: shippingAddress.street2 || undefined, locality: shippingAddress.city, administrativeDistrictLevel1: shippingAddress.state, postalCode: shippingAddress.zip, country: 'US' } } : { displayName: 'Online customer' };
+      const recipient = shippingAddress ? { displayName: shippingAddress.name || 'Shipping customer', phoneNumber: shippingAddress.phone || undefined, address: { addressLine1: shippingAddress.street1, addressLine2: shippingAddress.street2 || undefined, locality: shippingAddress.city, administrativeDistrictLevel1: shippingAddress.state, postalCode: shippingAddress.zip, country: 'US' } } : { displayName: pickupName };
       const created = await square.orders.create({ idempotencyKey: crypto.randomUUID(), order: {
-        locationId: location.squareLocationId, lineItems, referenceId: `${location.name} · ${label}`, source: { name: 'Online Order' },
+        locationId: location.squareLocationId, lineItems, ...(pickupName ? { ticketName: pickupName } : {}), referenceId: `${location.name} · ${label}`, source: { name: 'Online Order' },
         pricingOptions: { autoApplyTaxes: true, autoApplyDiscounts: true },
         fulfillments: [{ uid: checkoutMethod === 'curbside' ? 'curbside' : 'fulfillment', type: checkoutMethod === 'shipping' ? 'SHIPMENT' : 'PICKUP', state: 'PROPOSED', ...(checkoutMethod === 'shipping' ? { shipmentDetails: { recipient } } : { pickupDetails: { recipient, ...pickupDetails } }) }],
         ...(verifiedShippingQuote ? { serviceCharges: [{ uid: 'shipping', name: `${verifiedShippingQuote.carrier} · ${verifiedShippingQuote.service}`, amountMoney: { amount: BigInt(verifiedShippingQuote.amountCents), currency: 'USD' }, calculationPhase: 'TOTAL_PHASE', taxable: false, scope: 'ORDER' }] } : {}),
@@ -485,10 +487,11 @@ app.post('/api/create-checkout', async (req, res) => {
       idempotencyKey: crypto.randomUUID(),
       order: {
         locationId: location.squareLocationId,
+        ...(pickupName ? { ticketName: pickupName } : {}),
         lineItems,
         referenceId: `${location.name} · ${label}`,
         source: { name: 'Online Order' },
-        ...(pickupDetails ? { fulfillments: [{ uid: checkoutMethod === 'curbside' ? 'curbside' : 'pickup', type: 'PICKUP', state: 'PROPOSED', pickupDetails: { recipient: { displayName: checkoutMethod === 'curbside' ? 'Curbside customer' : 'Pickup customer' }, ...pickupDetails } }] } : {}),
+        ...(pickupDetails ? { fulfillments: [{ uid: checkoutMethod === 'curbside' ? 'curbside' : 'pickup', type: 'PICKUP', state: 'PROPOSED', pickupDetails: { recipient: { displayName: pickupName }, ...pickupDetails } }] } : {}),
       },
       checkoutOptions: {
         enableLoyalty: true,

@@ -8,6 +8,7 @@ type Props = { items: unknown[]; method:'pickup'|'curbside'; giftCardCheckout:bo
 const field = 'mt-2 min-h-12 w-full rounded-2xl border border-black/20 bg-white px-4 py-3 text-base font-normal';
 
 export default function PickupCheckout({items,method,giftCardCheckout,onClose}:Props) {
+  const [pickupName,setPickupName] = useState('');
   const [locationId,setLocationId] = useState('');
   const [menu,setMenu] = useState<Menu|null>(null);
   const [mode,setMode] = useState<'earliest'|'later'>('earliest');
@@ -34,9 +35,10 @@ export default function PickupCheckout({items,method,giftCardCheckout,onClose}:P
   function chooseDate(value:string) {setDate(value);setAt(menu?.slots.find(slot => slot.date===value)?.at || '');setError('');}
   async function submit(event:FormEvent) {
     event.preventDefault(); if(!valid || !menu || busy)return;
+    if (!pickupName.trim() || !/\p{L}/u.test(pickupName) || pickupName.trim().length > 100) {setError('Enter the name for your pickup order.');return;}
     setBusy(true);setError('');
     try {
-      const response = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,checkoutMethod:method,giftCardCheckout,locationId:menu.locationId,pickupAt:selectedAt})});
+      const response = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items,checkoutMethod:method,giftCardCheckout,locationId:menu.locationId,pickupAt:selectedAt,pickupName:pickupName.trim()})});
       const data = await response.json();
       if(!response.ok || !data.url)throw new Error(data.error || 'Could not start checkout. Please try again.');
       if(data.curbsideCheckinUrl){try{localStorage.setItem('chunki-curbside-checkin',data.curbsideCheckinUrl);}catch{}}
@@ -49,6 +51,7 @@ export default function PickupCheckout({items,method,giftCardCheckout,onClose}:P
       {loading ? <div role="status" className="flex items-center gap-4 py-10"><CookieSpinner size={40}/><span>Loading available pickup times…</span></div> : menu && <>
         {menu.locations.length>1 ? <label className="mt-6 block font-bold">Pickup location<select className={field} value={menu.locationId} disabled={busy} onChange={e=>setLocationId(e.target.value)}>{menu.locations.map(location=><option key={location.id} value={location.id}>{location.name}</option>)}</select></label> : <p className="mt-5 font-bold">{menu.locationName} · {method==='curbside'?'Curbside':'Carryout'}</p>}
         {menu.slots.length ? <>
+          <label className="mt-6 block font-bold">Name for pickup<input required name="pickupName" autoComplete="name" maxLength={100} value={pickupName} disabled={busy} onChange={e=>setPickupName(e.target.value)} className={field} aria-describedby="pickup-name-help"/><span id="pickup-name-help" className="mt-2 block text-sm font-normal">We’ll use this name on your pickup ticket.</span></label>
           <fieldset disabled={busy} className="mt-6"><legend className="font-bold">When would you like your cookies?</legend><div className="mt-3 grid gap-3 sm:grid-cols-2">{(['earliest','later'] as const).map(value=><label key={value} className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-4 text-sm font-bold ${mode===value?'border-[#eb2327] bg-[#fff7fb]':'border-black/15'}`}><input type="radio" name="pickup-mode" value={value} checked={mode===value} onChange={()=>{setMode(value);setError('');}} className="accent-[#eb2327]"/>{value==='earliest'?'Earliest available':'Schedule for later'}</label>)}</div></fieldset>
           {mode==='later' && <div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="font-bold">Pickup date<select required className={field} value={date} disabled={busy} onChange={e=>chooseDate(e.target.value)}>{dates.map(day=><option key={day} value={day}>{formatDate(day)}</option>)}</select></label><label className="font-bold">Pickup time<select required className={field} value={at} disabled={busy} onChange={e=>{setAt(e.target.value);setError('');}}>{menu.slots.filter(slot=>slot.date===date).map(slot=><option key={slot.at} value={slot.at}>{new Intl.DateTimeFormat('en-US',{timeZone:menu.timezone,hour:'numeric',minute:'2-digit'}).format(new Date(slot.at))}</option>)}</select></label></div>}
           {selectedAt && <div className="mt-6 rounded-2xl bg-[#ffccef] p-5" role="status"><p className="text-xs font-black uppercase tracking-widest">Your pickup time</p><p className="mt-2 text-lg font-bold">{formatAt(selectedAt)}</p><p className="mt-2 text-sm">{menu.locationName} · {method==='curbside'?'Curbside pickup':'In-store pickup'}</p></div>}

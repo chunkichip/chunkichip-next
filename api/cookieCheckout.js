@@ -145,7 +145,7 @@ module.exports = function cookieCheckout() {
    const { order } = await square(`/orders/${encodeURIComponent(row.square_order_id)}`);
    const fulfillment = order.fulfillments?.[0]; if (!fulfillment) throw new Error('Order fulfillment is missing.');
    const field = row.method === 'shipping' ? 'shipment_details' : 'pickup_details';
-   await square(`/orders/${encodeURIComponent(row.square_order_id)}`, { order: { location_id: row.location_id, version: order.version, fulfillments: [{ uid: fulfillment.uid, [field]: { recipient: { ...fulfillment[field]?.recipient, display_name: name, email_address: email, phone_number: phone } } }] } }, 'PUT');
+   await square(`/orders/${encodeURIComponent(row.square_order_id)}`, { order: { location_id: row.location_id, version: order.version, ...(row.method !== 'shipping' ? { ticket_name: name } : {}), fulfillments: [{ uid: fulfillment.uid, [field]: { recipient: { ...fulfillment[field]?.recipient, display_name: name, email_address: email, phone_number: phone } } }] } }, 'PUT');
    return save(row, { contact: { name, email, phone } });
   }
   if (action === 'complete') { await save(row, { status: 'paying' }); return finish(row); }

@@ -20,7 +20,7 @@ test('scheduled curbside and carryout have exact pickup timestamps; curbside ret
  const base = `http://127.0.0.1:${server.address().port}`;
  const menu = await (await realFetch(base+'/api/pickup-options')).json();
  const selected = menu.slots.find(s=>s.date!==menu.slots[0].date);
- const payload = { pickupAt:selected.at, items: [{ variationId: 'variation-1', quantity: 1 }], checkoutMethod: 'curbside' };
+ const payload = { pickupAt:selected.at, items: [{ variationId: 'variation-1', quantity: 1 }], checkoutMethod: 'curbside', pickupName: '  Alex Baker  ' };
  let response = await realFetch(base + '/api/create-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
  let data = await response.json(); assert.equal(response.status, 200, JSON.stringify(data));
  assert.equal(created.order.fulfillments[0].pickup_details.is_curbside_pickup, true);
@@ -29,6 +29,8 @@ test('scheduled curbside and carryout have exact pickup timestamps; curbside ret
  assert.equal(created.order.fulfillments[0].pickup_details.prep_time_duration, 'PT15M');
  assert.match(created.order.fulfillments[0].pickup_details.note, /Pickup:/);
  assert.match(created.payment_note, /Pickup:/);
+ assert.equal(created.order.ticket_name, 'Alex Baker');
+ assert.equal(created.order.fulfillments[0].pickup_details.recipient.display_name, 'Alex Baker');
  assert.equal(updated.payment_link.checkout_options.redirect_url, data.curbsideCheckinUrl);
  assert.equal(new URL(data.curbsideCheckinUrl).hostname, '127.0.0.1');
  assert.equal(updated.payment_link.checkout_options.enable_loyalty, true);
@@ -37,7 +39,13 @@ test('scheduled curbside and carryout have exact pickup timestamps; curbside ret
  updated = null; payload.checkoutMethod = 'pickup';
  response = await realFetch(base + '/api/create-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); data = await response.json();
  assert.equal(response.status, 200); assert.equal(created.order.fulfillments[0].pickup_details.pickup_at, selected.at); assert.equal(created.order.fulfillments[0].pickup_details.schedule_type,'SCHEDULED'); assert.equal(created.order.fulfillments[0].pickup_details.is_curbside_pickup,undefined); assert.equal(updated, null); assert.equal(data.curbsideCheckinUrl, undefined);
+ assert.equal(created.order.ticket_name, 'Alex Baker');
+ assert.equal(created.order.fulfillments[0].pickup_details.recipient.display_name, 'Alex Baker');
  const before=creates;
+ for(const method of ['pickup','curbside']) for(const pickupName of [undefined,'','   ',123,'123', 'A'.repeat(101)]) {
+  const r=await realFetch(base+'/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,checkoutMethod:method,pickupName})});
+  assert.equal(r.status,400);assert.match((await r.json()).error,/name/i);
+ }
  for(const pickupAt of [undefined, 'bad', '2020-01-01T16:00:00.000Z', new Date(Date.now()+40*86400000).toISOString()]) {
   const r=await realFetch(base+'/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,pickupAt})});
   assert.equal(r.status,400);
