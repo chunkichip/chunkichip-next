@@ -39,13 +39,19 @@ module.exports = function thanksgiving({square,configuredLocations,searchCatalog
       const notes=`CATERING · 16 Thanksgiving cookies. Flavors: ${chosen.counts.map(f=>`${f.count} ${f.name}`).join(', ')}. Thanksgiving platter, red ribbon and sticker. Pickup Wednesday November 25.`;
       const taxes=(donor.itemData.taxIds || []).map(id=>({uid:id,catalogObjectId:id,scope:'ORDER'}));
       const idempotencyKey=crypto.createHash('sha256').update(JSON.stringify({attempt:req.body.attemptId,...chosen})).digest('hex');
+      // Square populates buyer contacts from the pickup recipient; buyerEmail conflicts with fulfillments.
       const result=await square.checkout.paymentLinks.create({idempotencyKey,
         order:{locationId:location.squareLocationId,source:{name:'Online Order'},referenceId:'Thanksgiving 2026',ticketName:chosen.name,
           lineItems:[{name:'Thanksgiving Cookie Platter · 16 cookies',quantity:'1',basePriceMoney:{amount:6500n,currency:'USD'},note:notes}],
           ...(taxes.length?{taxes}:{}),fulfillments:[{uid:'thanksgiving-pickup',type:'PICKUP',state:'PROPOSED',pickupDetails:{recipient:{displayName:chosen.name,emailAddress:chosen.email,phoneNumber:chosen.phone},scheduleType:'SCHEDULED',pickupAt:chosen.pickupAt,note:notes}}]},
-        checkoutOptions:{enableLoyalty:true,askForShippingAddress:false,redirectUrl:'https://chunkichip.com/success'},prePopulatedData:{buyerEmail:chosen.email,buyerPhoneNumber:chosen.phone},description:'Thanksgiving platter · Wednesday November 25 pickup',paymentNote:notes});
+        checkoutOptions:{enableLoyalty:true,askForShippingAddress:false,redirectUrl:'https://chunkichip.com/success'},description:'Thanksgiving platter · Wednesday November 25 pickup',paymentNote:notes});
       if(!result.paymentLink?.url)throw new Error('Missing checkout URL');res.json({url:result.paymentLink.url});
-    }catch(e){console.error('Thanksgiving checkout failed:',e.message);res.status(502).json({error:'Could not open checkout. Please retry or call (603) 554-8571.'});}
+    }catch(e){
+      // Log Square's validation codes and fields without customer contact data.
+      const errors=e.errors || e.body?.errors || [];
+      console.error('Thanksgiving checkout failed:',JSON.stringify({status:e.statusCode,errors:errors.map(({code,field})=>({code,field})),message:errors.length?undefined:e.message}));
+      res.status(502).json({error:'Could not open checkout. Please retry or call (603) 554-8571.'});
+    }
   });return router;
 };
 module.exports.validate=validate;module.exports.slots=slots;module.exports.DEADLINE=DEADLINE;
