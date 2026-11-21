@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
 
 export default function SuccessPage() {
@@ -11,48 +12,21 @@ export default function SuccessPage() {
   }, [clearCart]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center overflow-hidden bg-[#fff7f9] px-6 py-20 text-[#2b140d]">
-      <section className="relative w-full max-w-3xl overflow-hidden rounded-[3rem] border border-[#ffe3f3] bg-white p-10 text-center shadow-2xl md:p-16">
-        <div className="absolute left-[-120px] top-[-120px] h-[260px] w-[260px] rounded-full bg-pink-200 blur-3xl" />
-        <div className="absolute bottom-[-120px] right-[-120px] h-[260px] w-[260px] rounded-full bg-red-200 blur-3xl" />
+    <main className="soft-page flex min-h-[calc(100svh-6rem)] items-center justify-center px-5 py-12 text-[#171315] md:px-12 md:py-16">
+      <section aria-labelledby="confirmation-heading" className="soft-card w-full max-w-3xl px-6 py-10 text-center sm:px-10 md:p-16">
+        <div className="soft-inset mx-auto flex h-36 w-36 items-center justify-center rounded-full md:h-44 md:w-44">
+          {/* Use the storefront's cookie mark without the loading animation. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/spinner-red.png" alt="Chunki Chip cookie" width={104} height={104} className="h-24 w-24 object-contain md:h-28 md:w-28"/>
+        </div>
 
-        <div className="relative z-10">
-          <img
-            src="/loading.png"
-            alt="Success"
-            className="mx-auto h-28 w-28 object-contain"
-          />
+        <p className="mt-8 text-xs font-black uppercase tracking-[.22em] text-[#eb2327]">Order confirmed</p>
+        <h1 id="confirmation-heading" className="brand-heading mt-4 text-6xl leading-[.95] sm:text-7xl md:text-8xl">COOKIES<br/>INCOMING.</h1>
+        <p className="mx-auto mt-6 max-w-md text-base leading-7 text-black/70 md:text-lg md:leading-8">Thanks for your order! Your Square receipt has your order details and pickup or shipping information.</p>
 
-          <p className="mt-8 text-sm font-black uppercase tracking-[0.3em] text-[#eb2327]">
-            Order Confirmed
-          </p>
-
-          <h1 className="brand-heading mt-4 text-6xl leading-none md:text-7xl">
-            COOKIES
-            <br />
-            INCOMING
-          </h1>
-
-          <p className="mx-auto mt-8 max-w-xl text-lg leading-8 text-[#6f4b3e]">
-            Your order was placed successfully and the kitchen is getting to
-            work.
-          </p>
-
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a
-              href="/"
-              className="inline-flex h-[54px] items-center justify-center rounded-full bg-black px-8 text-base font-semibold text-white transition hover:scale-[1.02]"
-            >
-              Back To Menu
-            </a>
-
-            <a
-              href="/#cookies"
-              className="inline-flex h-[54px] items-center justify-center rounded-full border border-[#ffccef] bg-white px-8 text-base font-semibold text-[#2b140d] transition hover:scale-[1.02]"
-            >
-              Order More
-            </a>
-          </div>
+        <div className="mx-auto mt-8 flex max-w-md flex-col justify-center gap-4 sm:flex-row">
+          <Link href="/#single-cookies" className="soft-action inline-flex min-h-14 flex-1 items-center justify-center px-7 py-4 font-bold text-white">Back to menu</Link>
+          <Link href="/#boxes" className="soft-card inline-flex min-h-14 flex-1 items-center justify-center rounded-full px-7 py-4 font-bold">Order more</Link>
         </div>
       </section>
     </main>

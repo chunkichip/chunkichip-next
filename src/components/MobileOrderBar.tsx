@@ -14,7 +14,7 @@ export default function MobileOrderBar() {
   }, []);
 
   if (!mounted) return null;
-  if (pathname.startsWith('/product/') || pathname.startsWith('/catering')) return null;
+  if (pathname === '/success' || pathname.startsWith('/product/') || pathname.startsWith('/catering')) return null;
   if (totalItems > 0) return null;
 
   return (
