@@ -5,6 +5,8 @@ const DEADLINE = Date.parse('2026-11-24T00:00:00-05:00');
 const START = Date.parse('2026-11-25T10:00:00-05:00');
 const END = Date.parse('2026-11-25T19:00:00-05:00');
 const slots = Array.from({length:19}, (_, i) => new Date(START + i * 30 * 60000).toISOString());
+// Temporary private authorization for one printer test; only its digest is stored.
+const PRIVATE_TEST = {digest:'d6842faebecfb2e52245f45e7f6fa6ccbb6dc716cb05ba94c6287534e8c1b4e7',expiresAt:Date.parse('2026-11-21T22:30:00Z')};
 function validate(body, now = Date.now()) {
   if (now >= DEADLINE) throw new Error('Thanksgiving preorders are closed.');
   if (!slots.includes(body.pickupAt)) throw new Error('Choose Wednesday, November 25, between 10 AM and 7 PM.');
@@ -19,12 +21,18 @@ function validate(body, now = Date.now()) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.attemptId || '')) throw new Error('Refresh the page and try again.');
   return {counts:counts.filter(f=>f.count),name,email,phone:'+1'+digits,pickupAt:body.pickupAt};
 }
-module.exports = function thanksgiving({square,configuredLocations,searchCatalog,now=Date.now}) {
+module.exports = function thanksgiving({square,configuredLocations,searchCatalog,now=Date.now,privateTest=PRIVATE_TEST}) {
   const router=express.Router();const limits=new Map();
   router.get('/menu',(_req,res)=>res.set('Cache-Control','no-store').json({open:now()<DEADLINE,price:6500,size:16,flavors:FLAVORS,slots,deadline:'2026-11-24T00:00:00-05:00'}));
   router.post('/checkout',async(req,res)=>{
     let chosen;
     try {chosen=validate(req.body || {},now());}catch(e){return res.status(400).json({error:e.message});}
+    const isTest=Object.prototype.hasOwnProperty.call(req.body,'privateTestToken');
+    if(isTest){
+      const token=req.body.privateTestToken;
+      const digest=crypto.createHash('sha256').update(typeof token==='string'?token:'').digest('hex');
+      if(!privateTest || now()>=privateTest.expiresAt || !/^[a-f0-9]{64}$/.test(privateTest.digest || '') || !crypto.timingSafeEqual(Buffer.from(digest,'hex'),Buffer.from(privateTest.digest,'hex')))return res.status(403).json({error:'This private test checkout is unavailable.'});
+    }
     const time=now();for(const [k,v] of limits)if(v.until<time)limits.delete(k);
     const key=req.socket.remoteAddress || 'unknown';const rate=limits.get(key)||{until:time+60000,count:0};limits.set(key,rate);
     if(++rate.count>20)return res.status(429).json({error:'Please wait a minute before trying again.'});
@@ -36,13 +44,14 @@ module.exports = function thanksgiving({square,configuredLocations,searchCatalog
       // Use the same catalog tax assignments as the shop's standard cookie boxes.
       const donor=catalog.find(item=>!item.isDeleted && !item.itemData?.isArchived && /^\d+\s+cookie\s+box$/i.test(item.itemData?.name || '') && !(item.absentAtLocationIds || []).includes(location.squareLocationId) && (item.presentAtAllLocations!==false || (item.presentAtLocationIds || []).includes(location.squareLocationId)));
       if(!donor)throw new Error('Cookie catalog unavailable');
-      const notes=`CATERING · 16 Thanksgiving cookies. Flavors: ${chosen.counts.map(f=>`${f.count} ${f.name}`).join(', ')}. Thanksgiving platter, red ribbon and sticker. Pickup Wednesday November 25.`;
+      const notes=`${isTest?'TEST ONLY · DO NOT BAKE. ':''}CATERING · 16 Thanksgiving cookies. Flavors: ${chosen.counts.map(f=>`${f.count} ${f.name}`).join(', ')}. Thanksgiving platter, red ribbon and sticker. Pickup Wednesday November 25.`;
       const taxes=(donor.itemData.taxIds || []).map(id=>({uid:id,catalogObjectId:id,scope:'ORDER'}));
-      const idempotencyKey=crypto.createHash('sha256').update(JSON.stringify({attempt:req.body.attemptId,...chosen})).digest('hex');
+      // All private test retries share one key, so the authorization cannot create multiple links.
+      const idempotencyKey=crypto.createHash('sha256').update(isTest?`thanksgiving-printer-test:${privateTest.digest}`:JSON.stringify({attempt:req.body.attemptId,...chosen})).digest('hex');
       // Square populates buyer contacts from the pickup recipient; buyerEmail conflicts with fulfillments.
       const result=await square.checkout.paymentLinks.create({idempotencyKey,
-        order:{locationId:location.squareLocationId,source:{name:'Online Order'},referenceId:'Thanksgiving 2026',ticketName:chosen.name,
-          lineItems:[{name:'Thanksgiving Cookie Platter · 16 cookies',quantity:'1',basePriceMoney:{amount:6500n,currency:'USD'},note:notes}],
+        order:{locationId:location.squareLocationId,source:{name:'Online Order'},referenceId:isTest?'TEST Thanksgiving 2026':'Thanksgiving 2026',ticketName:chosen.name,
+          lineItems:[{name:`${isTest?'TEST · ':''}Thanksgiving Cookie Platter · 16 cookies`,quantity:'1',basePriceMoney:{amount:isTest?100n:6500n,currency:'USD'},note:notes}],
           ...(taxes.length?{taxes}:{}),fulfillments:[{uid:'thanksgiving-pickup',type:'PICKUP',state:'PROPOSED',pickupDetails:{recipient:{displayName:chosen.name,emailAddress:chosen.email,phoneNumber:chosen.phone},scheduleType:'SCHEDULED',pickupAt:chosen.pickupAt,note:notes}}]},
         checkoutOptions:{enableLoyalty:true,askForShippingAddress:false,redirectUrl:'https://chunkichip.com/success'},description:'Thanksgiving platter · Wednesday November 25 pickup',paymentNote:notes});
       if(!result.paymentLink?.url)throw new Error('Missing checkout URL');res.json({url:result.paymentLink.url});

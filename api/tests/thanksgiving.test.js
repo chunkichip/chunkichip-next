@@ -11,3 +11,15 @@ test('checkout keeps server price, inherited tax, recipient and exact pickup; in
  assert.equal((await send({...make(),price:1,checkoutMethod:'shipping'})).status,200);assert.equal(payload.order.lineItems[0].basePriceMoney.amount,6500n);assert.equal(payload.order.lineItems[0].quantity,'1');assert.equal(payload.order.ticketName,'Alex Baker');assert.equal(payload.prePopulatedData,undefined);assert.equal(payload.order.fulfillments[0].pickupDetails.recipient.emailAddress,'alex@example.com');assert.equal(payload.order.fulfillments[0].type,'PICKUP');assert.equal(payload.order.fulfillments[0].pickupDetails.pickupAt,thanksgiving.slots[0]);assert.equal(payload.order.fulfillments[0].pickupDetails.recipient.phoneNumber,'+16035550123');assert.equal(payload.order.taxes[0].catalogObjectId,'cookie-tax');assert.match(payload.order.lineItems[0].note,/4 Golden Oreo Birthday Cake/);
  assert.equal((await send({...make(),name:''})).status,400);assert.equal((await send({...make(),pickupAt:'2026-11-24T15:00:00.000Z'})).status,400);assert.equal(calls,1);
 });
+test('private printer test requires an unexpired secret and cannot change public prices or create fresh links on retry',async t=>{
+ const token='private-printer-test-secret';let clock=fixed;const sent=[];
+ const square={locations:{get:async()=>({location:{status:'ACTIVE'}})},checkout:{paymentLinks:{create:async body=>{sent.push(body);return{paymentLink:{url:'https://square.link/test'}};}}}};
+ const app=express();app.use(express.json());app.use('/checkout',thanksgiving({square,configuredLocations:()=>[{id:'milford',squareLocationId:'shop'}],searchCatalog:async()=>[{itemData:{name:'12 Cookie Box',taxIds:['cookie-tax']}}],now:()=>clock,privateTest:{digest:crypto.createHash('sha256').update(token).digest('hex'),expiresAt:fixed+60000}}));
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>server.close(r)));const url=`http://127.0.0.1:${server.address().port}/checkout/checkout`;
+ const send=body=>fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ assert.equal((await send({...make(),privateTestToken:'wrong'})).status,403);assert.equal(sent.length,0);
+ assert.equal((await send({...make(),price:100,isTest:true})).status,200);assert.equal(sent.at(-1).order.lineItems[0].basePriceMoney.amount,6500n);
+ assert.equal((await send({...make(),privateTestToken:token})).status,200);const first=sent.at(-1);assert.equal(first.order.lineItems[0].basePriceMoney.amount,100n);assert.equal(first.order.taxes[0].catalogObjectId,'cookie-tax');assert.match(first.order.lineItems[0].note,/TEST ONLY · DO NOT BAKE/);assert.equal(first.order.fulfillments[0].pickupDetails.recipient.displayName,'Alex Baker');
+ assert.equal((await send({...make(),privateTestToken:token})).status,200);assert.equal(sent.at(-1).idempotencyKey,first.idempotencyKey);
+ clock=fixed+60000;assert.equal((await send({...make(),privateTestToken:token})).status,403);assert.equal(sent.length,3);
+});
