@@ -10,6 +10,7 @@ const links = [
   { label: 'Menu', href: '/#single-cookies' },
   { label: 'Flavor Archive', href: '/flavor-archive' },
   { label: 'Catering', href: '/catering' },
+  { label: 'Hoodies', href: '/hoodies' },
   { label: 'Gift cards', href: '/gift-cards' },
   { label: 'Rewards', href: '/rewards' },
   { label: 'Careers', href: '/careers' },

@@ -22,7 +22,7 @@ export default function Header({
   const totalItems = useCartStore((state) => state.totalItems());
   const totalAmount = useCartStore((state) => state.totalAmount());
 
-  const hideMobileCartBar = /^\/(thanksgiving|catering|product|gift-cards|checkout|success|curbside)(\/|$)/.test(pathname);
+  const hideMobileCartBar = /^\/(hoodies|thanksgiving|catering|product|gift-cards|checkout|success|curbside)(\/|$)/.test(pathname);
 
   useEffect(() => {
     setMounted(true);
